@@ -1,0 +1,64 @@
+{
+  "boards": 8,
+  "screenStates": 26,
+  "currentRevision": "blank-bottles",
+  "galleryReferences": "all eight present",
+  "files": [
+    {
+      "file": "01-start-profile.png",
+      "width": 1638,
+      "height": 960,
+      "format": "png",
+      "bytes": 1678444
+    },
+    {
+      "file": "02-preferences.png",
+      "width": 1639,
+      "height": 960,
+      "format": "png",
+      "bytes": 1659684
+    },
+    {
+      "file": "03-camera.png",
+      "width": 1638,
+      "height": 960,
+      "format": "png",
+      "bytes": 1754527
+    },
+    {
+      "file": "04-upload-analysis.png",
+      "width": 1639,
+      "height": 960,
+      "format": "png",
+      "bytes": 1750975
+    },
+    {
+      "file": "05-results.png",
+      "width": 1639,
+      "height": 960,
+      "format": "png",
+      "bytes": 1766309
+    },
+    {
+      "file": "06-receipt.png",
+      "width": 1639,
+      "height": 960,
+      "format": "png",
+      "bytes": 1794904
+    },
+    {
+      "file": "07-utilities.png",
+      "width": 1895,
+      "height": 830,
+      "format": "png",
+      "bytes": 1766347
+    },
+    {
+      "file": "08-mobile.png",
+      "width": 1717,
+      "height": 916,
+      "format": "png",
+      "bytes": 1731881
+    }
+  ]
+}

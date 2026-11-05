@@ -1,0 +1,92 @@
+{
+  "generator": "built-in image_gen",
+  "sourceWorktree": "/Users/idongju/Developer/acscent-ai-perfumer",
+  "mode": "ai-perfumer",
+  "reviewed": true,
+  "screenStates": 26,
+  "outputBoards": 8,
+  "selected": [
+    {
+      "id": "01",
+      "file": "01-start-profile.png",
+      "title": "시작·프로필·키보드",
+      "source": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-52dd23e1-c68a-45d8-811d-8f032eae5337.png"
+    },
+    {
+      "id": "02",
+      "file": "02-preferences.png",
+      "title": "스타일·성격·매력",
+      "source": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-6f21bb17-b698-497e-8708-ec4e15195121.png"
+    },
+    {
+      "id": "03",
+      "file": "03-camera.png",
+      "title": "촬영·카운트다운·사진 확인",
+      "source": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-54014d83-8daf-4374-a75e-96ae9ecd6e3b.png"
+    },
+    {
+      "id": "04",
+      "file": "04-upload-analysis.png",
+      "title": "QR 전송·분석 대기·재시도",
+      "source": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-8039d10e-50b3-4661-abec-481e605240c3.png"
+    },
+    {
+      "id": "05",
+      "file": "05-results.png",
+      "title": "향 추천·프로필·해석",
+      "source": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-3ab1faac-ee1a-42f8-8832-b9a88b7c8da2.png"
+    },
+    {
+      "id": "06",
+      "file": "06-receipt.png",
+      "title": "영수증·인쇄 중·출력 완료",
+      "source": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-3dbd885c-fd85-4869-8d07-c20bd86e9eb0.png"
+    },
+    {
+      "id": "07",
+      "file": "07-utilities.png",
+      "title": "언어·시간 연장·오류 안내",
+      "source": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-2d5b1c0d-f0d2-436f-ae42-bf138804d759.png"
+    },
+    {
+      "id": "08",
+      "file": "08-mobile.png",
+      "title": "휴대폰 선택·확인·전송·완료",
+      "source": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-bb8ce537-54d6-441a-806c-d5d9830f087d.png"
+    }
+  ],
+  "refinements": [
+    {
+      "id": "02",
+      "source": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-cc6aa0fc-0446-4b65-b8b0-587beae3e580.png",
+      "prompt": "Use case: precise-object-edit. This is an existing three-panel SCENT! kiosk UI board. Change ONLY the small progress indicator in the LEFT STYLE SCREEN. It currently has 4 dots. Make exactly FIVE evenly spaced small dots on a fine horizontal connecting line within the same width; second dot cobalt, remaining4lightgrey. This is step02of05. Leave CENTER and RIGHT progress indicators unchanged. Preserve allthree fullportraitpanels, all8choices each, selectioncheckmarks, count2/3, texts, imagery, buttons, spacing andcolors. No crop, nootheredits.",
+      "selected": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-f8b4ded0-28ae-4877-863f-a1b423e084e7.png"
+    },
+    {
+      "id": "06",
+      "source": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-553024e0-3f57-4b7c-9988-90cbb4b103f3.png",
+      "prompt": "Use case: precise-object-edit. Correct ONLY two small details in this three-panel SCENT! receipt/printing/completion kiosk design board. 1. REMOVE the tiny grey/blue progress-dot rows just below the top header in ALLTHREEpanels and fill with matchingivory. These are result screens, notinputsteps. Keep the blue \"출력 요청 완료\" pill. 2. ALL content physically printed on every paper RECEIPT must be GRAYSCALE BLACK AND WHITE, including the SCENT! wordmark exclamation mark which is currently blue. Change the blue exclamation on PAPER RECEIPTS to black. Keep appheaderwordmark exclamationmarks andbuttons cobalt; keeptheprinterblueglow andglasssphereblue. Preserve all Korean text, #042, 10ml, fragrance2ml,base8ml, receipt layout, photos, backgroundart, allthreefullportraitpanels. Nootheredits. No crop.",
+      "selected": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-750a6a1e-ae37-4d3a-b546-9b706e96b29d.png"
+    },
+    {
+      "id": "08",
+      "source": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-9be75d76-0635-4df4-ae04-40a77d0e53be.png",
+      "prompt": "Use case: precise-object-edit. This is an existing FOUR-panel SCENT! phone photo-upload UI board. Change ONLY the progress indicators: REMOVE the entire row of5smallblue/greydotsandconnectinglinebelowtheheader inpanels1,2,3, fill withmatchingivoryblankbackground. Panel4hasnodotsalready,leaveunchanged. Preserve allfourfullportraitscreens, names, headers, connectionbadges, buttonlabels, womanphotos, illustration, loadingring, colors andpositions EXACTLY. No new text,no redesign,no crop. Thephoneuploaddoesnotusekiosk5-stepindicator.",
+      "selected": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-da2be525-fc8a-48c2-8f25-1b8e2418be69.png"
+    }
+  ],
+  "review": [
+    "Eight boards visually reviewed: 3+3+3+3+3+3+4+4 portrait views =26 screen states.",
+    "Event/popup ai-perfumer only: personal photo, fixed10ml perfume, camera first, no product selection or checkout.",
+    "All8 choices present in each preference screen; selected counts2/3 agree withtwo checks.",
+    "Five input-step markers reviewed andcorrected in boards01and02; resultandmobile stepmarkers removed.",
+    "Result board contains 10traitlabels,6scentcategories,5colors,3scentnotes andreadingchapter.",
+    "Recipe2mlfragrance+8mlbase isvisible; paperreceipts corrected toblackandwhite.",
+    "Actual photographic subjects,QRpatterns,ticketnumberandanalysisvalues areillustrative.",
+    "Dedicated completion screen isproposedUX refinement. Actualapplicationcodewasnotmodified.",
+    "All bottle surfaces visually reviewed; 11 bottle instances cleared, including 2 tiny bottles inside kiosk illustrations. UI, receipt and name-card text preserved."
+  ],
+  "currentRevision": "blank-bottles",
+  "bottleRequirement": "All perfume bottles are completely plain: no text, logo, icon, volume marking or label.",
+  "revisionManifest": "blank-bottles-manifest.json"
+}

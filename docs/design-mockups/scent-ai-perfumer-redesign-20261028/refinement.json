@@ -1,0 +1,7 @@
+{
+  "id": "01",
+  "reason": "Removed incorrect progress captions; retained five input-step dots.",
+  "prompt": "Use case: precise-object-edit / ui-mockup. Edit this existing three-screen SCENT! AI 조향사 kiosk design board. Change ONLY the progress indicators in the CENTER and RIGHT panels. Keep exactly 5 small connected circles in each (first cobalt, other4lightgrey), and REMOVE all the small 01/02/03/04/05 numbers and Korean captions DIRECTLY UNDER those circle rows, leaving clean ivory. Keep the separate larger \"01 / 05 나를 소개해요\" text lower down exactly as is. The flow's 5steps are profile/style/personality/charm/photo, and the old tiny captions described incorrect steps, so those captions must disappear. Preserve every other detail: all three full9:16panels, left welcome, titles, photos, bottles, name 서연, genderchoices, keyboard, buttons, colors, originalcomposition, exactsameimagebounds. No other redesign, no crop, no new text.",
+  "source": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-427087c6-94b3-4966-86d6-ded831a050a6.png",
+  "selected": "/Users/idongju/.codex/generated_images/01a182ba-a84b-75c1-b314-cda8c5435e38/exec-378c6689-a613-41e1-abf5-51a76ae23ad8.png"
+}
