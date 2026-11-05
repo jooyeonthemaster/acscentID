@@ -90,11 +90,10 @@ export function QrCard({ state, label = '휴대폰으로 저장', progress }: {
 }
 
 /** 인쇄 — 부스 앱이면 프린터로 바로, 브라우저면 인쇄 창(미리보기).
- *  options(부스 앱만): cut '2inch' = 띠지 두 장으로 자르기(ANSAN), copies = 장수(4×6 기준), more = 이어서 한 장 더 보낼 다른 원판(홀수 장수의 마지막 한 줄) */
-export function usePrint(image: string | null, onPrinted: () => void, options?: { cut?: '2inch'; copies?: number; more?: string | null }) {
+ *  options(부스 앱만): cut '2inch' = 사진 두 장으로 자르기(ANSAN), copies = 장수(4×6 기준) */
+export function usePrint(image: string | null, onPrinted: () => void, options?: { cut?: '2inch'; copies?: number }) {
   const cut = options?.cut
   const copies = options?.copies ?? 1
-  const more = options?.more ?? null
   const [state, setState] = useState<PrintState>('idle')
   const [error, setError] = useState<string | null>(null)
   const print = useCallback(async () => {
@@ -108,14 +107,13 @@ export function usePrint(image: string | null, onPrinted: () => void, options?: 
       return
     }
     try {
-      const first = await shell.print(image, cut || copies > 1 ? { ...(cut ? { cut } : {}), ...(copies > 1 ? { copies } : {}) } : undefined)
-      const result = first.ok && more ? await shell.print(more, cut ? { cut } : undefined) : first
+      const result = await shell.print(image, cut || copies > 1 ? { ...(cut ? { cut } : {}), ...(copies > 1 ? { copies } : {}) } : undefined)
       if (result.ok) setState('sent')
       else { setState('failed'); setError(result.error || '프린터가 응답하지 않아요.') }
     } catch (cause) {
       setState('failed'); setError(cause instanceof Error ? cause.message : '프린터가 응답하지 않아요.')
     }
-  }, [image, state, onPrinted, cut, copies, more])
+  }, [image, state, onPrinted, cut, copies])
   return { state, error, print, browser: !getBoothShell() }
 }
 

@@ -85,7 +85,7 @@ interface Completion {
 /** 첫 모델이 늦거나 실패할 때 다시 시도하는 더 빠른 이미지 모델 */
 const FALLBACK_MODEL = 'google/gemini-2.5-flash-image'
 
-/** 생성 모양 — 기본은 인화 원판(4×6 세로 2:3)에 맞춘 2K. 2×6 띠지 네 컷(ANSAN 타임캡슐)은 가로 3:2 칸이 작아 1K 로 빨리 */
+/** 생성 모양 — 기본은 인화 원판(4×6 세로 2:3)에 맞춘 2K. 2×6 사진 네 컷(ANSAN 타임캡슐)은 가로 3:2 칸이 작아 1K 로 빨리 */
 export interface BoothImageOptions {
   aspectRatio?: '2:3' | '3:2'
   imageSize?: '1K' | '2K'

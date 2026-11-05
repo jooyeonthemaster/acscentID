@@ -1,6 +1,6 @@
-// ANSAN 타임캡슐 인화물 — 2×6 띠지(600×1800, 300dpi) 네 컷: 지금(찍은 사진) · 10 · 20 · 30년 후(AI).
-// 프린터(DS-RX1)는 4×6 용지에 '2 inch cut'을 켜면 가운데를 잘라 띠지 두 장을 낸다 → 인쇄 원판은 4×6(1200×1800)에
-// 같은 띠지 둘을 나란히. 폰 저장(QR)은 띠지 한 장. 자르는 자리(가운데)·용지 가장자리에 글자·사진이 걸리지 않게 여백.
+// ANSAN 타임캡슐 인화물 — 2×6 사진(600×1800, 300dpi) 네 컷: 지금(찍은 사진) · 10 · 20 · 30년 후(AI).
+// 프린터(DS-RX1)는 4×6 용지에 '2 inch cut'을 켜면 가운데를 잘라 사진 두 장을 낸다 → 인쇄 원판은 4×6(1200×1800)에
+// 같은 사진 둘을 나란히. 폰 저장(QR)은 사진 한 장. 자르는 자리(가운데)·용지 가장자리에 글자·사진이 걸리지 않게 여백.
 // 여백은 넉넉히(2026-11-04 실물 시험): 드라이버 용지가 테두리 여분까지 찍는 (4x6) 면 원판이 3~4% 커져 위 제목이 종이 끝에 붙고
 // 아래 날짜가 반쯤 잘렸다 — 위아래 약 6~7mm · 좌우 약 4mm 를 비운다.
 // 기본 디자인 2종(renderStrip): 타임캡슐(라벤더 · LATER! 테마) / 우주 정거장(남색 밤하늘). 프레임 10종은 renderFrameStrip.
@@ -11,7 +11,7 @@ import { A, G, P, cover, photoClip, rect, shadow, star, text, today, type Pic } 
 
 export const STRIP_W = 600
 export const STRIP_H = 1800
-/** 띠지 좌우 여백 — 자르는 칼 오차·용지 여분 확대에 사진이 잘리지 않게 */
+/** 사진 좌우 여백 — 자르는 칼 오차·용지 여분 확대에 사진이 잘리지 않게 */
 const SIDE = 46
 const CELL_W = STRIP_W - SIDE * 2
 const CELL_H = Math.round(CELL_W / 1.5)
@@ -95,7 +95,7 @@ function cell(ctx: Ctx, theme: Theme, pic: Pic | null, i: number, year: number, 
   text(ctx, label, px + 26 + yw, py + 30, `700 20px ${G()}`, theme.pillText, 'left')
 }
 
-/** 띠지 한 장(600×1800) 캔버스 */
+/** 사진 한 장(600×1800) 캔버스 */
 export function renderStrip(design: 0 | 1, input: StripInput): HTMLCanvasElement {
   const theme = THEMES[design]
   const canvas = document.createElement('canvas')
@@ -141,7 +141,7 @@ function framePill(ctx: Ctx, def: StripFrameDef, i: number, year: number, label:
   text(ctx, label, px + 26 + yw, py + 30, `700 20px ${G()}`, def.colors.pillText, 'left')
 }
 
-/** 프레임 띠지 한 장(600×1800) — 사진 → 프레임 → 이름표·아래 글자 */
+/** 프레임 사진 한 장(600×1800) — 사진 → 프레임 → 이름표·아래 글자 */
 export function renderFrameStrip(def: StripFrameDef, overlay: Pic, input: StripInput): HTMLCanvasElement {
   const canvas = document.createElement('canvas')
   canvas.width = STRIP_W; canvas.height = STRIP_H
@@ -177,7 +177,7 @@ export function framePhotoLayer(input: StripInput): string {
   return canvas.toDataURL('image/jpeg', 0.8)
 }
 
-/** 띠지 캔버스를 고르는 칸 크기(240×720)로 */
+/** 사진 캔버스를 고르는 칸 크기(240×720)로 */
 export function stripThumb(strip: HTMLCanvasElement): string {
   const canvas = document.createElement('canvas')
   canvas.width = 240; canvas.height = 720
@@ -188,14 +188,14 @@ export function stripThumb(strip: HTMLCanvasElement): string {
 }
 
 /**
- * 인쇄 원판 4×6(1200×1800) — 프린터가 가운데를 잘라 두 줄이 된다. lines 2: 띠지 둘을 나란히 / 1: 왼쪽에만(오른쪽 줄은 비어 나온다, 홀수 장수)
+ * 인쇄 원판 4×6(1200×1800) — 같은 사진 둘을 나란히. 프린터가 가운데를 잘라 두 조각이 된다(한쪽을 비우면 빈 종이가 나온다)
  */
-export function stripSheet(strip: HTMLCanvasElement, lines: 1 | 2 = 2): string {
+export function stripSheet(strip: HTMLCanvasElement): string {
   const canvas = document.createElement('canvas')
   canvas.width = STRIP_W * 2; canvas.height = STRIP_H
   const ctx = canvas.getContext('2d')!
   ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height)
   ctx.drawImage(strip, 0, 0)
-  if (lines === 2) ctx.drawImage(strip, STRIP_W, 0)
+  ctx.drawImage(strip, STRIP_W, 0)
   return canvas.toDataURL('image/jpeg', 0.93)
 }

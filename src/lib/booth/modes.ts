@@ -93,11 +93,11 @@ export const BOOTH_MODES: BoothMode[] = [
     printQr: true,
   },
   // 안산사이언스밸리 과학축제 AI 포토존 — 프로그램 'LATER! 미래로 가는 타임캡슐'(catalog 'ansan-2026', 화면 StripFlow) 하나만 돈다.
-  // 모드 id = 프로그램 id 라 BoothScreen 이 그대로 프로그램 화면을 고른다. 이용권 없이(pass-policy), 인쇄는 2×6 띠지 둘(2인치 자르기)
+  // 모드 id = 프로그램 id 라 BoothScreen 이 그대로 프로그램 화면을 고른다. 이용권 없이(pass-policy), 인쇄는 2×6 사진 둘(2인치 자르기)
   {
     id: 'ansan-2026',
     label: 'ANSAN 안산사이언스밸리 과학축제',
-    note: '2026.11.7~11.8 · 한양대 ERICA · AI 포토존 미래 타임캡슐 · 1~4인 · 2×6 띠지 네 컷',
+    note: '2026.11.7~11.8 · 한양대 ERICA · AI 포토존 미래 타임캡슐 · 1~4인 · 2×6 사진 네 컷',
     brandLine: 'ANSAN · AI PHOTO ZONE',
     storeEvents: false,
     program: 'ansan-2026',

@@ -3,8 +3,8 @@
 // ANSAN 타임캡슐 흐름(2026 안산사이언스밸리 과학축제 AI 포토존) — 직원 없이 손님 혼자 끝까지:
 // 촬영(가로 3:2, 혼자~4명, 동의 · 5초) → 확인 → AI 미래 세 장(/api/photobooth/timecapsule) → 네 컷 보기 → 프레임·장수 고르기 → 인화(자동) · QR.
 // 장면 옵션은 없다(컷마다 장면이 정해져 있다). 못 만든 칸은 한 번 저절로 다시 부탁하고, 그래도 없으면 '도착하는 중' 칸으로 인화한다.
-// 프레임은 기본 디자인 2종 + 프레임 10종(strip-frames.ts). 장수는 1장 단위, 최대·자동 인화수는 관리자 창(strip-count.ts).
-// 인쇄 원판은 4×6 에 띠지 두 줄(프린터 2인치 자르기), 홀수 장수의 마지막 장은 한 줄만. 폰 저장은 띠지 한 장(strip-print.ts).
+// 프레임은 기본 디자인 2종 + 프레임 10종(strip-frames.ts). 장수는 2장 단위, 최대·자동 인화수는 관리자 창(strip-count.ts).
+// 인쇄 원판은 4×6 에 같은 사진 둘(프린터 2인치 자르기). 폰 저장은 사진 한 장(strip-print.ts).
 
 import { AlertTriangle, ArrowLeft, Camera, CameraOff, Check, ImagePlus, Printer, RefreshCw, RotateCcw, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
@@ -18,7 +18,7 @@ import { PhoneSheet } from './PhotoFlow'
 import { savePhoto } from './save'
 import { PrintCard, QrCard, usePrint, useSavedLink } from './SavePanel'
 import { framePhotoLayer, renderFrameStrip, renderStrip, stripSheet, stripThumb, type StripInput } from './strip-print'
-import { STRIPS_PER_SHEET, readStripAuto, readStripMax, stripCountOptions, stripPrintPlan } from './strip-count'
+import { STRIPS_PER_SHEET, readStripAuto, readStripMax, stripCountOptions, stripSheets } from './strip-count'
 import { Creative, PanelHead, Progress, Split, Stages, useElapsed } from './ui'
 import { loadImage } from './video'
 
@@ -36,10 +36,10 @@ function crop32(src: HTMLCanvasElement | HTMLImageElement): HTMLCanvasElement {
   return canvas
 }
 
-/** 고를 수 있는 띠지 — 기본 디자인(basic) 또는 프레임(frame) */
+/** 고를 수 있는 사진 — 기본 디자인(basic) 또는 프레임(frame) */
 interface StripChoice { id: string; name: string; basic?: 0 | 1; frame?: StripFrameDef }
 /** 인화로 넘기는 것 */
-interface StripOrder { strip: string; sheet: string; copies: number; more: string | null; count: number }
+interface StripOrder { strip: string; sheet: string; copies: number; count: number }
 
 export function StripFlow({ ctx }: { ctx: FlowCtx }) {
   const [step, setStep] = useState<Step>('capture')
@@ -50,11 +50,11 @@ export function StripFlow({ ctx }: { ctx: FlowCtx }) {
   const [choiceId, setChoiceId] = useState('')
   const [order, setOrder] = useState<StripOrder | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  // 인화 장수 — 1장 단위, 최대·자동 인화수는 이 부스 관리자 설정(strip-count.ts). 인원수를 알고 나서 정한다
+  // 인화 장수 — 2장 단위, 최대·자동 인화수는 이 부스 관리자 설정(strip-count.ts). 인원수를 알고 나서 정한다
   const [countChoices, setCountChoices] = useState<number[]>([STRIPS_PER_SHEET])
   const [count, setCount] = useState(STRIPS_PER_SHEET)
   const [autoCount, setAutoCount] = useState(false)
-  /** 이번 손님의 띠지 캔버스 — 프레임을 다시 고를 때 또 그리지 않게 */
+  /** 이번 손님의 사진 캔버스 — 프레임을 다시 고를 때 또 그리지 않게 */
   const rendered = useRef(new Map<string, HTMLCanvasElement>())
 
   const { setStep: showStep, setDirty } = ctx
@@ -184,10 +184,7 @@ function FrameStep({ ctx, input, rendered, choiceId, onChoice, countChoices, cou
   const print = () => {
     const strip = rendered.current.get(chosen.id)
     if (!ready || !preview || !strip) return
-    const plan = stripPrintPlan(count)
-    const half = plan.halfSheet ? stripSheet(strip, 1) : null
-    const sheet = plan.fullSheets > 0 ? stripSheet(strip, 2) : half!
-    onPrint({ strip: preview.url, sheet, copies: Math.max(1, plan.fullSheets), more: plan.fullSheets > 0 ? half : null, count })
+    onPrint({ strip: preview.url, sheet: stripSheet(strip), copies: stripSheets(count), count })
   }
 
   return (
@@ -215,7 +212,7 @@ function FrameStep({ ctx, input, rendered, choiceId, onChoice, countChoices, cou
       {error && <p className="pg-error-text" role="alert">{error}</p>}
       {countChoices.length > 1 && (
         <fieldset className="pg-strip-count">
-          <legend>인화 장수{people > 0 && <small>찍힌 {people}명까지</small>}</legend>
+          <legend>인화 장수{people > 0 && <small>찍힌 {people}명에 맞춰</small>}</legend>
           <div role="radiogroup" aria-label="인화 장수">
             {countChoices.map((n) => (
               <button key={n} type="button" role="radio" aria-checked={count === n} onClick={() => onCount(n)}>{n}장</button>
@@ -223,10 +220,10 @@ function FrameStep({ ctx, input, rendered, choiceId, onChoice, countChoices, cou
           </div>
         </fieldset>
       )}
-      {count % STRIPS_PER_SHEET === 1 && <p className="pg-muted">인화지 한 장이 두 줄로 잘려 나와서, 빈 띠지 한 줄이 함께 나와요.</p>}
+      <p className="pg-muted">인화지 한 장에서 같은 사진 2장이 나와요.</p>
       <Creative text={program.creative} />
       <button type="button" className="pg-btn pg-btn--line pg-btn--wide pg-strip-back" onClick={onBack}><ArrowLeft size={20} />네 컷 다시 보기</button>
-      <button type="button" className="pg-btn pg-btn--accent pg-btn--wide pg-btn--hero" disabled={!ready} onClick={print}><Printer size={26} />띠지 {count}장 인화하기<span aria-hidden="true">→</span></button>
+      <button type="button" className="pg-btn pg-btn--accent pg-btn--wide pg-btn--hero" disabled={!ready} onClick={print}><Printer size={26} />사진 {count}장 인화하기<span aria-hidden="true">→</span></button>
     </Split>
   )
 }
@@ -237,7 +234,7 @@ function FrameStep({ ctx, input, rendered, choiceId, onChoice, countChoices, cou
 function ConsentNote() {
   return (
     <p className="pg-consent pg-consent--note">
-      <span><b>아래 버튼을 누르면 동의한 것으로 봐요.</b> 사진 촬영과 AI 사진 만들기 · 만 14세 미만 어린이는 보호자가 함께 확인해 주세요. 찍은 사진은 만들기에만 쓰고, 완성된 띠지만 7일 보관해요.</span>
+      <span><b>아래 버튼을 누르면 동의한 것으로 봐요.</b> 사진 촬영과 AI 사진 만들기 · 만 14세 미만 어린이는 보호자가 함께 확인해 주세요. 찍은 사진은 만들기에만 쓰고, 완성된 사진만 7일 보관해요.</span>
     </p>
   )
 }
@@ -450,7 +447,7 @@ function Generate({ ctx, shot, shotUrl, onDone, onRetake }: {
     <Split className="pg-generating" visual={<FourCuts now={shotUrl} future={[]} pending />}>
       <PanelHead title={program.generating.title} sub={program.generating.sub} />
       <Progress caption={`${elapsed}초 지남 · 보통 30~40초 걸려요`} />
-      <p className="pg-travel" aria-live="polite">{stage === 2 ? '띠지를 꾸미는 중…' : TRAVEL[Math.floor(elapsed / 5) % TRAVEL.length]}</p>
+      <p className="pg-travel" aria-live="polite">{stage === 2 ? '사진을 꾸미는 중…' : TRAVEL[Math.floor(elapsed / 5) % TRAVEL.length]}</p>
       <Stages labels={program.generating.stages} active={stage} />
       <Creative text={program.creative} />
     </Split>
@@ -463,19 +460,19 @@ function StripPreview({ src }: { src: string }) {
   return (
     <div className="pg-strip-preview">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt="인화될 띠지" width={200} height={600} />
+      <img src={src} alt="인화될 사진" width={200} height={600} />
     </div>
   )
 }
 
 function SaveStep({ ctx, order }: { ctx: FlowCtx; order: StripOrder }) {
   const { program, markShot, setDirty } = ctx
-  const { strip, sheet, copies, more, count } = order
+  const { strip, sheet, copies, count } = order
   const make = useCallback(async () => savePhoto(await ctx.getTicket(), strip), [ctx, strip])
   const saved = useSavedLink(make, true)
-  // 4×6 한 장 = 띠지 두 줄(프린터 2인치 자르기) — 두 줄 찬 장을 이어 인쇄하고, 홀수면 한 줄만 찬 장을 한 번 더
-  const printer = usePrint(sheet, () => markShot({ printed: true }), { cut: '2inch', copies, more })
-  // [띠지 인화하기]를 눌러 왔으니 바로 보낸다 — 한 번만(개발 모드의 effect 두 번 실행에도)
+  // 4×6 한 장 = 같은 사진 2장(프린터 2인치 자르기)
+  const printer = usePrint(sheet, () => markShot({ printed: true }), { cut: '2inch', copies })
+  // [사진 인화하기]를 눌러 왔으니 바로 보낸다 — 한 번만(개발 모드의 effect 두 번 실행에도)
   const sent = useRef(false)
   const { print } = printer
   useEffect(() => {
@@ -488,7 +485,7 @@ function SaveStep({ ctx, order }: { ctx: FlowCtx; order: StripOrder }) {
     <Split className="pg-save pg-strip-save" visual={<StripPreview src={strip} />}>
       <PanelHead title={program.save.title} sub={program.save.sub} />
       <div className="pg-save-cards">
-        <PrintCard printer={printer} label={`띠지 ${count}장 인쇄`} note={count % STRIPS_PER_SHEET === 1 ? '2×6 띠지 · 함께 나오는 빈 띠지 한 줄은 버려 주세요' : '2×6 띠지 · 함께 온 분과 나눠 가져요'} />
+        <PrintCard printer={printer} label={`사진 ${count}장 인쇄`} note="2×6 사진 · 함께 온 분과 나눠 가져요" />
         <QrCard state={saved} />
       </div>
       <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={ctx.requestHome}>완료 · 처음으로</button>

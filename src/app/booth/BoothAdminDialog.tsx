@@ -34,7 +34,7 @@ export function BoothAdminDialog({ screen, design, onClose, extra, standalone = 
   screen: ScreenSettings
   design: 'retro' | 'mac'
   onClose: () => void
-  /** 화면별 추가 설정 — 왼쪽 칸 맨 위(예: ANSAN 띠지 인화 최대 장수) */
+  /** 화면별 추가 설정 — 왼쪽 칸 맨 위(예: ANSAN 사진 인화 최대 장수) */
   extra?: ReactNode
   /** 매장 화면 밖(프로그램 화면)에서 열 때 — .rt 틀·색·글꼴 변수를 이 창이 깐다 */
   standalone?: boolean

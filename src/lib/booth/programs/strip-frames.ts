@@ -1,4 +1,4 @@
-// ANSAN 타임캡슐 띠지 프레임 10종 — 원본·생성 스크립트는 저장소 ansan-frames/(manifest.json 에서 옮긴 값). 사진 칸이 뚫린 1200×3600 투명 PNG 라
+// ANSAN 타임캡슐 사진 프레임 10종 — 원본·생성 스크립트는 저장소 ansan-frames/(manifest.json 에서 옮긴 값). 사진 칸이 뚫린 1200×3600 투명 PNG 라
 // 사진 → 프레임 → 연도 이름표·아래 글자 순서로 얹는다(strip-print.ts renderFrameStrip). 프레임 안에는 글자가 없고 colors 가 글자색이다.
 // 참고 이미지(인기 네컷 프레임)에서 가져온 것은 구도뿐 — 캐릭터·로고는 쓰지 않았다(ansan-frames/README.md '저작권 메모').
 
