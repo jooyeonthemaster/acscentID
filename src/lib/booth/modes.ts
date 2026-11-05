@@ -1,5 +1,5 @@
 // 포토부스 운영 모드 — 매장 상시 운영과 외부 행사마다 첫 화면 문구·제목줄·인화물 하단·콘텐츠가 다르다.
-// 관리자가 포토부스 STORE ADMIN(우측 하단 → PIN) '운영 모드'에서 고르고, 같은 종류의 포토부스가 모두 따라간다
+// 관리자가 포토부스 STORE ADMIN(우측 하단 → PIN) '운영 모드'에서 고른다 — '이 부스만'(그 기기, src/lib/booth/device-mode.ts) 또는 '모든 부스 공통'
 // (기기 설정 settings-booth 의 mode). 키오스크 모드(src/lib/kiosk/modes.ts)와 같은 방식 — docs/kiosk-modes.md '포토부스'
 // 포토부스 프로그램 14종(런웨이·한복·뮤직비디오 등, src/lib/booth/programs/catalog.ts)도 운영 모드 하나씩이다 —
 // 그 모드면 화면 디자인(클래식·레트로·맥) 설정과 상관없이 프로그램 전용 화면(src/app/booth/programs)이 뜬다.
@@ -92,7 +92,18 @@ export const BOOTH_MODES: BoothMode[] = [
     defaultBackground: 'booth-event-kwave-2026-idol',
     printQr: true,
   },
-  ...PROGRAMS.map((p): BoothMode => ({
+  // 안산사이언스밸리 과학축제 AI 포토존 — 프로그램 'LATER! 미래로 가는 타임캡슐'(catalog 'ansan-2026', 화면 StripFlow) 하나만 돈다.
+  // 모드 id = 프로그램 id 라 BoothScreen 이 그대로 프로그램 화면을 고른다. 이용권 없이(pass-policy), 인쇄는 2×6 띠지 둘(2인치 자르기)
+  {
+    id: 'ansan-2026',
+    label: 'ANSAN 안산사이언스밸리 과학축제',
+    note: '2026.11.7~11.8 · 한양대 ERICA · AI 포토존 미래 타임캡슐 · 1~4인 · 2×6 띠지 네 컷',
+    brandLine: 'ANSAN · AI PHOTO ZONE',
+    storeEvents: false,
+    program: 'ansan-2026',
+  },
+  // 프로그램 모드 — 행사 전용 프로그램(event)은 위에 행사 모드로 따로 둔다
+  ...PROGRAMS.filter((p) => !p.event).map((p): BoothMode => ({
     id: p.id,
     label: `${p.wordmark} ${p.name}`,
     note: p.kind === 'photo' ? `프로그램 · AI 사진${p.capture.people > 1 ? ' · 2인' : p.capture.group ? ' · 1~4인' : ''} · 4×6 인화·QR` : '프로그램 · 영상 · QR 다운로드',

@@ -85,9 +85,19 @@ interface Completion {
 /** 첫 모델이 늦거나 실패할 때 다시 시도하는 더 빠른 이미지 모델 */
 const FALLBACK_MODEL = 'google/gemini-2.5-flash-image'
 
+/** 생성 모양 — 기본은 인화 원판(4×6 세로 2:3)에 맞춘 2K. 2×6 띠지 네 컷(ANSAN 타임캡슐)은 가로 3:2 칸이 작아 1K 로 빨리 */
+export interface BoothImageOptions {
+  aspectRatio?: '2:3' | '3:2'
+  imageSize?: '1K' | '2K'
+  /** 첫 모델 · 예비 모델 기다리는 시간(ms) — 앞에 다른 호출이 있는 경로가 함수 시간(maxDuration) 안에 끝나게 */
+  timeouts?: [number, number]
+}
+
 /** 이미지 한 장 요청 — 실패·시간 초과면 null(기록만 남기고 다음 시도로) */
-async function requestImage(model: string, timeout: number, prompt: string, photo: string, faces: string[]): Promise<string | null> {
+async function requestImage(model: string, timeout: number, prompt: string, photo: string, faces: string[], options: BoothImageOptions = {}): Promise<string | null> {
   const started = Date.now()
+  const aspect = options.aspectRatio ?? '2:3'
+  const imageSize = options.imageSize ?? '2K'
   try {
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -101,7 +111,7 @@ async function requestImage(model: string, timeout: number, prompt: string, phot
         modalities: ['image', 'text'],
         // 기본 크기는 848x1264 라 인화 원판(1200x1800)보다 작아 늘려 찍으면 흐렸다 — Gemini 3 Pro Image 는 2K(1696x2528)를
         // 같은 값에 준다(2026-10-02 시험: 장당 약 $0.137 동일, +5초). 예비 모델(2.5 Flash)은 이 값을 모르니 기본 크기로
-        image_config: model.includes('gemini-3') ? { aspect_ratio: '2:3', image_size: '2K' } : { aspect_ratio: '2:3' },
+        image_config: model.includes('gemini-3') && imageSize === '2K' ? { aspect_ratio: aspect, image_size: '2K' } : { aspect_ratio: aspect },
         // 본 사진 다음에 얼굴 클로즈업을 사람 순서대로 — 프롬프트가 'IMAGE 1 / 얼굴 참고'로 부른다
         messages: [{
           role: 'user',
@@ -132,6 +142,39 @@ async function requestImage(model: string, timeout: number, prompt: string, phot
   }
 }
 
+/**
+ * 사진을 보고 글(JSON)로 답을 받는다 — 같은 부스 전용 키(사이트 분석 메인 키와 비용을 섞지 않는다).
+ * ANSAN 타임캡슐이 생성 전에 사람 수·나이·얼굴 자리를 읽는 데 쓴다. 실패·시간 초과면 null
+ */
+export async function askBoothVision(model: string, timeout: number, prompt: string, images: string[]): Promise<string | null> {
+  if (!idolConfigured()) return null
+  const started = Date.now()
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey()}`, 'Content-Type': 'application/json', 'X-Title': "AC'SCENT photobooth" },
+      body: JSON.stringify({
+        model,
+        temperature: 0.1,
+        response_format: { type: 'json_object' },
+        messages: [{ role: 'user', content: [{ type: 'text', text: prompt }, ...images.map((url) => ({ type: 'image_url', image_url: { url } }))] }],
+      }),
+      signal: AbortSignal.timeout(timeout),
+    })
+    const raw = await res.text()
+    if (!res.ok) {
+      console.error('[booth-vision] 호출 실패', model, res.status, raw.slice(0, 300))
+      return null
+    }
+    const data = JSON.parse(raw) as Completion
+    const text = data.choices?.[0]?.message?.content
+    return typeof text === 'string' && text.trim() ? text : null
+  } catch (error) {
+    console.error('[booth-vision] 중단', model, `${Math.round((Date.now() - started) / 1000)}s`, error instanceof Error ? error.message : error)
+    return null
+  }
+}
+
 export async function generateIdolPhoto(photo: string, concept: IdolConcept, people: number, faces: string[] = []): Promise<string> {
   const isImage = (value: string, max: number) => /^data:image\/(jpeg|png|webp);base64,/.test(value) && value.length <= max
   // 얼굴 참고 사진(부스가 자른 클로즈업) — 사람 수까지만, 형식이 틀리면 빼고 본 사진만으로
@@ -143,7 +186,7 @@ export async function generateIdolPhoto(photo: string, concept: IdolConcept, peo
  * 부스 이미지 생성 공통(AI 아이돌·포토부스 프로그램 14종) — 프롬프트 + 본 사진(+ 다른 사진들) → 2:3 JPEG data URL.
  * 같은 전용 키·같은 1분 상한·같은 모델 순서(60초 → 예비 모델 45초)를 쓴다.
  */
-export async function generateBoothImage(prompt: string, photo: string, more: string[] = []): Promise<string> {
+export async function generateBoothImage(prompt: string, photo: string, more: string[] = [], options: BoothImageOptions = {}): Promise<string> {
   if (!idolConfigured()) throw new IdolError('AI 사진 전용 키가 아직 설정되지 않았어요.', 503)
   const isImage = (value: string, max: number) => /^data:image\/(jpeg|png|webp);base64,/.test(value) && value.length <= max
   if (!isImage(photo, 3_000_000) || !more.every((m) => isImage(m, 3_000_000))) throw new IdolError('사진 형식이 올바르지 않아요.', 400)
@@ -156,10 +199,11 @@ export async function generateBoothImage(prompt: string, photo: string, more: st
   // 더 빠른 모델로 한 번 더. 둘 다 안 되면 부스가 실패 안내(다시 만들기)를 띄운다
   const primary = process.env.OPENROUTER_PHOTOBOOTH_MODEL || OPENROUTER_IMAGE_MODEL
   // 2K 출력은 보통 25~35초(2026-10-02) — 첫 시도는 60초까지 기다린다
-  const attempts: [string, number][] = [[primary, 60_000], [FALLBACK_MODEL, 45_000]]
+  const [firstWait, fallbackWait] = options.timeouts ?? [60_000, 45_000]
+  const attempts: [string, number][] = [[primary, firstWait], [FALLBACK_MODEL, fallbackWait]]
   let url: string | null = null
   for (const [model, timeout] of attempts) {
-    url = await requestImage(model, timeout, prompt, photo, more)
+    url = await requestImage(model, timeout, prompt, photo, more, options)
     if (url) break
   }
   if (!url) throw new IdolError('AI 사진을 만들지 못했어요.', 502)

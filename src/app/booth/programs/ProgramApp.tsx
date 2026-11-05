@@ -13,14 +13,16 @@ import { findProgram, type ProgramDef, type ProgramId } from '@/lib/booth/progra
 import { boothPassRequired, requestFreeIdolTicket } from '@/lib/booth/pass-policy'
 import { requestDemoTicket } from '@/lib/booth/demo'
 import { useScreenBackgrounds } from '@/lib/screen-backgrounds/use-screen-backgrounds'
-import { BoothModeControls } from '@/components/screen/BoothModeControls'
+import { BoothAdminDialog } from '../BoothAdminDialog'
 import { BoothWatermark } from '@/components/photobooth/BoothWatermark'
+import { STRIP_MAX_CHOICES, readStripMax, writeStripMax } from './strip-count'
 import { FONT_VARS } from './fonts'
 import { logProgramShot, markProgramShot } from './save'
 import type { FlowCtx } from './flow'
 import { PhotoFlow } from './PhotoFlow'
 import { MvFlow } from './MvFlow'
 import { MovieFlow } from './MovieFlow'
+import { StripFlow } from './StripFlow'
 import { Modal, Wordmark } from './ui'
 import './programs.css'
 
@@ -135,7 +137,8 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
           {screen === 'flow' && (
             program.kind === 'photo' ? <PhotoFlow key={session} ctx={ctx} />
               : program.kind === 'mv' ? <MvFlow key={session} ctx={ctx} />
-                : <MovieFlow key={session} ctx={ctx} />
+                : program.kind === 'strip' ? <StripFlow key={session} ctx={ctx} />
+                  : <MovieFlow key={session} ctx={ctx} />
           )}
         </main>
         {!demo && screen === 'start' && <AdminHold onOpen={() => setAdmin(true)} />}
@@ -157,14 +160,23 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
             <ul className="pg-help">
               <li><Camera size={22} />화면의 가이드 안에 얼굴이 들어오게 서 주세요. 타이머가 끝나면 찍혀요.</li>
               <li><ImageIcon size={22} />카메라가 안 되면 휴대폰 사진으로도 할 수 있어요.</li>
-              <li><Sparkles size={22} />{program.kind === 'photo' ? 'AI 사진은 보통 20~40초 걸려요. 실패해도 찍은 사진과 옵션은 그대로예요.' : '영상은 길이만큼 시간이 걸려요. 완성되면 QR로 휴대폰에 받아요.'}</li>
+              <li><Sparkles size={22} />{program.kind === 'strip' ? '미래 사진 세 장은 보통 30~40초 걸려요. 4명까지 함께 찍을 수 있고, 아기는 안고 찍어도 돼요.' : program.kind === 'photo' ? 'AI 사진은 보통 20~40초 걸려요. 실패해도 찍은 사진과 옵션은 그대로예요.' : '영상은 길이만큼 시간이 걸려요. 완성되면 QR로 휴대폰에 받아요.'}</li>
               <li><CircleHelp size={22} />문제가 계속되면 매장 직원에게 말씀해 주세요.</li>
             </ul>
             <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={() => setHelp(false)}>닫기</button>
           </Modal>
         )}
-        {admin && <AdminPanel settings={screenSettings} onClose={() => setAdmin(false)} />}
       </div>
+      {/* STORE ADMIN — 매장 화면과 같은 창(BoothAdminDialog). 화면 기준 창이라 확대되는 무대(pg-stage) 밖에 둔다 */}
+      {admin && (
+        <BoothAdminDialog
+          screen={screenSettings}
+          design={screenSettings.settings.ui === 'retro' ? 'retro' : 'mac'}
+          onClose={() => setAdmin(false)}
+          extra={program.kind === 'strip' ? <StripMaxControl /> : null}
+          standalone
+        />
+      )}
       {demo && <BoothWatermark />}
     </div>
   )
@@ -298,51 +310,22 @@ function AdminHold({ onOpen }: { onOpen: () => void }) {
   )
 }
 
-function AdminPanel({ settings, onClose }: { settings: ReturnType<typeof useScreenBackgrounds>; onClose: () => void }) {
-  const [pin, setPin] = useState('')
-  const [unlocked, setUnlocked] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [checking, setChecking] = useState(false)
-  const pinRef = useRef('')
-  const press = async (key: string) => {
-    if (checking) return
-    const next = key === 'back' ? pinRef.current.slice(0, -1) : (pinRef.current + key).slice(0, 6)
-    pinRef.current = next
-    setPin(next); setError(null)
-    if (next.length !== 6) return
-    setChecking(true)
-    try {
-      const ok = await settings.unlock(next)
-      if (ok) setUnlocked(true)
-      else { setError('비밀번호가 맞지 않아요.'); setPin(''); pinRef.current = '' }
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : '확인하지 못했어요.'); setPin(''); pinRef.current = ''
-    } finally {
-      setChecking(false)
-    }
-  }
+/** ANSAN 띠지 — 손님이 고를 수 있는 최대 인화 장수(이 부스에만 저장, strip-count.ts). 관리자 창 왼쪽 맨 위, 운영 모드와 같은 모양(kmc) */
+function StripMaxControl() {
+  const [max, setMax] = useState(() => readStripMax())
+  const [failed, setFailed] = useState(false)
   return (
-    <Modal label="STORE ADMIN" onClose={onClose}>
-      <div className="pg-admin">
-        <header><b>STORE ADMIN</b><button type="button" className="pg-icon-btn" onClick={onClose} aria-label="닫기"><X size={24} /></button></header>
-        {!unlocked ? (
-          <>
-            <p>관리자 비밀번호 6자리</p>
-            <div className="pg-pin">{Array.from({ length: 6 }, (_, i) => <i key={i} data-filled={i < pin.length || undefined} />)}</div>
-            {error && <p className="pg-error-text" role="alert">{error}</p>}
-            <div className="pg-keypad pg-keypad--sm">
-              {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'back', '0'].map((k) => (
-                <button key={k} type="button" onClick={() => void press(k)} disabled={checking}>{k === 'back' ? '←' : k}</button>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="pg-admin-body">
-            <BoothModeControls value={settings.baseSettings.mode} pass={settings.baseSettings.pass} onSave={settings.saveSettings} onSelectBackground={settings.selectBackground} />
-            <p className="pg-muted">다른 모드를 고르면 닫을 때 그 화면으로 바뀝니다.</p>
-          </div>
-        )}
+    <section className="kmc" aria-label="띠지 인화 최대 장수">
+      <div className="kmc-head">
+        <b>띠지 인화 최대 장수</b>
+        <span>이 부스만 · 4×6 한 장 = 띠지 2장 · 손님은 2장부터 {max}장까지 2장 단위로 골라요</span>
       </div>
-    </Modal>
+      <div className="kmc-seg" role="group" aria-label="띠지 인화 최대 장수">
+        {STRIP_MAX_CHOICES.map((n) => (
+          <button key={n} type="button" aria-pressed={max === n} onClick={() => { if (writeStripMax(n)) { setMax(n); setFailed(false) } else setFailed(true) }}>{n}장</button>
+        ))}
+      </div>
+      {failed && <p className="kmc-error" role="alert">이 부스에 저장하지 못했어요.</p>}
+    </section>
   )
 }

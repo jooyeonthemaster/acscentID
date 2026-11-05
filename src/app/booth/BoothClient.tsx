@@ -27,7 +27,6 @@ import { readBoothDemo, requestDemoTicket } from '@/lib/booth/demo'
 import { BoothWatermark } from '@/components/photobooth/BoothWatermark'
 import { DEFAULT_IDOL_CONCEPT, findIdolConcept } from '@/lib/booth/idol-concepts'
 import { preloadFaceDetect } from '@/lib/booth/face-detect'
-import { BoothModeControls } from '@/components/screen/BoothModeControls'
 import { BoothLangSwitcher } from '@/components/photobooth/BoothLangSwitcher'
 import { IdolPosterTitle } from '@/components/photobooth/IdolPosterTitle'
 import { attractHeadline, boothText, conceptText, guestError, passErrorText, withBoothLang, BOOTH_LANGS, isCjkLang, type BoothLang } from '@/lib/booth/i18n'
@@ -76,9 +75,6 @@ import { mixColor, toBoothTheme, toRetroDesktop, retroDesktopVars } from '@/lib/
 import { ScreenFontFace } from '@/lib/screen-fonts/FontFace'
 import { useScreenUiSwitch } from '@/lib/screen-backgrounds/ui-switch'
 import { isProgramId } from '@/lib/booth/programs/catalog'
-import { DeviceDesignControls } from '@/components/screen/DeviceDesignControls'
-import { DeviceAdminTools } from '@/components/screen/DeviceAdminTools'
-import { useQuitConfirm } from '@/components/screen/QuitConfirm'
 import {
   PixelIcon,
   RetroProgress,
@@ -90,6 +86,7 @@ import {
 } from '@/components/retro'
 import '@/components/retro/retro.css'
 import './booth.css'
+import { BoothAdminDialog } from './BoothAdminDialog'
 
 // 4x6인치 @300dpi (세로)
 const CANVAS_W = PRINT.W
@@ -102,8 +99,6 @@ const PASS_QR_RETRY_MS = 8000
 const DSLR_QR_AF_MS = 2500
 /** 관리자 핫스팟을 이만큼 눌러야 열린다 — 손님이 모서리를 스쳐도 안 열리게 */
 const ADMIN_HOLD_MS = 1500
-/** 부스 앱 화면 배율 선택지 — 큰 모니터일수록 키운다 (매장 1920x1080 모니터는 150%) */
-const SCREEN_ZOOM_OPTIONS = [1, 1.25, 1.5, 1.75] as const
 
 /** 타이틀바 — 단계마다 다른 프로그램 창을 연 것처럼(아이콘 + 짧은 영문 이름) */
 const BOOTH_STEP_META: Record<Step, { icon: PixelIconName; label: string }> = {
@@ -430,21 +425,14 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const [saveStatus, setSaveStatus] = useState<'idle' | 'uploading' | 'failed'>('idle')
   const [isAttract, setIsAttract] = useState(false)
   const [flash, setFlash] = useState(false)
+  // 관리자 창(BoothAdminDialog)은 이 값 묶음을 통째로 받는다 — 프로그램 화면과 같은 창
+  const screenSettings = useScreenBackgrounds('booth')
   const {
-    backgrounds,
     activeBackground: backgroundRecord,
-    selectedId: backgroundId,
-    loading: backgroundsLoading,
-    error: backgroundsError,
-    refresh: refreshBackgrounds,
-    liveEvent: screenLiveEvent,
     baseSettings: deviceBaseSettings,
-    selectBackground,
     settings: deviceSettings,
-    saveSettings,
     synced: backgroundsSynced,
-    unlock: unlockBackgroundAdmin,
-  } = useScreenBackgrounds('booth')
+  } = screenSettings
   // 운영 모드(매장 ↔ 행사, src/lib/booth/modes.ts) — 행사 모드면 첫 화면 문구·제목줄·편집 화면 무대 메이크업이 바뀐다
   /** 영업용 데모(/booth?mode=…&demo=1, src/lib/booth/demo.ts) — 매장 기기 설정 대신 주소의 모드로, 이용권·기록·관리자 창 없이 */
   const demo = useMemo(() => readBoothDemo(), [])
@@ -494,21 +482,11 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   }, [stageMakeup])
   // 행사 모드는 매장 이벤트를 무시한다 — 와우 생카에 묶인 프레임도 목록에서 뺀다(배경·글꼴과 같은 규칙)
   const modeFrames = useMemo(() => (boothMode.storeEvents ? frames : frames.filter((f) => !f.screen_event_id)), [frames, boothMode.storeEvents])
+  // 매장 관리자 창 — 비밀번호·배경·화면 크기·앱 종료는 BoothAdminDialog(프로그램 화면과 같은 창)가 맡는다
   const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
-  const [backgroundAdminUnlocked, setBackgroundAdminUnlocked] = useState(false)
-  const [backgroundPassword, setBackgroundPassword] = useState('')
-  const [backgroundPasswordError, setBackgroundPasswordError] = useState('')
-  const [backgroundUnlocking, setBackgroundUnlocking] = useState(false)
-  const [backgroundSaving, setBackgroundSaving] = useState<string | null>(null)
-  const [backgroundActionError, setBackgroundActionError] = useState('')
-  const backgroundAuthRequest = useRef(0)
-  const backgroundDialogRef = useRef<HTMLDivElement>(null)
   const [adminHolding, setAdminHolding] = useState(false)
   const adminHoldRef = useRef<number | undefined>(undefined)
   const adminHoldTriggered = useRef(false)
-  const [exitNotice, setExitNotice] = useState<string | null>(null)
-  /** 부스 앱의 현재 화면 배율 (브라우저에서 열면 null — 선택지를 숨긴다) */
-  const [screenZoom, setScreenZoom] = useState<number | null>(null)
 
   /** 손님이 위치·크기를 조정할 오버레이가 있는가 (카드 모드에서 조정이 아예 막혀 있었다) */
   const overlayAdjustable =
@@ -538,43 +516,16 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     setTemplates([...data.templates, ...BUNDLED_TEMPLATES])
   })
 
-  const chooseBackground = useCallback(async (id: string) => {
-    if (!backgroundAdminUnlocked || backgroundSaving) return
-    setBackgroundSaving(id)
-    setBackgroundActionError('')
-    try {
-      await selectBackground(id)
-    } catch (error) {
-      setBackgroundActionError(error instanceof Error ? error.message : '배경을 저장하지 못했습니다. 다시 시도해주세요.')
-    } finally {
-      setBackgroundSaving(null)
-    }
-  }, [backgroundAdminUnlocked, backgroundSaving, selectBackground])
-
-  // ---------- 매장 관리자 (우하단 길게 누르기 → 비밀번호 → 배경·앱 종료) ----------
+  // ---------- 매장 관리자 (우하단 길게 누르기 → 비밀번호 → 배경·앱 종료, 창은 BoothAdminDialog) ----------
   const openAdmin = useCallback(() => {
     // 데모에서 바꾼 설정은 매장 기기에 바로 적용된다 — 열지 않는다
     if (demo) return
-    backgroundAuthRequest.current += 1
     setIsAttract(false)
     setBackgroundAdminOpen(true)
-    setBackgroundAdminUnlocked(false)
-    setBackgroundPassword('')
-    setBackgroundPasswordError('')
-    setBackgroundActionError('')
-    setBackgroundUnlocking(false)
-    setExitNotice(null)
-    void refreshBackgrounds()
-  }, [refreshBackgrounds, demo])
+  }, [demo])
 
   const closeAdmin = useCallback(() => {
-    backgroundAuthRequest.current += 1
     setBackgroundAdminOpen(false)
-    setBackgroundAdminUnlocked(false)
-    setBackgroundPassword('')
-    setBackgroundPasswordError('')
-    setBackgroundUnlocking(false)
-    setExitNotice(null)
   }, [])
 
   const cancelAdminHold = useCallback(() => {
@@ -600,112 +551,9 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     [cancelAdminHold, openAdmin]
   )
 
-  /** 비밀번호 키패드 — 터치 부스엔 물리 키보드가 없다. 6자리가 차면 바로 확인 */
-  const pressAdminKey = useCallback(
-    async (key: string) => {
-      if (backgroundUnlocking) return
-      const next =
-        key === 'back' ? backgroundPassword.slice(0, -1) : (backgroundPassword + key).slice(0, 6)
-      if (next.length < 6) {
-        setBackgroundPassword(next)
-        setBackgroundPasswordError('')
-        return
-      }
-      setBackgroundPassword('')
-      setBackgroundUnlocking(true)
-      const requestId = ++backgroundAuthRequest.current
-      try {
-        const unlocked = await unlockBackgroundAdmin(next)
-        if (requestId !== backgroundAuthRequest.current) return
-        if (unlocked) {
-          setBackgroundAdminUnlocked(true)
-          setBackgroundPasswordError('')
-          getBoothShell()
-            ?.info()
-            .then((info) => setScreenZoom(info.zoomFactor ?? 1))
-            .catch(() => setScreenZoom(null))
-        } else {
-          setBackgroundPasswordError('비밀번호가 올바르지 않습니다')
-        }
-      } catch (error) {
-        if (requestId === backgroundAuthRequest.current) {
-          setBackgroundPasswordError(error instanceof Error ? error.message : '관리자 인증에 실패했습니다. 연결을 확인해주세요.')
-        }
-      } finally {
-        if (requestId === backgroundAuthRequest.current) setBackgroundUnlocking(false)
-      }
-    },
-    [backgroundPassword, backgroundUnlocking, unlockBackgroundAdmin]
-  )
-
-  // 키보드가 꽂혀 있으면 숫자키로도 입력
-  useEffect(() => {
-    if (!backgroundAdminOpen) return
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        closeAdmin()
-      } else if (!backgroundAdminUnlocked && (/^[0-9]$/.test(event.key) || event.key === 'Backspace')) {
-        event.preventDefault()
-        void pressAdminKey(event.key === 'Backspace' ? 'back' : event.key)
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [backgroundAdminOpen, backgroundAdminUnlocked, pressAdminKey, closeAdmin])
-
-  useEffect(() => {
-    if (!backgroundAdminOpen) return
-    const previous = document.activeElement as HTMLElement | null
-    const dialog = backgroundDialogRef.current
-    dialog?.querySelector<HTMLButtonElement>('button')?.focus()
-    const keepFocus = (event: KeyboardEvent) => {
-      if (event.key !== 'Tab' || !dialog) return
-      const controls = Array.from(dialog.querySelectorAll<HTMLButtonElement>('button:not([disabled])'))
-      const first = controls[0], last = controls[controls.length - 1]
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault()
-        last?.focus()
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault()
-        first?.focus()
-      }
-    }
-    dialog?.addEventListener('keydown', keepFocus)
-    return () => {
-      dialog?.removeEventListener('keydown', keepFocus)
-      previous?.focus()
-    }
-  }, [backgroundAdminOpen])
-
   useEffect(() => () => {
     if (adminHoldRef.current) window.clearTimeout(adminHoldRef.current)
-    backgroundAuthRequest.current += 1
   }, [])
-
-  const selectScreenZoom = useCallback(async (factor: number) => {
-    const shell = getBoothShell()
-    if (!shell) return
-    const result = await shell.setZoom(factor).catch(() => null)
-    if (result?.ok) setScreenZoom(result.zoomFactor)
-  }, [])
-
-  /** 앱 종료 — 부스 앱(exe)은 카메라를 놓고 꺼진다. 브라우저는 스스로 닫을 수 없는 경우가 많다 */
-  const quitBooth = useCallback(async () => {
-    const shell = getBoothShell()
-    if (shell) {
-      setExitNotice('카메라 연결을 풀고 종료합니다')
-      await shell.quit().catch(() => {})
-      return
-    }
-    window.close()
-    window.setTimeout(
-      () => setExitNotice('브라우저에서는 여기서 닫을 수 없어요. 키보드 Alt+F4 로 닫아주세요'),
-      400
-    )
-  }, [])
-  // 앱 종료는 한 번 더 묻는다(QuitConfirm)
-  const [askQuitBooth, quitConfirmNode] = useQuitConfirm(quitBooth)
 
   // 첫 화면 밖으로 나가면 대기 화면을 닫는다 — 대기 화면으로 가는 건 아래 무입력 규칙(안내 후 처음으로)이 맡는다
   useEffect(() => {
@@ -1953,7 +1801,6 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       data-tone={retroDesk.tone}
       style={{ ...deskVars, ...(design === 'mac' ? macFontVars(cjkFont ?? (deviceSettings.font ? retroDesk.bodyFont : undefined)) : {}) } as React.CSSProperties}
     >
-      {quitConfirmNode}
       <ScreenFontFace ids={[retroDesk.fontId]} />
       {demo && <BoothWatermark />}
       {/* 4x6 인쇄 전용 영역 */}
@@ -3176,196 +3023,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
 
       <AnimatePresence>
         {backgroundAdminOpen && (
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-label="포토부스 매장 관리자"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="rt-scrim"
-            style={{ zIndex: 70 }}
-            onPointerDown={(event) => {
-              if (event.target === event.currentTarget) closeAdmin()
-            }}
-          >
-            <motion.div
-              ref={backgroundDialogRef}
-              initial={{ y: 24 }}
-              animate={{ y: 0 }}
-              exit={{ y: 20 }}
-              className={`bth-dialog ${backgroundAdminUnlocked ? 'bth-dialog--admin' : ''}`}
-            >
-              <RetroWindow
-                icon="lock"
-                title="STORE ADMIN"
-                onClose={closeAdmin}
-                closeLabel="닫기"
-                bodyClassName="bth-admin-body"
-              >
-                {/* 잠금 해제 후엔 창 제목(STORE ADMIN)으로 충분 — 제목 줄 높이를 목록에 준다 */}
-                <h2 className={backgroundAdminUnlocked ? 'sr-only' : 'bth-h2'}>{backgroundAdminUnlocked ? '부스 설정' : '비밀번호 입력'}</h2>
-
-                {!backgroundAdminUnlocked ? (
-                  <div className="bth-pin">
-                    <p className="bth-sub">관리자 비밀번호 6자리를 눌러주세요</p>
-                    <div
-                      className="bth-pin-dots rt-field"
-                      aria-label={`${backgroundPassword.length}자리 입력됨`}
-                      style={{ marginTop: 14 }}
-                    >
-                      {Array.from({ length: 6 }, (_, i) => (
-                        <i key={i} data-filled={i < backgroundPassword.length} />
-                      ))}
-                    </div>
-                    <p className="bth-error" role="status">
-                      {backgroundUnlocking ? '인증 확인 중…' : backgroundPasswordError}
-                    </p>
-                    <div className="bth-keypad">
-                      {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
-                        <button
-                          key={digit}
-                          type="button"
-                          disabled={backgroundUnlocking}
-                          onClick={() => pressAdminKey(digit)}
-                          className="rt-btn"
-                        >
-                          {digit}
-                        </button>
-                      ))}
-                      <div />
-                      <button
-                        type="button"
-                        disabled={backgroundUnlocking}
-                        onClick={() => pressAdminKey('0')}
-                        className="rt-btn"
-                      >
-                        0
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="지우기"
-                        disabled={backgroundUnlocking}
-                        onClick={() => pressAdminKey('back')}
-                        className="rt-btn"
-                      >
-                        <PixelIcon name="backspace" size={40} />
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  // 가로 화면이라 좌우 2분할 — 왼쪽: 화면 크기·디자인(넘치면 스크롤) + 앱 종료·닫기(항상 보임),
-                  // 오른쪽: 화면 배경 제목 줄(이벤트 배경·포토카드 QR·새로고침) + 목록이 창 높이를 다 쓴다(줌 150~175% 에서 위아래로 쌓으면 목록이 한 줄도 안 보였다)
-                  <div className="bth-admin-split">
-                  <div className="bth-admin-main">
-                  <div className="bth-admin-settings rt-scroll">
-                    <BoothModeControls value={deviceBaseSettings.mode} pass={deviceBaseSettings.pass} onSave={saveSettings} onSelectBackground={selectBackground} disabled={!!backgroundSaving} />
-                    {screenZoom !== null && (
-                      <div className="bth-zoom">
-                        <b>화면 크기</b>
-                        <div className="bth-zoom-opts">
-                          {SCREEN_ZOOM_OPTIONS.map((factor) => (
-                            <button
-                              key={factor}
-                              type="button"
-                              onClick={() => selectScreenZoom(factor)}
-                              aria-pressed={Math.abs(screenZoom - factor) < 0.01}
-                              className="rt-choice"
-                            >
-                              {Math.round(factor * 100)}%
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    <DeviceDesignControls
-                      settings={deviceBaseSettings}
-                      onSave={saveSettings}
-                      disabled={!!backgroundSaving}
-                      sample="어떤 사진을 찍을까요? ACSCENT PHOTO"
-                      compact
-                      eventFont={screenLiveEvent?.font ? { title: screenLiveEvent.title, font: screenLiveEvent.font } : null}
-                    />
-                  </div>
-                    <div className="bth-admin-actions">
-                      <button type="button" onClick={askQuitBooth} className="rt-btn rt-btn--danger">
-                        <PixelIcon name="close" size={28} /> 앱 종료
-                      </button>
-                      <button type="button" onClick={closeAdmin} className="rt-btn rt-btn--primary">
-                        닫기
-                      </button>
-                    </div>
-                    {exitNotice && <p className="bth-admin-note" role="status">{exitNotice}</p>}
-                  </div>
-                  <section className="bth-admin-bgs" aria-label="화면 배경">
-                    <div className="bth-admin-toolbar">
-                      <b>
-                        화면 배경 · {backgrounds.length}개
-                        <em role="status">
-                          {backgroundSaving ? '서버에 저장하는 중…' : backgroundsLoading ? '불러오는 중…' : ''}
-                        </em>
-                      </b>
-                      {/* 이벤트 배경·포토카드 QR — 제목과 새로고침 사이 */}
-                      <DeviceAdminTools target="booth" onApplied={() => void refreshBackgrounds()} liveTitle={screenLiveEvent?.title} />
-                      <button
-                        type="button"
-                        className="rt-btn"
-                        disabled={backgroundsLoading || !!backgroundSaving}
-                        onClick={() => void refreshBackgrounds()}
-                      >
-                        새로고침
-                      </button>
-                    </div>
-                    {(backgroundActionError || backgroundsError) && (
-                      <p role="alert" className="bth-admin-error">
-                        {backgroundActionError || backgroundsError}
-                      </p>
-                    )}
-                    <div className="bth-bg-grid rt-scroll">
-                      {backgrounds.map((record) => {
-                        const background = toBoothTheme(record)
-                        return (
-                          <button
-                            key={background.id}
-                            type="button"
-                            disabled={!!backgroundSaving}
-                            aria-pressed={backgroundId === background.id}
-                            onClick={() => void chooseBackground(background.id)}
-                            className="rt-choice bth-bg-tile"
-                          >
-                            <span className="bth-bg-thumb">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={record.thumbnail_url || background.image}
-                                alt=""
-                                loading="lazy"
-                                decoding="async"
-                              />
-                              <span
-                                className="bth-bg-sample"
-                                style={{
-                                  fontFamily: retroDesk.displayFont,
-                                  fontWeight: retroDesk.displayWeight,
-                                  letterSpacing: retroDesk.displayTracking,
-                                }}
-                              >
-                                어떤 사진을 찍을까요?
-                              </span>
-                            </span>
-                            <span className="bth-bg-name">
-                              <b>{background.title}</b>
-                              <em>{background.id === backgroundId ? '적용 중' : '선택'}</em>
-                            </span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </section>
-                  </div>
-                )}
-              </RetroWindow>
-            </motion.div>
-          </motion.div>
+          <BoothAdminDialog key="booth-admin" screen={screenSettings} design={design} onClose={closeAdmin} />
         )}
       </AnimatePresence>
     </div>

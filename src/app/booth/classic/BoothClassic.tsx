@@ -426,6 +426,8 @@ export function BoothClassic() {
     saveSettings,
     synced: backgroundsSynced,
     unlock: unlockBackgroundAdmin,
+    sharedMode: boothSharedMode,
+    deviceMode: boothDeviceMode,
   } = useScreenBackgrounds('booth')
   // 운영 모드(매장 ↔ 행사, src/lib/booth/modes.ts) — 행사 모드면 첫 화면 문구·편집 화면 무대 메이크업이 바뀐다
   const boothMode = findBoothMode(deviceBaseSettings.mode)
@@ -3320,7 +3322,7 @@ export function BoothClassic() {
               ) : (
                 // 줌 150% 에서도 한 화면: 화면 크기(한 줄) → 배경 목록(남는 높이만큼 스크롤) → 앱 종료·닫기(항상 보임)
                 <div className="flex min-h-0 flex-1 flex-col">
-                  <BoothModeControls value={deviceBaseSettings.mode} pass={deviceBaseSettings.pass} onSave={saveSettings} onSelectBackground={selectBackground} disabled={!!backgroundSaving} />
+                  <BoothModeControls value={deviceBaseSettings.mode} sharedMode={boothSharedMode} deviceMode={boothDeviceMode} pass={deviceBaseSettings.pass} onSave={saveSettings} onSelectBackground={selectBackground} disabled={!!backgroundSaving} />
                   {screenZoom !== null && (
                     <div className="mb-4 flex shrink-0 items-center gap-4">
                       <p className="shrink-0 text-lg font-bold">화면 크기</p>

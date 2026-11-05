@@ -12,6 +12,13 @@
 .kmc .kmc-list button[aria-checked='true'] span, .kmc .kmc-list button[aria-checked='true'] em { color: rgba(255, 255, 255, 0.8); }
 .kmc .kmc-list button:disabled:not([aria-checked='true']) { opacity: 0.55; cursor: default; }
 .kmc-error { margin: 0; font-size: 13px; color: #b91c1c; }
+/* 포토부스 운영 모드 적용 범위(이 부스만 · 모든 부스 공통) */
+.kmc-head strong { color: #1f2937; }
+.kmc .kmc-note { margin: 0; font-size: 13px; line-height: 1.5; color: #475569; }
+.kmc .kmc-done { margin: 0; padding: 8px 12px; border-radius: 8px; background: #ecfdf3; color: #166534; font-size: 13px; font-weight: 700; }
+.kmc .kmc-follow { justify-self: start; min-height: 44px; padding: 0 14px; border: 2px solid #cbd5e1; border-radius: 8px; background: #ffffff; color: #1f2937; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.kmc .kmc-follow:disabled { opacity: 0.55; cursor: default; }
+.kmc-saju > b small { margin-left: 6px; font-size: 12px; font-weight: 600; color: #64748b; }
 /* 사주 표시 — 한자 글꼴·영수증 양식(새 ↔ 이전) */
 .kmc-saju { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid #e2e8f0; }
 .kmc-saju > b { font-size: 15px; }

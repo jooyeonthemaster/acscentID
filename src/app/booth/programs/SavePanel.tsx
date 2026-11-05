@@ -89,8 +89,11 @@ export function QrCard({ state, label = '휴대폰으로 저장', progress }: {
   )
 }
 
-/** 인쇄 — 부스 앱이면 프린터로 바로, 브라우저면 인쇄 창(미리보기) */
-export function usePrint(image: string | null, onPrinted: () => void) {
+/** 인쇄 — 부스 앱이면 프린터로 바로, 브라우저면 인쇄 창(미리보기).
+ *  options(부스 앱만): cut '2inch' = 띠지 두 장으로 자르기(ANSAN), copies = 장수(4×6 기준) */
+export function usePrint(image: string | null, onPrinted: () => void, options?: { cut?: '2inch'; copies?: number }) {
+  const cut = options?.cut
+  const copies = options?.copies ?? 1
   const [state, setState] = useState<PrintState>('idle')
   const [error, setError] = useState<string | null>(null)
   const print = useCallback(async () => {
@@ -104,17 +107,17 @@ export function usePrint(image: string | null, onPrinted: () => void) {
       return
     }
     try {
-      const result = await shell.print(image)
+      const result = await shell.print(image, cut || copies > 1 ? { ...(cut ? { cut } : {}), ...(copies > 1 ? { copies } : {}) } : undefined)
       if (result.ok) setState('sent')
       else { setState('failed'); setError(result.error || '프린터가 응답하지 않아요.') }
     } catch (cause) {
       setState('failed'); setError(cause instanceof Error ? cause.message : '프린터가 응답하지 않아요.')
     }
-  }, [image, state, onPrinted])
+  }, [image, state, onPrinted, cut, copies])
   return { state, error, print, browser: !getBoothShell() }
 }
 
-export function PrintCard({ printer, label = '사진 1장 인쇄' }: { printer: ReturnType<typeof usePrint>; label?: string }) {
+export function PrintCard({ printer, label = '사진 1장 인쇄', note = '4×6 사진 한 장 · 화면과 같은 디자인' }: { printer: ReturnType<typeof usePrint>; label?: string; note?: string }) {
   const { state, error, print, browser } = printer
   return (
     <section className="pg-card pg-print" aria-label={label}>
@@ -128,7 +131,7 @@ export function PrintCard({ printer, label = '사진 1장 인쇄' }: { printer: 
       ) : state === 'sent' ? (
         <p role="status">{browser ? '인쇄 창을 열었어요. 부스에서는 프린터로 바로 보내요.' : '프린터로 보냈어요. 1분쯤 뒤 출구에서 나와요.'}</p>
       ) : (
-        <p>4×6 사진 한 장 · 화면과 같은 디자인</p>
+        <p>{note}</p>
       )}
       <button type="button" className="pg-btn pg-btn--line" onClick={() => void print()} disabled={state === 'sending' || state === 'sent' || state === 'failed'}>
         {state === 'sending' ? <><Loader2 className="pg-spin" size={18} />보내는 중…</> : state === 'sent' ? '인쇄 요청 보냄' : '인쇄하기'}

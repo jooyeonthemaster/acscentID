@@ -281,7 +281,7 @@ function CaptureStep({ ctx, shots, shotUrls, setShot, onNext }: {
 }
 
 /** 휴대폰 사진 가져오기 — QR 로 올리면 받아서 빈 칸에 넣는다 */
-function PhoneSheet({ ctx, need, onClose, onPhotos }: { ctx: FlowCtx; need: number; onClose: () => void; onPhotos: (pics: HTMLImageElement[]) => void }) {
+export function PhoneSheet({ ctx, need, onClose, onPhotos }: { ctx: FlowCtx; need: number; onClose: () => void; onPhotos: (pics: HTMLImageElement[]) => void }) {
   const album = useAlbum(ctx.getTicket, true, `n=${need}&for=photo`)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

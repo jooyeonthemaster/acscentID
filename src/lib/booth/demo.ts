@@ -49,8 +49,9 @@ export const BOOTH_DEMOS: BoothDemo[] = [
   { id: 'idol-album-jacket', mode: 'kwave-2026', concept: 'album-jacket', tag: 'ALBUM', name: '앨범 재킷', desc: '스튜디오에서 찍은 공식 컨셉 포토처럼, 채도 낮은 필름 색감의 화보 한 장.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#8a6a52', screen: shot('idol-album-jacket'), print: shot('print-album-jacket') },
   { id: 'idol-stage-fancam', mode: 'kwave-2026', concept: 'stage-fancam', tag: 'FANCAM', name: '무대 직캠', desc: '콘서트 무대에서 안무 중인 순간. 조명 빔과 대형 LED, 걸크러시 무대 의상.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#c0303f', screen: shot('idol-stage-fancam'), print: shot('print-stage-fancam') },
   { id: 'idol-mv-still', mode: 'kwave-2026', concept: 'mv-still', tag: 'MV', name: '뮤비 스틸', desc: '네온이 가득한 뮤직비디오의 한 장면처럼, 강한 컬러 조명과 액세서리.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#1f8a9a', screen: shot('idol-mv-still'), print: shot('print-mv-still') },
-  // 포토부스 프로그램 14종 — 화면 견본은 실제 시작 화면 캡처(/assets/booth-demo/program-<id>.webp)
-  ...PROGRAMS.map((p): BoothDemo => ({
+  // 포토부스 프로그램 14종 — 화면 견본은 실제 시작 화면 캡처(/assets/booth-demo/program-<id>.webp).
+  // 행사 전용(ANSAN 등)은 랜딩에 넣지 않는다 — 주소(/booth?mode=ansan-2026&demo=1)로는 열린다
+  ...PROGRAMS.filter((p) => !p.event).map((p): BoothDemo => ({
     id: `program-${p.id}`,
     mode: p.id,
     tag: p.card.tag,
