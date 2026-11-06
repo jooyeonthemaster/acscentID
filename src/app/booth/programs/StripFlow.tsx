@@ -362,7 +362,7 @@ function CaptureStep({ ctx, shot, shotUrl, notice, onShot, onNext }: {
           </button>
         </>
       ) : (
-        <div className="pg-actions">
+        <div className="pg-actions pg-strip-confirm-actions">
           <button type="button" className="pg-btn pg-btn--line" onClick={retake}><RotateCcw size={20} />다시 찍기</button>
           <button type="button" className="pg-btn pg-btn--accent pg-btn--grow" onClick={onNext}><Sparkles size={20} /><span>이 사진으로 미래 만들기</span></button>
         </div>

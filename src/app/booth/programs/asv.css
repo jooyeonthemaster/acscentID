@@ -177,6 +177,10 @@
 .asv .pg-split { gap: 24px; padding: 18px 24px 22px; }
 .asv .pg-panel { gap: 14px; padding: 22px 24px; border-radius: 0; border: 1px solid var(--asv-line); background: var(--asv-raised); }
 .asv .pg-actions { gap: 10px; }
+/* 촬영 확인은 긴 생성 문구가 줄어들지 않게 두 버튼을 각각 한 줄 전체 너비로 둔다. */
+.asv .pg-strip-confirm-actions { display: grid; grid-template-columns: minmax(0, 1fr); }
+.asv .pg-strip-confirm-actions .pg-btn { width: 100%; min-width: 0; padding: 12px 20px; white-space: normal; }
+.asv .pg-strip-confirm-actions .pg-btn svg { flex: none; }
 .asv .pg-warn { padding: 10px 12px; border-radius: 0; border: 1px solid var(--asv-volt-300); background: var(--asv-volt-50); color: var(--asv-ink-900); font-size: 14.5px; line-height: 1.45; }
 .asv .pg-warn svg { flex: none; color: var(--asv-volt); }
 .asv .pg-error-text { color: var(--asv-ink-900); font-size: 15px; }
