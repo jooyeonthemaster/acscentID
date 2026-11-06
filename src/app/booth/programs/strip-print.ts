@@ -132,7 +132,6 @@ export function renderStrip(design: 0 | 1, input: StripInput): HTMLCanvasElement
   line(ctx, SIDE, fy, STRIP_W - SIDE, fy, theme.line, 2)
   text(ctx, ASV_FESTIVAL.name, SIDE, fy + 38, `800 23px ${K}`, theme.ink, 'left', (c) => { c.letterSpacing = '-0.5px' })
   text(ctx, `${ASV_FESTIVAL.dates} · ${ASV_FESTIVAL.venue}`, SIDE, fy + 66, `600 15px ${K}`, theme.sub, 'left')
-  text(ctx, 'AI가 만든 재미로 보는 상상 사진이에요', SIDE, fy + 93, `600 14px ${K}`, theme.mute, 'left')
   text(ctx, `SEALED ${today()}`, STRIP_W - SIDE, fy + 93, `500 13px ${M()}`, theme.volt, 'right', (c) => { c.letterSpacing = '1.5px' })
   return canvas
 }
@@ -182,7 +181,6 @@ export function renderFrameStrip(def: StripFrameDef, overlay: Pic, input: StripI
   text(ctx, 'LATER!', STRIP_W / 2, 1562, `italic 900 78px ${P()}`, title)
   text(ctx, 'AI 포토존 · 미래로 가는 타임캡슐', STRIP_W / 2, 1600, `700 21px ${G()}`, sub)
   text(ctx, '2026 안산사이언스밸리 과학축제', STRIP_W / 2, 1642, `700 25px ${G()}`, foot)
-  text(ctx, 'AI가 만든 재미로 보는 상상 사진이에요', STRIP_W / 2, 1674, `700 17px ${G()}`, footSub)
   text(ctx, today(), STRIP_W / 2, 1710, `22px ${A()}`, footSub, 'center', (c) => { c.letterSpacing = '6px' })
   return canvas
 }
