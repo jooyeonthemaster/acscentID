@@ -28,10 +28,17 @@ const PUBLIC_FILE_PATTERN =
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // 행사 전용 주소(jbnu-major-fair.vercel.app 등, src/lib/kiosk/pc.ts) — 첫 화면은 그 행사 랜딩, 사이트의 다른 페이지(브랜드)는 열지 않는다.
+  // 행사 전용 주소(src/lib/kiosk/pc.ts) — 첫 화면은 그 행사 랜딩, 사이트의 다른 페이지(브랜드)는 열지 않는다.
   // 체험(/kiosk/…)·API·받기 페이지·정적 파일만 지나간다
   // 주소는 Host 머리글로 본다(개발 서버의 nextUrl 은 자기 이름 localhost 라 행사 주소를 시험할 수 없다)
   const host = (request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? request.nextUrl.hostname).split(':')[0].toLowerCase()
+  // 종료된 행사 주소는 브랜드 사이트나 유료 AI 체험으로 연결하지 않는다.
+  if (host === 'jbnu-major-fair.vercel.app') {
+    return new NextResponse('행사가 종료되어 페이지가 삭제되었습니다.', {
+      status: 410,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Robots-Tag': 'noindex' },
+    })
+  }
   const eventHub = KIOSK_PC_EVENT_HOSTS[host]
   if (eventHub) {
     if (pathname === '/') return NextResponse.rewrite(new URL(KIOSK_PC_HUBS[eventHub].href, request.url))

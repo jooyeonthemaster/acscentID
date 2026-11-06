@@ -28,15 +28,7 @@ export type KioskPcHub = {
   /** 체험 화면 맨 아래 띠에 늘 보이는 주관·주최 로고(밝은 바탕용 그림) */
   footerLogos?: readonly { src: string; alt: string }[]
 }
-export const KIOSK_PC_HUBS = {
-  /** 2026학년도 2학기 JBNU 전공탐색박람회(2026.11.4~5, 전북대 진수당) — docs/kiosk-pc.md */
-  jbnu: {
-    href: '/kiosk/pc/jbnu',
-    label: '체험 목록',
-    // 2026-10-29 사용자 지시: JST 공유대학 로고를 랜딩 아래와 모든 프로그램 하단의 잘 보이는 곳에
-    footerLogos: [{ src: '/assets/kiosk-pc/jbnu/logo-jst.webp', alt: 'JST 공유대학 · Jeonbuk Saemangeum Tech. Platform University' }],
-  },
-} satisfies Record<string, KioskPcHub>
+export const KIOSK_PC_HUBS: Record<string, KioskPcHub> = {}
 export type KioskPcHubId = keyof typeof KIOSK_PC_HUBS
 
 /**
@@ -44,7 +36,6 @@ export type KioskPcHubId = keyof typeof KIOSK_PC_HUBS
  * 이 주소의 첫 화면(/)은 그 행사 랜딩이고, 체험·받기 밖의 사이트 페이지로는 가지 않는다(middleware.ts).
  */
 export const KIOSK_PC_EVENT_HOSTS: Record<string, KioskPcHubId> = {
-  'jbnu-major-fair.vercel.app': 'jbnu',
 }
 
 /** 지금 주소의 ?hub= — 없거나 모르는 이름이면 null. 행사 전용 주소에서는 랜딩이 그 주소의 첫 화면(/)이다 */
