@@ -91,6 +91,8 @@ export interface BoothImageOptions {
   imageSize?: '1K' | '2K'
   /** 첫 모델 · 예비 모델 기다리는 시간(ms) — 앞에 다른 호출이 있는 경로가 함수 시간(maxDuration) 안에 끝나게 */
   timeouts?: [number, number]
+  /** 단체 사진은 여러 사람의 얼굴 유지를 위해 같은 모델로 재시도한다. 기본은 빠른 예비 모델. */
+  retryModel?: 'fast' | 'primary'
 }
 
 /** 이미지 한 장 요청 — 실패·시간 초과면 null(기록만 남기고 다음 시도로) */
@@ -200,7 +202,7 @@ export async function generateBoothImage(prompt: string, photo: string, more: st
   const primary = process.env.OPENROUTER_PHOTOBOOTH_MODEL || OPENROUTER_IMAGE_MODEL
   // 2K 출력은 보통 25~35초(2026-10-02) — 첫 시도는 60초까지 기다린다
   const [firstWait, fallbackWait] = options.timeouts ?? [60_000, 45_000]
-  const attempts: [string, number][] = [[primary, firstWait], [FALLBACK_MODEL, fallbackWait]]
+  const attempts: [string, number][] = [[primary, firstWait], [options.retryModel === 'primary' ? primary : FALLBACK_MODEL, fallbackWait]]
   let url: string | null = null
   for (const [model, timeout] of attempts) {
     url = await requestImage(model, timeout, prompt, photo, more, options)
