@@ -5,6 +5,7 @@
 // 장면 옵션은 없다(컷마다 장면이 정해져 있다). 못 만든 칸은 한 번 저절로 다시 부탁하고, 그래도 없으면 '도착하는 중' 칸으로 인화한다.
 // 화면은 축제 공식 웹사이트 디자인(WHITEPRINT — AsvParts.tsx · asv.css). 프레임은 기본 디자인 2종(ASV 화이트·블랙) + 프레임 10종(strip-frames.ts). 장수는 2장 단위, 최대·자동 인화수는 관리자 창(strip-count.ts).
 // 인쇄 원판은 4×6 에 같은 사진 둘(프린터 2인치 자르기). 폰 저장은 사진 한 장(strip-print.ts).
+// 인쇄본 오른쪽 아래에는 폰 저장 QR — QR 없는 사진을 먼저 올려 주소를 받고 그 QR 을 넣어 다시 그려 인쇄한다(SaveStep).
 
 import { AlertTriangle, ArrowLeft, Camera, CameraOff, Check, ImagePlus, Printer, RefreshCw, RotateCcw, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
@@ -17,7 +18,7 @@ import { loadCanvasFonts } from './fonts'
 import { PhoneSheet } from './PhotoFlow'
 import { savePhoto } from './save'
 import { PrintCard, QrCard, usePrint, useSavedLink } from './SavePanel'
-import { framePhotoLayer, renderFrameStrip, renderStrip, stripSheet, stripThumb, type StripInput } from './strip-print'
+import { framePhotoLayer, makeStripQr, renderFrameStrip, renderStrip, stripSheet, stripThumb, type StripInput, type StripQr } from './strip-print'
 import { STRIPS_PER_SHEET, readStripAuto, readStripMax, stripCountOptions, stripSheets } from './strip-count'
 import { Split, useElapsed } from './ui'
 import { AsvHead, AsvNote, RegMarks } from './AsvParts'
@@ -39,8 +40,8 @@ function crop32(src: HTMLCanvasElement | HTMLImageElement): HTMLCanvasElement {
 
 /** 고를 수 있는 사진 — 기본 디자인(basic) 또는 프레임(frame) */
 interface StripChoice { id: string; name: string; basic?: 0 | 1; frame?: StripFrameDef }
-/** 인화로 넘기는 것 */
-interface StripOrder { strip: string; sheet: string; copies: number; count: number }
+/** 인화로 넘기는 것 — strip · sheet 는 QR 없는 사진(폰 저장 · QR 을 못 넣었을 때 인쇄), render 는 같은 디자인에 QR 을 넣어 다시 그린다 */
+interface StripOrder { strip: string; sheet: string; copies: number; count: number; render: (qr: StripQr) => Promise<HTMLCanvasElement> }
 
 export function StripFlow({ ctx }: { ctx: FlowCtx }) {
   const [step, setStep] = useState<Step>('capture')
@@ -196,7 +197,9 @@ function FrameStep({ ctx, input, rendered, choiceId, onChoice, countChoices, cou
   const print = () => {
     const strip = rendered.current.get(chosen.id)
     if (!ready || !preview || !strip) return
-    onPrint({ strip: preview.url, sheet: stripSheet(strip), copies: stripSheets(count), count })
+    const { frame, basic = 0 } = chosen
+    const render = async (qr: StripQr) => (frame ? renderFrameStrip(frame, await loadImage(frame.file), input, qr) : renderStrip(basic, input, qr))
+    onPrint({ strip: preview.url, sheet: stripSheet(strip), copies: stripSheets(count), count, render })
   }
 
   return (
@@ -493,34 +496,57 @@ function StripPreview({ src }: { src: string }) {
   )
 }
 
+/** 인쇄본에 넣을 폰 저장 주소를 기다리는 최대 시간 — 넘으면 QR 없이 인쇄한다(화면 QR 은 올라가는 대로 뜬다) */
+const PRINT_QR_WAIT_MS = 15_000
+
 function SaveStep({ ctx, order }: { ctx: FlowCtx; order: StripOrder }) {
   const { program, markShot, setDirty } = ctx
-  const { strip, sheet, copies, count } = order
+  const { strip, sheet: plainSheet, copies, count, render } = order
   const make = useCallback(async () => savePhoto(await ctx.getTicket(), strip), [ctx, strip])
   const saved = useSavedLink(make, true)
+  // 인쇄본 — QR 없는 사진을 올려 받은 주소로 QR 을 만들어 같은 디자인에 넣는다. 올리기가 실패하거나 늦으면 QR 없이(손님을 오래 세우지 않게).
+  // 한 번 정하면 바꾸지 않는다(QR 다시 받기로 주소가 바뀌어도 이미 인쇄한 것과 같게)
+  const [printed, setPrinted] = useState<{ strip: string; sheet: string } | null>(null)
+  const decided = useRef(false)
+  const link = saved.link
+  const failed = !!saved.error
+  useEffect(() => {
+    if (decided.current) return
+    const plain = () => { decided.current = true; setPrinted({ strip, sheet: plainSheet }) }
+    if (failed) { plain(); return }
+    if (link) {
+      decided.current = true
+      render(makeStripQr(link.url))
+        .then((canvas) => setPrinted({ strip: canvas.toDataURL('image/jpeg', 0.93), sheet: stripSheet(canvas) }))
+        .catch((error) => { console.error('[timecapsule] 인화물 QR 넣기 실패:', error); setPrinted({ strip, sheet: plainSheet }) })
+      return
+    }
+    const timer = window.setTimeout(plain, PRINT_QR_WAIT_MS)
+    return () => window.clearTimeout(timer)
+  }, [link, failed, render, strip, plainSheet])
   // 4×6 한 장 = 같은 사진 2장(프린터 2인치 자르기)
-  const printer = usePrint(sheet, () => markShot({ printed: true }), { cut: '2inch', copies })
-  // [사진 인화하기]를 눌러 왔으니 바로 보낸다 — 한 번만(개발 모드의 effect 두 번 실행에도)
+  const printer = usePrint(printed?.sheet ?? null, () => markShot({ printed: true }), { cut: '2inch', copies })
+  // [사진 인화하기]를 눌러 왔으니 인쇄본이 준비되는 대로 바로 보낸다 — 한 번만(개발 모드의 effect 두 번 실행에도)
   const sent = useRef(false)
   const { print } = printer
   useEffect(() => {
-    if (sent.current) return
+    if (sent.current || !printed) return
     sent.current = true
     void print()
-  }, [print])
+  }, [print, printed])
   useEffect(() => { if (saved.link) { markShot({ downloaded: true }); setDirty(false) } }, [saved.link, markShot, setDirty])
   return (
-    <Split className="pg-save pg-strip-save" visual={<StripPreview src={strip} />}>
+    <Split className="pg-save pg-strip-save" visual={<StripPreview src={printed?.strip ?? strip} />}>
       <AsvHead index={3} label="Print · Save" title={program.save.title} sub={program.save.sub} />
       <div className="pg-save-cards">
-        <PrintCard printer={printer} label={`사진 ${count}장 인쇄`} note="2×6 사진 · 함께 온 분과 나눠 가져요" />
+        <PrintCard printer={printer} label={`사진 ${count}장 인쇄`} note="2×6 사진 · 함께 온 분과 나눠 가져요" preparing={!printed} />
         <QrCard state={saved} />
       </div>
       <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={ctx.requestHome}><span>완료 · 처음으로</span><span aria-hidden="true">→</span></button>
       <p className="asv-sign asv-mono">{ASV_FESTIVAL.name}<span>{ASV_FESTIVAL.dates} · {ASV_FESTIVAL.venue}</span></p>
       <div className="pg-print-area" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={sheet} alt="" />
+        <img src={printed?.sheet ?? plainSheet} alt="" />
       </div>
     </Split>
   )

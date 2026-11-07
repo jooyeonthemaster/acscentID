@@ -5,9 +5,12 @@
 // 아래 날짜가 반쯤 잘렸다 — 위아래 약 6~7mm · 좌우 약 4mm 를 비운다.
 // 기본 디자인 2종(renderStrip): 축제 공식 웹사이트 디자인(WHITEPRINT) — ASV 화이트(종이 · 잉크 · 볼트) / ASV 블랙(사이트 다크 섹션).
 // 로고 마크 · 거대 영문 LATER · 치수선 · 칸 모서리 크로스헤어 · 볼트 연도. 축제 표기는 ASV_FESTIVAL(공식 확정 카피) 그대로. 프레임 10종은 renderFrameStrip.
+// 인쇄본에는 오른쪽 아래에 폰 저장 QR(StripQr)을 넣는다 — 기본 디자인의 'SEALED 날짜' 자리. QR 이 없으면(폰 저장본 · 올리기 실패) 예전 그대로.
 
+import QRCode from 'qrcode'
 import type { StripFrameDef } from '@/lib/booth/programs/strip-frames'
 import { ASV_FESTIVAL, STRIP_NOW_YEAR, STRIP_STEPS } from '@/lib/booth/programs/timecapsule-strip'
+import { RESULT_PHOTO_TTL_HOURS } from '@/lib/photobooth/result-photo'
 import { bricolage, jetbrains } from './fonts'
 import { A, G, P, cover, rect, text, today, type Pic } from './print-designs'
 
@@ -55,6 +58,37 @@ const THEMES: Theme[] = [
 
 const cellY = (i: number) => TOP + i * (CELL_H + GAP)
 
+// ───────────────────────── 폰 저장 QR ─────────────────────────
+
+/** 인쇄 QR — 칸 행렬. 이미지를 줄이면 칸 경계가 번져 인화에서 읽기 어려워져, 칸마다 정수 픽셀로 찍는다 */
+export interface StripQr {
+  size: number
+  dark: (row: number, col: number) => boolean
+}
+
+export function makeStripQr(url: string): StripQr {
+  const { modules } = QRCode.create(url, { errorCorrectionLevel: 'M' })
+  return { size: modules.size, dark: (row, col) => !!modules.get(row, col) }
+}
+
+/** QR 칸 영역 최대(px) — 폰 저장 주소(74자)는 버전 5(37칸)라 칸당 3px(300dpi 에서 약 0.25mm) · 111px(약 9.4mm) */
+const QR_MAX = 112
+/** QR 칸 아래 끝 — 위아래 약 6~7mm 여백(용지 여분 확대에 잘리지 않게) 안 */
+const QR_BOTTOM = 1728
+const QR_CAPTION = `휴대폰으로 사진 받기 · ${RESULT_PHOTO_TTL_HOURS / 24}일 보관 →`
+
+/** 오른쪽 아래 QR — 칸의 오른쪽·아래 끝을 (right, bottom)에 맞추고, 둘레 2칸은 밝은 판(조용한 여백). 판의 자리를 돌려준다 */
+function qrBlock(ctx: Ctx, qr: StripQr, right: number, bottom: number, radius = 0) {
+  const m = Math.max(2, Math.floor(QR_MAX / qr.size)), q = qr.size * m, pad = m * 2
+  const x = right - q, y = bottom - q
+  rect(ctx, x - pad, y - pad, q + pad * 2, q + pad * 2, '#ffffff', radius)
+  ctx.save()
+  ctx.fillStyle = '#0b0d10'
+  for (let row = 0; row < qr.size; row++) for (let col = 0; col < qr.size; col++) if (qr.dark(row, col)) ctx.fillRect(x + col * m, y + row * m, m, m)
+  ctx.restore()
+  return { x: x - pad, y: y - pad, size: q + pad * 2 }
+}
+
 function line(ctx: Ctx, x0: number, y0: number, x1: number, y1: number, color: string, width = 2) {
   ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); ctx.restore()
 }
@@ -93,8 +127,8 @@ function cell(ctx: Ctx, theme: Theme, pic: Pic | null, i: number, year: number, 
   text(ctx, label, px + 26 + yw, py + 31, `700 20px ${K}`, theme.ink, 'left')
 }
 
-/** 사진 한 장(600×1800) 캔버스 */
-export function renderStrip(design: 0 | 1, input: StripInput): HTMLCanvasElement {
+/** 사진 한 장(600×1800) 캔버스 — qr 이 있으면 오른쪽 아래 'SEALED 날짜' 대신 QR(인쇄본) */
+export function renderStrip(design: 0 | 1, input: StripInput, qr: StripQr | null = null): HTMLCanvasElement {
   const theme = THEMES[design]
   const canvas = document.createElement('canvas')
   canvas.width = STRIP_W; canvas.height = STRIP_H
@@ -127,12 +161,18 @@ export function renderStrip(design: 0 | 1, input: StripInput): HTMLCanvasElement
   cell(ctx, theme, input.now, 0, STRIP_NOW_YEAR, '지금')
   STRIP_STEPS.forEach((step, i) => cell(ctx, theme, input.future[i] ?? null, i + 1, step.year, step.label))
 
-  // 바닥 — 축제 공식 표기 · 일시 · 장소 · 봉인 날짜
+  // 바닥 — 축제 공식 표기 · 일시 · 장소 · 봉인 날짜(인쇄본은 그 자리에 폰 저장 QR, 선은 QR 앞에서 끊는다)
   const fy = cellY(4) + 16
-  line(ctx, SIDE, fy, STRIP_W - SIDE, fy, theme.line, 2)
+  const box = qr ? qrBlock(ctx, qr, STRIP_W - SIDE, QR_BOTTOM) : null
+  line(ctx, SIDE, fy, box ? box.x - 14 : STRIP_W - SIDE, fy, theme.line, 2)
   text(ctx, ASV_FESTIVAL.name, SIDE, fy + 38, `800 23px ${K}`, theme.ink, 'left', (c) => { c.letterSpacing = '-0.5px' })
   text(ctx, `${ASV_FESTIVAL.dates} · ${ASV_FESTIVAL.venue}`, SIDE, fy + 66, `600 15px ${K}`, theme.sub, 'left')
-  text(ctx, `SEALED ${today()}`, STRIP_W - SIDE, fy + 93, `500 13px ${M()}`, theme.volt, 'right', (c) => { c.letterSpacing = '1.5px' })
+  if (box) {
+    text(ctx, 'SCAN', SIDE, fy + 93, `500 13px ${M()}`, theme.volt, 'left', (c) => { c.letterSpacing = '1.5px' })
+    text(ctx, QR_CAPTION, SIDE + 46, fy + 93, `700 14px ${K}`, theme.volt, 'left')
+  } else {
+    text(ctx, `SEALED ${today()}`, STRIP_W - SIDE, fy + 93, `500 13px ${M()}`, theme.volt, 'right', (c) => { c.letterSpacing = '1.5px' })
+  }
   return canvas
 }
 
@@ -164,8 +204,11 @@ function framePill(ctx: Ctx, def: StripFrameDef, i: number, year: number, label:
   text(ctx, label, px + 26 + yw, py + 30, `700 20px ${G()}`, def.colors.pillText, 'left')
 }
 
-/** 프레임 사진 한 장(600×1800) — 사진 → 프레임 → 이름표·아래 글자 */
-export function renderFrameStrip(def: StripFrameDef, overlay: Pic, input: StripInput): HTMLCanvasElement {
+/** 프레임 인쇄본 QR 의 오른쪽 끝 — 프레임 오른쪽 가장자리 캐릭터(x 약 520~)를 가리지 않게 글자 구역 안쪽 */
+const FRAME_QR_RIGHT = 508
+
+/** 프레임 사진 한 장(600×1800) — 사진 → 프레임 → 이름표·아래 글자. qr 이 있으면 아래 줄을 [축제·날짜 | QR] 로 나눈다(인쇄본) */
+export function renderFrameStrip(def: StripFrameDef, overlay: Pic, input: StripInput, qr: StripQr | null = null): HTMLCanvasElement {
   const canvas = document.createElement('canvas')
   canvas.width = STRIP_W; canvas.height = STRIP_H
   const ctx = canvas.getContext('2d')!
@@ -178,6 +221,17 @@ export function renderFrameStrip(def: StripFrameDef, overlay: Pic, input: StripI
   STRIP_STEPS.forEach((step, i) => framePill(ctx, def, i + 1, step.year, step.label))
   // 아래 글자 구역(가로 80~520, 세로 1485~1735)
   const { title, sub, foot, footSub } = def.colors
+  if (qr) {
+    // 제목 둘은 가운데 그대로(조금 올려 QR 과 띄운다), 축제 · 날짜 · 안내는 QR 왼쪽 칸 가운데
+    text(ctx, 'LATER!', STRIP_W / 2, 1554, `italic 900 78px ${P()}`, title)
+    text(ctx, 'AI 포토존 · 미래로 가는 타임캡슐', STRIP_W / 2, 1590, `700 21px ${G()}`, sub)
+    const box = qrBlock(ctx, qr, FRAME_QR_RIGHT, QR_BOTTOM - 2, 10)
+    const cx = Math.round((80 + box.x - 12) / 2)
+    text(ctx, '2026 안산사이언스밸리 과학축제', cx, 1652, `700 21px ${G()}`, foot)
+    text(ctx, today(), cx, 1690, `22px ${A()}`, footSub, 'center', (c) => { c.letterSpacing = '6px' })
+    text(ctx, QR_CAPTION, cx, 1720, `700 14px ${G()}`, footSub)
+    return canvas
+  }
   text(ctx, 'LATER!', STRIP_W / 2, 1562, `italic 900 78px ${P()}`, title)
   text(ctx, 'AI 포토존 · 미래로 가는 타임캡슐', STRIP_W / 2, 1600, `700 21px ${G()}`, sub)
   text(ctx, '2026 안산사이언스밸리 과학축제', STRIP_W / 2, 1642, `700 25px ${G()}`, foot)

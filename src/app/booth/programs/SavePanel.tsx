@@ -117,8 +117,15 @@ export function usePrint(image: string | null, onPrinted: () => void, options?: 
   return { state, error, print, browser: !getBoothShell() }
 }
 
-export function PrintCard({ printer, label = '사진 1장 인쇄', note = '4×6 사진 한 장 · 화면과 같은 디자인' }: { printer: ReturnType<typeof usePrint>; label?: string; note?: string }) {
+export function PrintCard({ printer, label = '사진 1장 인쇄', note = '4×6 사진 한 장 · 화면과 같은 디자인', preparing = false }: {
+  printer: ReturnType<typeof usePrint>
+  label?: string
+  note?: string
+  /** 인쇄본을 아직 만드는 중(ANSAN — 폰 저장 QR 을 넣는 중) */
+  preparing?: boolean
+}) {
   const { state, error, print, browser } = printer
+  const waiting = preparing && state === 'idle'
   return (
     <section className="pg-card pg-print" aria-label={label}>
       <Printer size={44} aria-hidden="true" />
@@ -131,10 +138,10 @@ export function PrintCard({ printer, label = '사진 1장 인쇄', note = '4×6 
       ) : state === 'sent' ? (
         <p role="status">{browser ? '인쇄 창을 열었어요. 부스에서는 프린터로 바로 보내요.' : '프린터로 보냈어요. 1분쯤 뒤 출구에서 나와요.'}</p>
       ) : (
-        <p>{note}</p>
+        <p>{waiting ? '사진에 휴대폰 저장 QR을 넣는 중이에요…' : note}</p>
       )}
-      <button type="button" className="pg-btn pg-btn--line" onClick={() => void print()} disabled={state === 'sending' || state === 'sent' || state === 'failed'}>
-        {state === 'sending' ? <><Loader2 className="pg-spin" size={18} />보내는 중…</> : state === 'sent' ? '인쇄 요청 보냄' : '인쇄하기'}
+      <button type="button" className="pg-btn pg-btn--line" onClick={() => void print()} disabled={waiting || state === 'sending' || state === 'sent' || state === 'failed'}>
+        {waiting ? <><Loader2 className="pg-spin" size={18} />준비 중…</> : state === 'sending' ? <><Loader2 className="pg-spin" size={18} />보내는 중…</> : state === 'sent' ? '인쇄 요청 보냄' : '인쇄하기'}
       </button>
     </section>
   )
