@@ -185,6 +185,11 @@
 .asv .pg-warn svg { flex: none; color: var(--asv-volt); }
 .asv .pg-error-text { color: var(--asv-ink-900); font-size: 15px; }
 .asv .pg-error-text::before { content: ''; flex: none; width: 8px; height: 8px; margin-top: 7px; background: var(--asv-volt); }
+/* 다시 찍기 안내 — 무엇이 문제인지(굵게) + 어떻게 찍으면 되는지. 왼쪽 볼트 막대로 다른 안내보다 먼저 보이게 */
+.asv .pg-retake { display: grid; gap: 6px; padding: 12px 14px 12px 16px; border: 1px solid var(--asv-volt-300); border-left: 4px solid var(--asv-volt); background: var(--asv-volt-50); color: var(--asv-ink-900); }
+.asv .pg-retake b { display: flex; gap: 8px; align-items: center; font-size: 19px; font-weight: 800; line-height: 1.3; }
+.asv .pg-retake b svg { flex: none; color: var(--asv-volt); }
+.asv .pg-retake p { margin: 0; font-size: 16px; line-height: 1.5; }
 .asv .pg-muted { color: var(--asv-ink-500); }
 
 /* ── 촬영 — 카메라 위 도면 HUD · 모서리 표시 ── */

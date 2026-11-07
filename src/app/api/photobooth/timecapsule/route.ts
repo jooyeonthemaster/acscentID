@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { IdolError, readIdolTicket, spendIdolTicket } from '@/lib/booth/idol-generate'
 import { DEMO_TICKET_OWNER, takeDemoGeneration } from '@/lib/booth/demo-server'
-import { ALL_STRIP_YEARS, generateSteps, planStrip } from '@/lib/booth/programs/timecapsule-server'
-import { isStripYears, type StripResponse, type StripYears } from '@/lib/booth/programs/timecapsule-strip'
+import { ALL_STRIP_YEARS, generateSteps, planStrip, StripRetakeError } from '@/lib/booth/programs/timecapsule-server'
+import { isStripYears, type StripResponse, type StripRetakeResponse, type StripYears } from '@/lib/booth/programs/timecapsule-strip'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,7 +15,8 @@ export const maxDuration = 120
  *
  * 사람 읽기(나이·얼굴 자리) → 사람마다 얼굴 클로즈업 → 고른 햇수를 동시에 생성(src/lib/booth/programs/timecapsule-server.ts).
  * 표(ticket)는 다른 프로그램과 같은 생성 표 — 요청 한 번에 1회(세 장을 함께 만든다), 표 하나로 2번(첫 생성 + 못 만든 칸 다시).
- * 5명 이상이거나 개인별 얼굴을 안전하게 분리하지 못하면 표를 쓰지 않고 422(다시 찍기 안내). 데모 표는 데모 상한을 요청 한 번에 한 번 센다.
+ * 5명 이상이거나 개인별 얼굴을 안전하게 분리하지 못하면 표를 쓰지 않고 422 { error, retake: { reason, people } }(이유별 다시 찍기 안내).
+ * 사람 읽기 모델이 아예 답하지 않으면 표를 쓰지 않고 503(같은 사진으로 다시 시도). 데모 표는 데모 상한을 요청 한 번에 한 번 센다.
  * 손님 사진은 생성에만 쓰고 저장·기록하지 않는다.
  */
 export async function POST(request: NextRequest) {
@@ -38,6 +39,9 @@ export async function POST(request: NextRequest) {
     const response: StripResponse = { people: plan.people?.length ?? 0, images: years.map((y, i) => ({ years: y, image: images[i] })) }
     return NextResponse.json(response, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {
+    if (error instanceof StripRetakeError) {
+      return NextResponse.json({ error: error.message, retake: error.retake } satisfies StripRetakeResponse, { status: 422 })
+    }
     if (error instanceof IdolError) return NextResponse.json({ error: error.message }, { status: error.status })
     console.error('[timecapsule] 오류:', error instanceof Error ? error.message : error)
     return NextResponse.json({ error: 'AI 사진을 만들지 못했어요.' }, { status: 500 })

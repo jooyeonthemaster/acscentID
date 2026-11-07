@@ -2,7 +2,8 @@ import assert from 'node:assert/strict'
 import { test, type TestContext } from 'node:test'
 import sharp from 'sharp'
 import { generateBoothImage, IdolError } from '../../idol-generate'
-import { generateSteps, planStrip, type StripPlan } from '../timecapsule-server'
+import { generateSteps, planStrip, StripRetakeError, type StripPlan } from '../timecapsule-server'
+import type { StripRetakeReason } from '../timecapsule-strip'
 
 const people = [
   { box_2d: [250, 220, 550, 340], age: 30, presentation: 'man', look: 'red shirt' },
@@ -41,10 +42,12 @@ function service(t: TestContext, reply: (body: Record<string, unknown>) => Respo
 
 const vision = (found: typeof people) => Response.json({ choices: [{ message: { content: JSON.stringify({ people: found }) } }] })
 const retake = (error: unknown) => error instanceof IdolError && error.status === 422 && /다시 찍어/.test(error.message)
+/** 다시 촬영 + 이유 — 화면이 이유별로 무엇이 문제고 어떻게 찍으면 되는지 안내한다 */
+const retakeFor = (reason: StripRetakeReason) => (error: unknown) => retake(error) && error instanceof StripRetakeError && error.retake.reason === reason
 
 test('얼굴 읽기에 실패하면 참고 없이 이미지를 생성하지 않고 다시 촬영하게 한다', async (t) => {
   const calls = service(t, () => Response.json({ choices: [{ message: { content: 'not json' } }] }))
-  await assert.rejects(planStrip(await photo()), retake)
+  await assert.rejects(planStrip(await photo()), retakeFor('unclear'))
   assert.equal(calls.length, 2)
   assert.ok(calls.every((call) => !call.modalities))
 })
@@ -52,12 +55,30 @@ test('얼굴 읽기에 실패하면 참고 없이 이미지를 생성하지 않�
 test('사람 수가 맞아도 얼굴 상자가 섞이거나 너무 작으면 다시 촬영하게 한다', async (t) => {
   const bad = people.map((person) => ({ ...person, box_2d: [250, 220, 550, 340] }))
   service(t, () => vision(bad))
-  await assert.rejects(planStrip(await photo()), retake)
+  await assert.rejects(planStrip(await photo()), retakeFor('overlap'))
 })
 
 test('얼굴을 확대할 원본 픽셀이 부족하면 본 사진만으로 생성하지 않는다', async (t) => {
   service(t, () => vision([{ ...people[0], box_2d: [100, 100, 130, 112] }]))
-  await assert.rejects(planStrip(await photo()), retake)
+  await assert.rejects(planStrip(await photo()), retakeFor('too-small'))
+})
+
+test('다시 촬영 이유 — 5명 이상이면 인원수와 함께, 아무도 없으면 사람을 못 찾았다고', async (t) => {
+  const five = [0, 1, 2, 3, 4].map((i) => ({ ...people[0], look: `person ${i}`, box_2d: [250, 60 + i * 180, 450, 180 + i * 180] }))
+  service(t, () => vision(five))
+  await assert.rejects(planStrip(await photo()), (error: unknown) => retakeFor('too-many')(error) && (error as StripRetakeError).retake.people === 5 && /5명/.test((error as Error).message))
+})
+
+test('다시 촬영 이유 — 사진에서 사람을 하나도 찾지 못함', async (t) => {
+  service(t, () => vision([]))
+  await assert.rejects(planStrip(await photo()), retakeFor('no-people'))
+})
+
+test('사람 읽기 모델이 모두 응답하지 않으면 다시 촬영이 아니라 같은 사진으로 다시 시도(503)', async (t) => {
+  const calls = service(t, () => Response.json({ error: { message: 'Insufficient credits' } }, { status: 402 }))
+  await assert.rejects(planStrip(await photo()), (error: unknown) => error instanceof IdolError && !(error instanceof StripRetakeError) && error.status === 503 && /다시 만들기/.test(error.message))
+  assert.equal(calls.length, 2)
+  assert.ok(calls.every((call) => !call.modalities))
 })
 
 test('정상 단체 사진은 사람 순서와 일치하는 얼굴 참고를 모두 만든다', async (t) => {

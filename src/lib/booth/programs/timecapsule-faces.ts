@@ -38,15 +38,18 @@ const intersect = (a: Rect, b: Rect): Rect => ({
   right: Math.min(a.right, b.right), bottom: Math.min(a.bottom, b.bottom),
 })
 
-function headRect(box: FaceReferencePerson['box'], imageWidth: number, imageHeight: number): Rect | null {
+/** 참고 사진을 못 만든 이유 — 손님 안내(다시 촬영)에 쓴다. invalid 는 상자·사진 자체가 이상한 경우 */
+export type FaceReferenceProblem = 'too-small' | 'overlap' | 'invalid'
+
+function headRect(box: FaceReferencePerson['box'], imageWidth: number, imageHeight: number): Rect | 'invalid' | 'too-small' {
   const values = [box?.x0, box?.y0, box?.x1, box?.y1]
-  if (!values.every((value) => Number.isFinite(value) && value >= 0 && value <= 1)) return null
-  if (box.x1 <= box.x0 || box.y1 <= box.y0) return null
+  if (!values.every((value) => Number.isFinite(value) && value >= 0 && value <= 1)) return 'invalid'
+  if (box.x1 <= box.x0 || box.y1 <= box.y0) return 'invalid'
   const rect = {
     left: Math.floor(box.x0 * imageWidth), top: Math.floor(box.y0 * imageHeight),
     right: Math.ceil(box.x1 * imageWidth), bottom: Math.ceil(box.y1 * imageHeight),
   }
-  return width(rect) >= MIN_HEAD_PIXELS && height(rect) >= MIN_HEAD_PIXELS ? rect : null
+  return width(rect) >= MIN_HEAD_PIXELS && height(rect) >= MIN_HEAD_PIXELS ? rect : 'too-small'
 }
 
 function keepsHead(candidate: Rect, head: Rect): boolean {
@@ -111,17 +114,24 @@ function isolatedCrop(head: Rect, others: Rect[], imageWidth: number, imageHeigh
  * 흐림의 임의 임계값은 쓰지 않는다(현장 조명·피부·안경에 따른 오탐 방지).
  */
 export async function createFaceReferences(photo: string, people: readonly FaceReferencePerson[]): Promise<string[]> {
-  if (!people.length || !/^data:image\/(jpeg|png|webp);base64,/.test(photo)) return []
+  return (await buildFaceReferences(photo, people)).faces
+}
+
+/** createFaceReferences 와 같고, 못 만들었으면 이유도 — 너무 작은 얼굴이 있으면 too-small, 이웃과 나눌 수 없으면 overlap */
+export async function buildFaceReferences(photo: string, people: readonly FaceReferencePerson[]): Promise<{ faces: string[]; problem: FaceReferenceProblem | null }> {
+  const fail = (problem: FaceReferenceProblem) => ({ faces: [] as string[], problem })
+  if (!people.length || !/^data:image\/(jpeg|png|webp);base64,/.test(photo)) return fail('invalid')
   try {
     // 방향 적용 후의 동일한 픽셀에서 크기를 읽고 자른다. 중간 JPEG 재압축도 피한다.
     const { data, info } = await sharp(Buffer.from(photo.slice(photo.indexOf(',') + 1), 'base64'))
       .rotate().flatten({ background: BACKGROUND }).toColourspace('srgb').raw().toBuffer({ resolveWithObject: true })
     const heads = people.map((person) => headRect(person?.box, info.width, info.height))
-    if (heads.some((head) => head === null)) return []
+    if (heads.includes('too-small')) return fail('too-small')
+    if (heads.includes('invalid')) return fail('invalid')
     const validHeads = heads as Rect[]
     const crops = validHeads.map((head, index) => isolatedCrop(head, validHeads.filter((_, other) => other !== index), info.width, info.height))
-    if (crops.some((crop) => crop === null)) return []
-    return await Promise.all((crops as FaceCrop[]).map(async ({ rect: crop, masks }) => {
+    if (crops.some((crop) => crop === null)) return fail('overlap')
+    const faces = await Promise.all((crops as FaceCrop[]).map(async ({ rect: crop, masks }) => {
       let image = sharp(data, { raw: { width: info.width, height: info.height, channels: info.channels } })
         .extract({ left: crop.left, top: crop.top, width: width(crop), height: height(crop) })
       if (masks.length) {
@@ -140,7 +150,8 @@ export async function createFaceReferences(photo: string, people: readonly FaceR
         .jpeg({ quality: 94 }).toBuffer()
       return `data:image/jpeg;base64,${jpeg.toString('base64')}`
     }))
+    return { faces, problem: null }
   } catch {
-    return []
+    return fail('invalid')
   }
 }

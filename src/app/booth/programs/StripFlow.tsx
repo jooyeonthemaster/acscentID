@@ -11,7 +11,7 @@ import { AlertTriangle, ArrowLeft, Camera, CameraOff, Check, ImagePlus, Printer,
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { countFaces, preloadFaceDetect } from '@/lib/booth/face-detect'
 import { STRIP_FRAMES, type StripFrameDef } from '@/lib/booth/programs/strip-frames'
-import { ASV_FESTIVAL, STRIP_MAX_PEOPLE, STRIP_NOW_YEAR, STRIP_STEPS, type StripResponse, type StripYears } from '@/lib/booth/programs/timecapsule-strip'
+import { ASV_FESTIVAL, STRIP_MAX_PEOPLE, STRIP_NOW_YEAR, STRIP_STEPS, stripRetakeCopy, type StripResponse, type StripRetake, type StripYears } from '@/lib/booth/programs/timecapsule-strip'
 import { useCamera } from './use-camera'
 import { toRequestJpeg, type FlowCtx } from './flow'
 import { loadCanvasFonts } from './fonts'
@@ -40,6 +40,9 @@ function crop32(src: HTMLCanvasElement | HTMLImageElement): HTMLCanvasElement {
 
 /** 고를 수 있는 사진 — 기본 디자인(basic) 또는 프레임(frame) */
 interface StripChoice { id: string; name: string; basic?: 0 | 1; frame?: StripFrameDef }
+/** 다시 찍기 안내 — 무엇이 문제인지(title)와 어떻게 찍으면 되는지(tip) */
+interface RetakeNotice { title: string; tip?: string }
+
 /** 인화로 넘기는 것 — strip · sheet 는 QR 없는 사진(폰 저장 · QR 을 못 넣었을 때 인쇄), render 는 같은 디자인에 QR 을 넣어 다시 그린다 */
 interface StripOrder { strip: string; sheet: string; copies: number; count: number; render: (qr: StripQr) => Promise<HTMLCanvasElement> }
 
@@ -51,7 +54,7 @@ export function StripFlow({ ctx }: { ctx: FlowCtx }) {
   const [people, setPeople] = useState(0)
   const [choiceId, setChoiceId] = useState('')
   const [order, setOrder] = useState<StripOrder | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const [notice, setNotice] = useState<RetakeNotice | null>(null)
   // 인화 장수 — 2장 단위, 최대·자동 인화수는 이 부스 관리자 설정(strip-count.ts). 인원수를 알고 나서 정한다
   const [countChoices, setCountChoices] = useState<number[]>([STRIPS_PER_SHEET])
   const [count, setCount] = useState(STRIPS_PER_SHEET)
@@ -84,7 +87,7 @@ export function StripFlow({ ctx }: { ctx: FlowCtx }) {
             setCountChoices(options.choices); setCount(options.initial)
             setStep('result'); ctx.onResult()
           }}
-          onRetake={(message) => { setNotice(message); take(null); setStep('capture') }}
+          onRetake={(next) => { setNotice(next); take(null); setStep('capture') }}
         />
       )}
       {step === 'result' && shotUrl && (
@@ -259,7 +262,7 @@ function CaptureStep({ ctx, shot, shotUrl, notice, onShot, onNext }: {
   ctx: FlowCtx
   shot: HTMLCanvasElement | null
   shotUrl: string | null
-  notice: string | null
+  notice: RetakeNotice | null
   onShot: (pic: HTMLCanvasElement | null) => void
   onNext: () => void
 }) {
@@ -354,7 +357,12 @@ function CaptureStep({ ctx, shot, shotUrl, notice, onShot, onNext }: {
   return (
     <Split className="pg-capture-step" visual={visual}>
       <AsvHead index={1} label={shot ? 'Check' : 'Capture'} title={shot ? '사진을 확인해 주세요' : program.capture.title} sub={shot ? '모두 잘 나왔으면 미래로 떠나요' : program.capture.hint} />
-      {notice && <p className="pg-error-text" role="alert">{notice}</p>}
+      {notice && (
+        <div className="pg-retake" role="alert">
+          <b><AlertTriangle size={22} aria-hidden="true" />{notice.title}</b>
+          {notice.tip && <p>{notice.tip}</p>}
+        </div>
+      )}
       {faceWarning && <p className="pg-warn" role="alert"><AlertTriangle size={18} aria-hidden="true" />{faceWarning}</p>}
       {error && <p className="pg-error-text" role="alert">{error}</p>}
       {!shot ? (
@@ -387,7 +395,8 @@ function Generate({ ctx, shot, shotUrl, onDone, onRetake }: {
   shot: HTMLCanvasElement
   shotUrl: string
   onDone: (images: (HTMLImageElement | null)[], people: number) => void
-  onRetake: (message: string) => void
+  /** 다시 촬영으로 — 안내 없이(손님이 직접 [다시 찍기])는 null */
+  onRetake: (notice: RetakeNotice | null) => void
 }) {
   const { program } = ctx
   const [stage, setStage] = useState(0)
@@ -408,7 +417,12 @@ function Generate({ ctx, shot, shotUrl, onDone, onRetake }: {
         body: JSON.stringify({ ticket, photo, years }),
       })
       const data = await res.json().catch(() => ({}))
-      if (res.status === 422) throw Object.assign(new Error(data.error || '다시 찍어 주세요.'), { retake: true })
+      // 다시 촬영 — 서버가 보낸 이유로 무엇이 문제고 어떻게 찍으면 되는지(이유가 없으면 서버 문장 그대로)
+      if (res.status === 422) {
+        const reason = (data as { retake?: StripRetake }).retake
+        const notice: RetakeNotice = reason?.reason ? stripRetakeCopy(reason) : { title: data.error || '다시 찍어 주세요.' }
+        throw Object.assign(new Error(notice.title), { retake: notice })
+      }
       if (!res.ok || !Array.isArray(data.images)) throw new Error(data.error || `AI 사진을 만들지 못했어요 (${res.status}).`)
       return data as StripResponse
     }
@@ -436,7 +450,8 @@ function Generate({ ctx, shot, shotUrl, onDone, onRetake }: {
         if (!abort.signal.aborted) done.current.onDone(images, people)
       } catch (cause) {
         if (abort.signal.aborted) return
-        if ((cause as { retake?: boolean }).retake) { done.current.onRetake(cause instanceof Error ? cause.message : '다시 찍어 주세요.'); return }
+        const notice = (cause as { retake?: RetakeNotice }).retake
+        if (notice) { done.current.onRetake(notice); return }
         setError(cause instanceof Error ? cause.message : 'AI 사진을 만들지 못했어요.')
       } finally {
         ctx.setBusy(false)
@@ -454,7 +469,7 @@ function Generate({ ctx, shot, shotUrl, onDone, onRetake }: {
         <p className="pg-error-text" role="alert">{error}</p>
         <div className="pg-stack">
           <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={() => setAttempt((n) => n + 1)}><RefreshCw size={20} />다시 만들기</button>
-          <button type="button" className="pg-btn pg-btn--line pg-btn--wide" onClick={() => done.current.onRetake('')}><Camera size={20} />다시 찍기</button>
+          <button type="button" className="pg-btn pg-btn--line pg-btn--wide" onClick={() => done.current.onRetake(null)}><Camera size={20} />다시 찍기</button>
           <button type="button" className="pg-btn pg-btn--line pg-btn--wide" onClick={ctx.home}>처음으로</button>
         </div>
       </Split>

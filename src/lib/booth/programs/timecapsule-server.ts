@@ -12,8 +12,8 @@
 
 import sharp from 'sharp'
 import { askBoothVision, generateBoothImage, IdolError } from '../idol-generate'
-import { STRIP_MAX_PEOPLE, STRIP_STEPS, type StripYears } from './timecapsule-strip'
-import { createFaceReferences } from './timecapsule-faces'
+import { STRIP_MAX_PEOPLE, STRIP_STEPS, stripRetakeCopy, type StripRetake, type StripYears } from './timecapsule-strip'
+import { buildFaceReferences, createFaceReferences } from './timecapsule-faces'
 import { buildStepPrompt } from './timecapsule-prompt'
 
 export { buildStepPrompt } from './timecapsule-prompt'
@@ -66,10 +66,17 @@ const PHOTO_ASPECT = 1.5
  * 이러면 얼굴 클로즈업이 엉뚱한 사람(또는 두 사람)을 담아 얼굴이 섞인다 → 다음 모델에 다시 묻고, 그래도 이상하면 다시 촬영한다
  */
 export function boxesLookWrong(people: StripPerson[]): boolean {
-  return people.some((a, i) => {
+  return boxProblem(people) !== null
+}
+
+/** 상자가 왜 이상한가 — 두 머리가 크게 겹치면 overlap(손님이 얼굴을 띄우면 된다), 머리 모양이 아니게 길쭉하면 unclear */
+function boxProblem(people: StripPerson[]): 'overlap' | 'unclear' | null {
+  if (people.some((a, i) => people.slice(i + 1).some((b) => boxOverlap(a.box, b.box) > OVERLAP_LIMIT))) return 'overlap'
+  const odd = people.some((a) => {
     const ratio = ((a.box.x1 - a.box.x0) * PHOTO_ASPECT) / (a.box.y1 - a.box.y0)
-    return ratio > 1.6 || ratio < 0.5 || people.slice(i + 1).some((b) => boxOverlap(a.box, b.box) > OVERLAP_LIMIT)
+    return ratio > 1.6 || ratio < 0.5
   })
+  return odd ? 'unclear' : null
 }
 
 /** 모델 답 → 사람 목록(검사·정렬·겹침 제거). 형식이 틀리면 null */
@@ -104,11 +111,19 @@ export function parsePeople(text: string): StripPerson[] | null {
   return kept.sort((a, b) => (a.box.x0 + a.box.x1) - (b.box.x0 + b.box.x1))
 }
 
-/** 사진 속 사람 읽기 — 상자가 믿을 만한 첫 답. 모두 이상하면 가장 많이 찾은 답, 모델 둘 다 안 되면 null(생성하지 않고 다시 촬영) */
+/** 사람 읽기 모델이 둘 다 답하지 않음(호출 실패 · 시간 초과 · 잔액 부족 · 키 없음) — 손님 사진 탓이 아니라 다시 찍지 않는다 */
+const VISION_DOWN = 'AI 서버가 잠시 응답하지 않아요. [다시 만들기]를 눌러 같은 사진으로 다시 시도해 주세요. 계속되면 직원에게 알려 주세요.'
+
+/**
+ * 사진 속 사람 읽기 — 상자가 믿을 만한 첫 답. 모두 이상하면 가장 많이 찾은 답, 답은 왔는데 형식이 모두 틀리면 null(다시 촬영).
+ * 두 모델 모두 답이 없으면 503 — 다시 촬영이 아니라 같은 사진으로 다시 시도(생성 표는 아직 쓰지 않았다)
+ */
 export async function readPeople(photo: string): Promise<StripPerson[] | null> {
   let best: StripPerson[] | null = null
+  let answered = false
   for (const [model, timeout] of VISION_MODELS) {
     const text = await askBoothVision(model, timeout, PEOPLE_PROMPT, [photo])
+    if (text) answered = true
     const people = text ? parsePeople(text) : null
     if (!people) {
       if (text) console.error('[timecapsule] 사람 읽기 형식 오류', model, text.slice(0, 200))
@@ -117,6 +132,10 @@ export async function readPeople(photo: string): Promise<StripPerson[] | null> {
     if (people.length > 0 && !boxesLookWrong(people)) return people
     if (people.length > 0) console.error('[timecapsule] 머리 상자가 이상해 다시 묻는다', model, people.length)
     if (!best || people.length > best.length) best = people
+  }
+  if (!answered) {
+    console.error('[timecapsule] 사람 읽기 모델이 모두 응답하지 않음 — 다시 시도 안내(503)')
+    throw new IdolError(VISION_DOWN, 503)
   }
   return best
 }
@@ -144,26 +163,40 @@ export interface StripPlan {
   faces: string[]
 }
 
-const RETAKE_FACES = '얼굴을 정확히 구분하기 어려워요. 얼굴이 가리지 않게 조금 간격을 두고 모두 카메라를 보며 다시 찍어 주세요.'
+/** 다시 촬영(422) — 이유를 함께 보내 화면이 무엇이 문제고 어떻게 찍으면 되는지 안내한다(timecapsule-strip.ts stripRetakeCopy) */
+export class StripRetakeError extends IdolError {
+  constructor(public retake: StripRetake) {
+    const { title, tip } = stripRetakeCopy(retake)
+    super(`${title}. ${tip}`, 422)
+  }
+}
+
+/** 이유를 기록에 남긴다(사진은 남기지 않는다) — 다시 촬영이 몰릴 때 원인별로 세려고 */
+function retake(value: StripRetake): StripRetakeError {
+  console.warn('[timecapsule] 다시 촬영', value.reason, value.people ?? '')
+  return new StripRetakeError(value)
+}
 
 function requirePeople(people: StripPerson[] | null): StripPerson[] {
-  if (people && people.length > STRIP_MAX_PEOPLE) {
-    throw new IdolError(`사진에 ${people.length}명이 보여요. ${STRIP_MAX_PEOPLE}명까지 함께 다시 찍어 주세요.`, 422)
-  }
-  if (!people?.length || boxesLookWrong(people)) throw new IdolError(RETAKE_FACES, 422)
+  if (people && people.length > STRIP_MAX_PEOPLE) throw retake({ reason: 'too-many', people: people.length })
+  if (!people) throw retake({ reason: 'unclear' })
+  if (!people.length) throw retake({ reason: 'no-people', people: 0 })
+  const problem = boxProblem(people)
+  if (problem) throw retake({ reason: problem, people: people.length })
   return people
 }
 
-function requireReferences(people: StripPerson[], faces: string[]) {
-  if (faces.length !== people.length) throw new IdolError(RETAKE_FACES, 422)
+function requireReferences(people: StripPerson[], faces: string[], problem: 'too-small' | 'overlap' | 'invalid' | null = null) {
+  if (faces.length === people.length) return
+  throw retake({ reason: problem === 'too-small' || problem === 'overlap' ? problem : 'unclear', people: people.length })
 }
 
-/** 생성 준비 — 각자 깨끗한 얼굴 참고를 확보해야 생성 표를 사용한다. 실패하면 422로 다시 촬영. */
+/** 생성 준비 — 각자 깨끗한 얼굴 참고를 확보해야 생성 표를 사용한다. 실패하면 422(이유와 함께)로 다시 촬영. */
 export async function planStrip(photo: string): Promise<StripPlan> {
   const [read, main] = await Promise.all([readPeople(photo), mainPhoto(photo)])
   const people = requirePeople(read)
-  const faces = await faceCloseups(photo, people).catch(() => [])
-  requireReferences(people, faces)
+  const { faces, problem } = await buildFaceReferences(photo, people).catch(() => ({ faces: [] as string[], problem: 'invalid' as const }))
+  requireReferences(people, faces, problem)
   return { people, photo: main, faces }
 }
 

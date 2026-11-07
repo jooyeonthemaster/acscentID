@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import sharp from 'sharp'
-import { createFaceReferences } from '../timecapsule-faces'
+import { buildFaceReferences, createFaceReferences } from '../timecapsule-faces'
 
 type Color = readonly [number, number, number]
 type Block = { left: number; top: number; width: number; height: number; color: Color }
@@ -152,4 +152,15 @@ test('손상된 입력 — 틀린 사진·비정상 좌표·빈 목록은 참조
   assert.deepEqual(await createFaceReferences(photo, [{ box: { x0: 0.1, y0: 0.1, x1: Number.NaN, y1: 0.5 } }]), [])
   assert.deepEqual(await createFaceReferences(photo, [{ box: { x0: -0.1, y0: 0.1, x1: 0.2, y1: 0.5 } }]), [])
   assert.deepEqual(await createFaceReferences(photo, []), [])
+})
+
+test('못 만든 이유 — 겹침은 overlap, 31px 머리는 too-small, 정상은 이유 없음(다시 촬영 안내에 쓴다)', async () => {
+  const photo = await fixture(600, 400, [{ left: 100, top: 80, width: 160, height: 150, color: RED }])
+  const overlap = await buildFaceReferences(photo, [person(100, 80, 160, 150, 600, 400), person(180, 80, 160, 150, 600, 400)])
+  assert.deepEqual(overlap, { faces: [], problem: 'overlap' })
+  const small = await buildFaceReferences(photo, [person(100, 80, 160, 150, 600, 400), person(400, 80, 31, 31, 600, 400)])
+  assert.deepEqual(small, { faces: [], problem: 'too-small' })
+  const ok = await buildFaceReferences(photo, [person(100, 80, 160, 150, 600, 400)])
+  assert.equal(ok.problem, null)
+  assert.equal(ok.faces.length, 1)
 })
