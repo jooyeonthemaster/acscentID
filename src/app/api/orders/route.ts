@@ -80,6 +80,37 @@ interface OrderItem {
   analysisData?: object
 }
 
+/**
+ * 주문 한 줄 넣기. 입금자명 열(supabase/migrations/20261109_bank_deposit_auto_confirm.sql)이
+ * 아직 없는 DB 에서도 주문은 만들어지게 — 그 열만 빼고 한 번 더 넣는다.
+ */
+async function insertOrderRow<T extends Record<string, unknown>>(
+  serviceClient: ReturnType<typeof createServiceRoleClient>,
+  payload: T,
+) {
+  const result = await serviceClient.from('orders').insert(payload).select().single()
+  const error = result.error
+  if (
+    error &&
+    'depositor_name' in payload &&
+    (error.code === 'PGRST204' || error.code === '42703') &&
+    (error.message || '').includes('depositor_name')
+  ) {
+    console.warn('[Orders API] orders.depositor_name 열이 없어 입금자명 없이 저장 — 마이그레이션 필요')
+    const rest: Record<string, unknown> = { ...payload }
+    delete rest.depositor_name
+    return serviceClient.from('orders').insert(rest).select().single()
+  }
+  return result
+}
+
+/** 계좌이체 입금자명 — 입금 문자 자동 확인이 이 이름으로 주문을 찾는다(없으면 받는 분 이름) */
+function depositorNameField(paymentMethod: string, value: unknown) {
+  if (paymentMethod !== 'bank_transfer' || typeof value !== 'string') return {}
+  const name = value.replace(/\s+/g, ' ').trim().slice(0, 30)
+  return name ? { depositor_name: name } : {}
+}
+
 function toStoreProductCompatPayload<T extends { product_type?: ProductType | string | null; analysis_data?: unknown }>(payload: T): T {
   if (payload.product_type !== STORE_PRODUCT_TYPE) return payload
   return {
@@ -204,6 +235,7 @@ export async function POST(request: NextRequest) {
       layeringSessionId, // 케미 세션 ID (chemistry_set 단일 결제 시)
       // 결제 방법
       paymentMethod,  // 'bank_transfer' | 'card' | 'kakao_pay' | 'naver_pay'
+      depositorName, // 계좌이체 입금자명(선택)
       // 확정된 커스텀 레시피 (재주문 시)
       confirmedRecipe,
       // 프로모션
@@ -366,6 +398,7 @@ export async function POST(request: NextRequest) {
         keywords: [],
         analysis_data: firstItem.analysisData || null,
         payment_method: effectivePaymentMethod,
+        ...depositorNameField(effectivePaymentMethod, depositorName),
         status: isZeroAmountOrder
           ? 'paid'
           : effectivePaymentMethod !== 'bank_transfer'
@@ -377,22 +410,14 @@ export async function POST(request: NextRequest) {
       }
 
       // 4a. 주문 생성 (orders 테이블)
-      let { data: order, error: orderError } = await serviceClient
-        .from('orders')
-        .insert(orderPayload)
-        .select()
-        .single()
+      let { data: order, error: orderError } = await insertOrderRow(serviceClient, orderPayload)
 
       if (
         orderError &&
         firstItem.productType === STORE_PRODUCT_TYPE &&
         isStoreProductConstraintError(orderError)
       ) {
-        const retry = await serviceClient
-          .from('orders')
-          .insert(toStoreProductCompatPayload(orderPayload))
-          .select()
-          .single()
+        const retry = await insertOrderRow(serviceClient, toStoreProductCompatPayload(orderPayload))
         order = retry.data
         orderError = retry.error
       }
@@ -608,6 +633,7 @@ export async function POST(request: NextRequest) {
       confirmed_recipe: confirmedRecipe || null,  // 확정된 커스텀 레시피
       product_type: resolvedProductType,  // 상품 타입
       payment_method: effectivePaymentMethod,
+      ...depositorNameField(effectivePaymentMethod, depositorName),
       status: isZeroAmountOrder
         ? 'paid'
         : effectivePaymentMethod !== 'bank_transfer'
@@ -619,22 +645,14 @@ export async function POST(request: NextRequest) {
       updated_at: now,
     }
 
-    let { data: order, error: insertError } = await serviceClient
-      .from('orders')
-      .insert(singleOrderPayload)
-      .select()
-      .single()
+    let { data: order, error: insertError } = await insertOrderRow(serviceClient, singleOrderPayload)
 
     if (
       insertError &&
       resolvedProductType === STORE_PRODUCT_TYPE &&
       isStoreProductConstraintError(insertError)
     ) {
-      const retry = await serviceClient
-        .from('orders')
-        .insert(toStoreProductCompatPayload(singleOrderPayload))
-        .select()
-        .single()
+      const retry = await insertOrderRow(serviceClient, toStoreProductCompatPayload(singleOrderPayload))
       order = retry.data
       insertError = retry.error
     }

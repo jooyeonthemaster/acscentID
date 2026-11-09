@@ -85,6 +85,8 @@ interface Order {
   original_price: number
   final_price: number
   recipient_name: string
+  /** 계좌이체 입금자명(주문서에서 손님이 적음) — 비면 받는 분 이름 */
+  depositor_name?: string | null
   phone: string
   zip_code: string
   address: string
@@ -1285,6 +1287,9 @@ export default function AdminOrdersPage() {
                         </td>
                         <td className="px-2 md:px-4 py-3">
                           <div className="font-medium text-slate-900">{order.recipient_name}</div>
+                          {order.depositor_name && order.depositor_name !== order.recipient_name && (
+                            <div className="text-xs text-amber-700">입금자 {order.depositor_name}</div>
+                          )}
                           <div className="text-sm text-slate-500">{order.phone}</div>
                           <div className="flex items-center gap-1.5 flex-nowrap mt-1 whitespace-nowrap">
                             <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded shrink-0 ${getPaymentBadge(order.payment_method).className}`}>
@@ -2244,6 +2249,12 @@ export default function AdminOrdersPage() {
                       <label className="text-sm text-slate-500">받는분</label>
                       <p className="text-slate-900">{selectedOrder.recipient_name}</p>
                     </div>
+                    {selectedOrder.payment_method === 'bank_transfer' && (
+                      <div>
+                        <label className="text-sm text-slate-500">입금자명</label>
+                        <p className="text-slate-900">{selectedOrder.depositor_name || `${selectedOrder.recipient_name} (받는 분과 같음)`}</p>
+                      </div>
+                    )}
                     <div>
                       <label className="text-sm text-slate-500">연락처</label>
                       <p className="text-slate-900">{selectedOrder.phone}</p>

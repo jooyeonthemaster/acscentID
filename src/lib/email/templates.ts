@@ -290,3 +290,51 @@ export function cancelRequestTemplate(data: {
     `
   }
 }
+
+const escapeHtml = (value: string) =>
+  value.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]!)
+
+/**
+ * 무통장 입금 문자 처리 결과 — 자동으로 입금완료 처리했거나, 관리자가 봐야 하는 입금.
+ * 입금자명은 입금한 사람이 마음대로 적을 수 있는 글이라 꼭 이스케이프한다.
+ */
+export function bankDepositTemplate(data: {
+  kind: 'confirmed' | 'review'
+  amount: number
+  depositorName: string | null
+  orderNumber?: string | null
+  note?: string | null
+  receivedAt: string
+}) {
+  const confirmed = data.kind === 'confirmed'
+  const name = escapeHtml(data.depositorName || '(읽지 못함)')
+  const rows: Array<[string, string]> = [
+    ['입금액', `${data.amount.toLocaleString('ko-KR')}원`],
+    ['입금자명', name],
+    ...(data.orderNumber ? [['주문번호', escapeHtml(data.orderNumber)] as [string, string]] : []),
+    ...(data.note ? [['확인할 점', escapeHtml(data.note)] as [string, string]] : []),
+    ['받은 시각', data.receivedAt],
+  ]
+  return {
+    subject: confirmed
+      ? `[ACSCENT] ✅ 입금 자동 확인: ${data.orderNumber ?? ''} ${data.amount.toLocaleString('ko-KR')}원`
+      : `[ACSCENT] ⚠️ 입금 확인 필요: ${data.amount.toLocaleString('ko-KR')}원 ${name}`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #1a1a1a; margin-bottom: 20px;">${confirmed ? '✅ 입금 문자로 주문을 입금완료 처리했습니다' : '⚠️ 주문을 찾지 못한 입금이 있습니다'}</h2>
+        <table style="width: 100%; border-collapse: collapse; background: ${confirmed ? '#f0fdf4' : '#fffbeb'}; border-radius: 8px;">
+          ${rows.map(([label, value]) => `
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #e5e7eb; font-weight: 600; width: 30%;">${label}</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">${value}</td>
+          </tr>`).join('')}
+        </table>
+        <p style="margin-top: 20px; color: #666; font-size: 14px;">
+          ${confirmed
+            ? '재고 차감·쿠폰 처리·ERP 매출 반영까지 끝났습니다. 배송 준비로 넘기시면 됩니다.'
+            : '관리자 페이지 → 입금 문자 확인(/admin/bank-deposits)에서 맞는 주문을 골라 입금 확인해 주세요.'}
+        </p>
+      </div>
+    `,
+  }
+}

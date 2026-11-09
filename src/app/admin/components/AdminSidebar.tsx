@@ -30,6 +30,7 @@ import {
   Camera,
   Monitor,
   Receipt,
+  Landmark,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -131,6 +132,12 @@ const navGroups: NavGroup[] = [
         label: '주문 관리',
         icon: ShoppingCart,
         description: '주문 상태 관리',
+      },
+      {
+        href: '/admin/bank-deposits',
+        label: '입금 문자 확인',
+        icon: Landmark,
+        description: '무통장 자동 입금확인 · 못 고른 입금',
       },
       {
         href: '/admin/offline-shipping',

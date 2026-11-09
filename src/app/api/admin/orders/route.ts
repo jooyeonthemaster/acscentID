@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service'
 import { getKakaoSession } from '@/lib/auth-session'
 import { createServerSupabaseClientWithCookies } from '@/lib/supabase/server'
-import { deductInventoryForOrder } from '@/lib/inventory-deduction'
-import { issueRepurchaseCouponIfNeeded } from '@/lib/coupons/issue-repurchase'
-import { markCouponUsedForPaidOrder } from '@/lib/coupons/order-coupon-usage'
+import { applyPaidOrderEffects } from '@/lib/orders/paid-effects'
 import { applyAdminOrderFilters, parseAdminOrderFilters } from '@/lib/admin/order-filters'
 import { notifyErp } from '@/lib/erp/signal'
 
@@ -290,38 +288,19 @@ export async function PATCH(request: NextRequest) {
 
     // 결제 완료(paid) 상태로 변경될 때 재고 자동 차감 + 재구매 쿠폰 발급
     // (기존 상태가 pending이고 새 상태가 paid인 경우에만 - 중복 차감 방지)
+    // (입금 문자 자동 확인과 같은 길 — src/lib/orders/paid-effects.ts)
     let inventoryDeduction = null
     let repurchaseCouponResult = null
     let couponUsageResult = null
     if (previousStatus === 'pending' && status === 'paid') {
-      couponUsageResult = await markCouponUsedForPaidOrder(serviceClient, order)
-      if (!couponUsageResult.success) {
-        console.error('[Admin Orders] Coupon usage finalization failed:', couponUsageResult)
-      }
-
-      console.log(`[Admin Orders] Deducting inventory for order: ${orderId}`)
-      const deductionResult = await deductInventoryForOrder(
+      const effects = await applyPaidOrderEffects(
         serviceClient,
-        orderId,
+        { id: orderId, user_id: existingOrder?.user_id, user_coupon_id: order.user_coupon_id },
         email || undefined
       )
-      inventoryDeduction = {
-        success: deductionResult.success,
-        deductedCount: deductionResult.deducted.length,
-        errors: deductionResult.errors,
-      }
-      if (!deductionResult.success) {
-        console.warn(`[Admin Orders] Inventory deduction had errors:`, deductionResult.errors)
-      }
-
-      // 재구매 10% 쿠폰 자동 발급 (무통장입금 확정 시)
-      if (existingOrder?.user_id) {
-        console.log(`[Admin Orders] Issuing repurchase coupon for user ${existingOrder.user_id} (bank transfer confirmed)`)
-        repurchaseCouponResult = await issueRepurchaseCouponIfNeeded(
-          serviceClient,
-          existingOrder.user_id
-        )
-      }
+      couponUsageResult = effects.couponUsageResult
+      inventoryDeduction = effects.inventoryDeduction
+      repurchaseCouponResult = effects.repurchaseCouponResult
     }
 
     return NextResponse.json({

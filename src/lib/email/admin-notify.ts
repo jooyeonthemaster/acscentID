@@ -1,5 +1,5 @@
 import { getResendClient, getAdminEmails, FROM_EMAIL } from './client'
-import { newMemberTemplate, newOrderTemplate, cancelRequestTemplate } from './templates'
+import { newMemberTemplate, newOrderTemplate, cancelRequestTemplate, bankDepositTemplate } from './templates'
 import { reservationAdminTemplate } from './reservation-templates'
 import { createOrderInNotion } from '../notion/admin-notify'
 import { createReservationInNotion } from '../notion/reservation-notify'
@@ -128,4 +128,18 @@ export function notifyCancelRequest(data: {
     ...data,
     requestedAt: getKoreanTime()
   })).catch(console.error)
+}
+
+/**
+ * 무통장 입금 문자 처리 결과 알림(이메일). 입금 문자 라우트가 응답 전에 await 한다 —
+ * 서버리스 함수가 응답 뒤 멈춰 메일이 안 나가는 일을 막으려고. 실패해도 throw 하지 않는다.
+ */
+export function notifyBankDeposit(data: {
+  kind: 'confirmed' | 'review'
+  amount: number
+  depositorName: string | null
+  orderNumber?: string | null
+  note?: string | null
+}): Promise<boolean> {
+  return sendAdminNotification(bankDepositTemplate({ ...data, receivedAt: getKoreanTime() }))
 }

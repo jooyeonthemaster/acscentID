@@ -186,6 +186,8 @@ function CheckoutContent() {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
+  // 계좌이체 입금자명 — 손대지 않으면 받는 분 이름을 따라간다(입금 문자 자동 확인이 이 이름으로 주문을 찾는다)
+  const [depositorNameInput, setDepositorNameInput] = useState<string | null>(null)
   const [privacyAgreed, setPrivacyAgreed] = useState(false)
   const [selectedCoupon, setSelectedCoupon] = useState<CheckoutCoupon | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card")
@@ -712,6 +714,7 @@ function CheckoutContent() {
         address: formData.address,
         addressDetail: formData.addressDetail,
         memo: formData.memo,
+        ...(paymentMethod === "bank_transfer" ? { depositorName: (depositorNameInput ?? formData.name).trim() } : {}),
       }
 
       let orderData
@@ -936,7 +939,9 @@ function CheckoutContent() {
 
       // 주문 완료 페이지로 이동 (0원 주문은 입금 안내가 뜨지 않도록 free로 표시)
       const completePaymentMethod = isZeroAmountOrder ? "free" : paymentMethod
-      router.push(`/checkout/complete?orderId=${createdOrderId}&paymentMethod=${completePaymentMethod}`)
+      // 계좌이체면 완료 화면에서 "이 이름으로 입금해 주세요"를 보여 준다
+      const depositorForComplete = completePaymentMethod === "bank_transfer" ? (depositorNameInput ?? formData.name).trim() : ""
+      router.push(`/checkout/complete?orderId=${createdOrderId}&paymentMethod=${completePaymentMethod}${depositorForComplete ? `&depositor=${encodeURIComponent(depositorForComplete)}` : ""}`)
     } catch (error) {
       console.error("Order submission error:", error)
       alert(error instanceof Error ? error.message : t('checkout.orderError'))
@@ -1126,11 +1131,25 @@ function CheckoutContent() {
                     </div>
                   </div>
 
+                  {/* 입금자명 — 기본은 받는 분 이름. 입금 문자의 이름과 금액으로 주문을 자동 확인한다 */}
+                  <label className="block">
+                    <span className="block text-sm lg:text-base text-[var(--muted-ink)] font-bold mb-1.5">{t('checkout.depositorNameLabel')}</span>
+                    <input
+                      type="text"
+                      value={depositorNameInput ?? formData.name}
+                      onChange={(e) => setDepositorNameInput(e.target.value)}
+                      placeholder={t('checkout.depositorNamePlaceholder')}
+                      maxLength={30}
+                      autoComplete="off"
+                      className="w-full px-3 py-3 rounded-[6px] border border-[var(--line)] focus:border-[var(--line)] focus:ring-0 outline-none transition-all text-[var(--ink)] placeholder:text-[var(--muted-ink)] bg-[var(--paper)] hover:bg-[var(--soft)] font-medium text-sm lg:text-base"
+                    />
+                  </label>
+
                   {/* 안내 문구 */}
                   <div className="space-y-2">
                     <p className="text-sm lg:text-base text-red-500 font-bold flex items-center gap-2">
                       <AlertCircle size={14} className="flex-shrink-0" />
-                      {t('checkout.sameNameWarning')}
+                      {t('checkout.depositorNameWarning')}
                     </p>
                     <p className="text-sm lg:text-base text-[var(--muted-ink)] font-bold flex items-center gap-2">
                       <Truck size={14} className="flex-shrink-0" />
@@ -1138,7 +1157,8 @@ function CheckoutContent() {
                     </p>
                     <p className="text-sm lg:text-base text-[var(--muted-ink)] font-bold flex items-start gap-2">
                       <Clock size={14} className="flex-shrink-0 mt-0.5" />
-                      <span>{t('checkout.manualDepositNotice')}</span>
+                      {/* 자동 확인을 켠 뒤(폰·토큰 준비 완료)에만 '몇 분 안에 자동' 안내로 바꾼다 */}
+                      <span>{t(process.env.NEXT_PUBLIC_BANK_DEPOSIT_AUTO_CONFIRM === 'true' ? 'checkout.autoDepositNotice' : 'checkout.manualDepositNotice')}</span>
                     </p>
                   </div>
                 </div>

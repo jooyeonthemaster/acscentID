@@ -47,6 +47,8 @@ function OrderCompleteContent() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get("orderId")
   const paymentMethodParam = searchParams.get("paymentMethod") || "bank_transfer"
+  // 주문서에서 적은 입금자명(계좌이체) — 입금 문자 자동 확인이 이 이름으로 주문을 찾는다
+  const depositorParam = (searchParams.get("depositor") || "").trim().slice(0, 30)
   const isBankTransfer = paymentMethodParam === "bank_transfer"
 
   // PG가 리다이렉트하며 자동으로 붙이는 쿼리 파라미터 (PortOne V2)
@@ -411,7 +413,9 @@ function OrderCompleteContent() {
 
               <div className="mt-4 p-3 bg-[var(--paper)] rounded-[6px] border border-[var(--line)]">
                 <p className="text-xs lg:text-sm text-[var(--muted-ink)] text-center font-black">
-                  {t('checkoutComplete.sameNameWarning')}
+                  {depositorParam
+                    ? t('checkoutComplete.depositorNameReminder', { name: depositorParam })
+                    : t('checkoutComplete.sameNameWarning')}
                 </p>
               </div>
             </motion.div>
