@@ -8,6 +8,7 @@ import {
   type ShareFileMeta, type ShareMeta, type ShareType,
 } from '@/lib/kiosk/share'
 import { putShareFile, putShareMeta } from '@/lib/kiosk/share-store'
+import { takeKioskUsage } from '@/lib/kiosk/usage-cap'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -52,6 +53,8 @@ export async function POST(request: NextRequest) {
       files.push({ meta: { name, type, size: bytes.length, label: String(file.label ?? '').slice(0, 60) }, bytes })
     }
 
+    const capped = await takeKioskUsage(request, 'share', now) // 하루 상한 — src/lib/kiosk/usage-cap.ts
+    if (capped) return capped
     const client = createServiceRoleClient()
     const token = createShareToken(now)
     for (const file of files) {

@@ -1,0 +1,22 @@
+/* 데모 랜딩 바닥글의 '관리자 · 워터마크 없는 링크' — 두 랜딩(kd · bd)의 바닥글 글자와 어울리는 흐린 글자 단추 + 가운데 작은 창 */
+.dcl-link { margin-left: auto; border: 0; background: none; padding: 0; color: inherit; font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; opacity: 0.75; }
+.dcl-link:hover { opacity: 1; }
+.dcl-link:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 2px; }
+.dcl-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px; background: rgba(15, 18, 25, 0.45); }
+.dcl-card { width: min(100%, 440px); max-height: calc(100vh - 32px); overflow-y: auto; background: #fff; color: #15171c; border-radius: 16px; padding: 24px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25); display: grid; gap: 12px; text-align: left; }
+.dcl-card form { display: grid; gap: 12px; }
+.dcl-card h2 { margin: 0; font-size: 19px; }
+.dcl-card p { margin: 0; font-size: 14px; line-height: 1.55; color: #4a4f5a; }
+.dcl-card input[type='password'] { height: 52px; border: 1px solid #c9ced8; border-radius: 10px; font-size: 24px; letter-spacing: 0.4em; text-align: center; font-variant-numeric: tabular-nums; }
+.dcl-card input:focus { outline: 2px solid #2b5bb8; outline-offset: 1px; }
+.dcl-card .dcl-error { color: #c0392b; font-weight: 600; }
+.dcl-days { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.dcl-days button { min-height: 44px; border-radius: 10px; border: 1px solid #c9ced8; background: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.dcl-days button[aria-checked='true'] { background: #15171c; border-color: #15171c; color: #fff; }
+.dcl-out { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+.dcl-out span { grid-column: 1 / -1; font-size: 13px; font-weight: 700; color: #4a4f5a; }
+.dcl-out input { min-width: 0; height: 44px; padding: 0 10px; border: 1px solid #c9ced8; border-radius: 10px; font: 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace; color: #15171c; }
+.dcl-out button, .dcl-actions button { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #c9ced8; background: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.dcl-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.dcl-actions button[type='submit'] { background: #15171c; border-color: #15171c; color: #fff; }
+.dcl-actions button:disabled { opacity: 0.45; cursor: default; }

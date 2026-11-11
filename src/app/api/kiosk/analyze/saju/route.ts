@@ -16,6 +16,7 @@ import { kioskEnabled, mockAllowed } from '@/lib/kiosk/access';
 import { wrapPromptWithLocale } from '@/lib/gemini/locale-prompt-wrapper';
 import { fixHangulDeep, HANGUL, setAtPath, type HangulLeftover } from '@/lib/kiosk/saju-hangul';
 import type { Locale } from '@/i18n/config';
+import { takeKioskUsage } from '@/lib/kiosk/usage-cap';
 
 // 키오스크 전용 사주 분석 — /api/analyze/saju와 동일한 엔진·프롬프트·파서를 쓰되
 // 인증(401)과 일일 한도 두 블록만 제거했다. 무인 기기는 로그인 주체가 없다.
@@ -224,6 +225,10 @@ export async function POST(request: NextRequest) {
         success: true, data: buildSajuDemoResult(chart, purpose), mocked: true,
       });
     }
+
+    // 하루 상한(src/lib/kiosk/usage-cap.ts) — 넘으면 429
+    const capped = await takeKioskUsage(request, 'analysis');
+    if (capped) return capped;
 
     // ── 용신 → 후보 향 → 프롬프트 → AI 해석 (원 라우트와 동일) ──
     const candidates = getScentCandidates(chart.yongsin.element, chart.lackingElements);

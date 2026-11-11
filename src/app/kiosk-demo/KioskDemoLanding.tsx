@@ -1,11 +1,13 @@
 import { ArrowDown, ArrowUpRight, Languages, LayoutGrid, Printer, Smartphone, Sparkles, WandSparkles } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
+import { DemoCleanLinkMaker } from '@/components/demo/DemoCleanLinkMaker'
 import { KIOSK_DEMOS, KIOSK_DEMO_NEEDS, kioskDemoHref, type KioskDemo } from '@/lib/kiosk/demo'
 import './kiosk-demo.css'
 
 // 영업용 데모 랜딩 — 키오스크에서 도는 프로그램을 골라 웹브라우저로 직접 눌러 볼 수 있게 한다.
 // 고른 프로그램은 운영 모드 미리보기 주소에 demo=1 을 붙여 새 창으로 연다: 화면에 DEMO 워터마크가 깔린다(KioskWatermark).
-// /kiosk-demo/clean 은 같은 랜딩의 워터마크 없는 판 — demo=clean 으로 열어 워터마크를 깔지 않는다.
+// /kiosk-demo/clean?k=… 은 같은 랜딩의 워터마크 없는 판 — 관리자 비밀번호로 만든 기간 있는 서명(k)이 맞을 때만 demo=clean&k=… 로 연다.
+// 서명이 없거나 지났으면 기본판(워터마크)으로 보여 주고 알린다. 링크는 바닥글 '관리자 · 워터마크 없는 링크'에서 만든다(src/lib/demo-clean.ts).
 // 로케일 라우팅 밖(middleware.ts), 검색 노출 금지 — 링크를 받은 사람만 본다. 설명: docs/kiosk-modes.md '영업용 데모'
 
 /** 주거복지 묶음은 제안서(2026-10-26) 순서 — 전시 둘(TOUCH! · VISION!) 다음 AI 체험 둘(NEXT! · ROOM!) */
@@ -57,10 +59,14 @@ function Kiosk({ children, className }: { children: ReactNode; className?: strin
   )
 }
 
-/** 랜딩 본문 — clean 이면 워터마크 없는 데모 주소(demo=clean)로 열고 안내 문구에서 워터마크 줄을 뺀다 */
-export function KioskDemoLanding({ clean = false }: { clean?: boolean }) {
+/** 랜딩 본문 — 서명(cleanKey)이 맞으면 워터마크 없는 데모 주소(demo=clean&k=…)로 열고 안내 문구에서 워터마크 줄을 뺀다 */
+export function KioskDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey?: string; cleanRejected?: boolean }) {
+  const clean = Boolean(cleanKey)
   return (
     <div className="kd">
+      {cleanRejected && (
+        <p className="kd-notice" role="status">워터마크 없는 링크가 아니거나 사용 기간이 지났어요. 워터마크가 있는 데모로 보여 드려요 — 새 링크는 담당자에게 요청해 주세요.</p>
+      )}
       <header className="kd-top">
         <span className="kd-brand">NEANDER</span>
         <span className="kd-pill">KIOSK DEMO</span>
@@ -101,7 +107,7 @@ export function KioskDemoLanding({ clean = false }: { clean?: boolean }) {
                 <ul className="kd-grid">
                   {demos.map((demo) => (
                     <li key={demo.mode}>
-                      <a className="kd-card" href={kioskDemoHref(demo.mode, clean)} target="_blank" rel="noopener" style={{ '--kd-tone': demo.color } as CSSProperties}>
+                      <a className="kd-card" href={kioskDemoHref(demo.mode, cleanKey)} target="_blank" rel="noopener" style={{ '--kd-tone': demo.color } as CSSProperties}>
                         <Kiosk>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={screenShot(demo.mode)} alt={`${demo.name} 첫 화면`} width={600} height={1067} loading="lazy" decoding="async" />
@@ -147,6 +153,7 @@ export function KioskDemoLanding({ clean = false }: { clean?: boolean }) {
         <a href="tel:02-336-3368">Tel. 02-336-3368</a>
         <a href="tel:010-8507-5121">Mobile. 010-8507-5121</a>
         <span>neander@neander.co.kr</span>
+        <DemoCleanLinkMaker />
       </footer>
     </div>
   )

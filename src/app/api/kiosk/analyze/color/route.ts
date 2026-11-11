@@ -4,6 +4,7 @@ import { kioskEnabled, mockAllowed } from '@/lib/kiosk/access';
 import { isKioskLang, type KioskLang } from '@/lib/kiosk/i18n';
 import { buildColorDemo, buildColorPrompt, diagnoseFromMeasure, parseColorResponse, readColorMeasure } from '@/lib/kiosk/color-analysis';
 import { generateParsed, promptLine } from '@/lib/kiosk/program-core';
+import { takeKioskUsage } from '@/lib/kiosk/usage-cap';
 
 // 키오스크 AI 퍼스널 컬러 진단 — 사진 한 장으로 8유형 중 하나를 진단한다(향 추천 없음 — 진단서만).
 // 다른 키오스크 분석 라우트와 같은 게이트(kioskEnabled)·같은 원칙: 실패해도 가짜 결과로 넘어가지 않는다.
@@ -46,6 +47,10 @@ export async function POST(request: NextRequest) {
       console.log(`[${requestId}] 데모 응답 반환`);
       return NextResponse.json<KioskColorResponse>({ success: true, data: buildColorDemo(), mocked: true });
     }
+
+    // 하루 상한(src/lib/kiosk/usage-cap.ts) — 넘으면 429
+    const capped = await takeKioskUsage(request, 'analysis');
+    if (capped) return capped;
 
     // 기기가 옷·배경을 지운 진단용 사진을 같이 보냈으면 그것으로 진단한다 — 같은 얼굴이 옷 색에 따라 다른 유형으로 나오던 것을 막는다.
     // 없으면(모델을 아직 못 받은 기기) 원본으로 — 지시문이 옷·배경을 근거로 쓰지 말라고 한다

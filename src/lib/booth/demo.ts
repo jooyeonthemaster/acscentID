@@ -13,6 +13,7 @@ export const BOOTH_DEMO_PARAM = 'demo'
 export type BoothDemoProgram = 'template' | 'together' | 'solo' | 'card'
 
 import { PROGRAMS } from './programs/catalog'
+import { DEMO_CLEAN_KEY_PARAM, DEMO_CLEAN_VALUE } from '../demo-clean'
 
 export type BoothDemoNeed = 'camera' | 'ai' | 'phone' | 'print' | 'qr' | 'video' | 'mic' | 'two'
 
@@ -69,12 +70,12 @@ export const BOOTH_DEMOS: BoothDemo[] = [
 ]
 
 /** 데모로 여는 주소 */
-/** 워터마크 없는 데모 — 랜딩 /booth-demo/clean 에서 연 주소는 demo=clean */
-export const BOOTH_DEMO_CLEAN = 'clean'
-export const boothDemoClean = () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get(BOOTH_DEMO_PARAM) === BOOTH_DEMO_CLEAN
+/** 워터마크 없는 데모 — 서명 있는 랜딩 /booth-demo/clean?k=… 에서 연 주소는 demo=clean&k=…(서명이 맞아야 워터마크가 빠진다, src/lib/demo-clean.ts) */
+export const BOOTH_DEMO_CLEAN = DEMO_CLEAN_VALUE
 
-export function boothDemoHref(demo: Pick<BoothDemo, 'mode' | 'concept' | 'program'>, clean = false): string {
-  const q = new URLSearchParams({ mode: demo.mode, [BOOTH_DEMO_PARAM]: clean ? BOOTH_DEMO_CLEAN : '1' })
+export function boothDemoHref(demo: Pick<BoothDemo, 'mode' | 'concept' | 'program'>, cleanKey?: string): string {
+  const q = new URLSearchParams({ mode: demo.mode, [BOOTH_DEMO_PARAM]: cleanKey ? BOOTH_DEMO_CLEAN : '1' })
+  if (cleanKey) q.set(DEMO_CLEAN_KEY_PARAM, cleanKey)
   if (demo.concept) q.set('concept', demo.concept)
   if (demo.program) q.set('program', demo.program)
   return `/booth?${q.toString()}`

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { kioskEnabled } from '@/lib/kiosk/access'
 import { buildImagePrompt, IMAGE_LABEL, readImageParams } from '@/lib/kiosk/expansion/image-prompts'
 import { generateKioskImage, isKioskPhoto, KioskImageError } from '@/lib/kiosk/image-gen'
+import { takeKioskUsage } from '@/lib/kiosk/usage-cap'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -20,6 +21,8 @@ export async function POST(request: NextRequest) {
     const params = readImageParams(String(body?.id ?? ''), body?.params)
     if (!params || !isKioskPhoto(body?.photo)) return NextResponse.json({ error: '잘못된 요청입니다' }, { status: 400 })
     const { prompt, aspect } = buildImagePrompt(params)
+    const capped = await takeKioskUsage(request, 'image') // 하루 상한 — src/lib/kiosk/usage-cap.ts
+    if (capped) return capped
     const image = await generateKioskImage({ tag: `expansion-${params.id}`, prompt, photos: [body.photo], aspect, longEdge: 1280, unframe: true })
     return NextResponse.json({ success: true, image, label: IMAGE_LABEL[params.id] })
   } catch (error) {

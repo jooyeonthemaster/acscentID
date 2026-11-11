@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { kioskEnabled } from '@/lib/kiosk/access'
 import { buildCareerPrompt, readCareerAiRequest, validateCareerAi, type CareerAiAnalysis } from '@/lib/kiosk/career-ai'
 import { extractJsonObject, generateParsed } from '@/lib/kiosk/program-core'
+import { takeKioskUsage } from '@/lib/kiosk/usage-cap'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -28,6 +29,9 @@ export async function POST(request: NextRequest) {
   if (now - minuteStart > 60_000) { minuteStart = now; minuteCount = 0 }
   if (now - dayStart > 86_400_000) { dayStart = now; dayCount = 0 }
   if (minuteCount >= PER_MINUTE || dayCount >= PER_DAY) return NextResponse.json({ error: '잠시 후 다시 시도해 주세요.' }, { status: 429 })
+  // 하루 상한(서버 저장, 인스턴스와 상관없이) — src/lib/kiosk/usage-cap.ts
+  const capped = await takeKioskUsage(request, 'analysis')
+  if (capped) return capped
   minuteCount++
   dayCount++
   try {

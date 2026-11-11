@@ -1,11 +1,13 @@
 import { ArrowDown, ArrowUpRight, Camera, Clapperboard, Languages, Printer, QrCode, Sparkles, WandSparkles } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
+import { DemoCleanLinkMaker } from '@/components/demo/DemoCleanLinkMaker'
 import { BOOTH_DEMOS, BOOTH_DEMO_NEEDS, boothDemoHref, type BoothDemo } from '@/lib/booth/demo'
 import './booth-demo.css'
 
 // 영업용 포토부스 데모 랜딩 — 키오스크 데모(/kiosk-demo)와 같은 방식. 고른 프로그램을 /booth?mode=…&demo=1 로 새 창에 연다:
 // 매장 기기 설정을 건드리지 않고, 이용권·촬영 기록·관리자 창 없이, 화면에 DEMO 워터마크(BoothWatermark).
-// /booth-demo/clean 은 같은 랜딩의 워터마크 없는 판 — demo=clean 으로 열어 워터마크를 깔지 않는다.
+// /booth-demo/clean?k=… 은 같은 랜딩의 워터마크 없는 판 — 관리자 비밀번호로 만든 기간 있는 서명(k)이 맞을 때만 demo=clean&k=… 로 연다.
+// 서명이 없거나 지났으면 기본판(워터마크)으로 보여 주고 알린다. 링크는 바닥글 '관리자 · 워터마크 없는 링크'에서 만든다(src/lib/demo-clean.ts).
 // AI 아이돌 사진은 진짜로 만든다(1분 3장·하루 40장 상한 — src/lib/booth/demo-server.ts).
 // 로케일 라우팅 밖(middleware.ts), 검색 노출 금지 — 링크를 받은 사람만 본다. 설명: docs/photobooth-demo.md
 
@@ -71,10 +73,14 @@ function Booth({ children, print, className }: { children: ReactNode; print?: st
   )
 }
 
-/** 랜딩 본문 — clean 이면 워터마크 없는 데모 주소(demo=clean)로 열고 안내 문구에서 워터마크 줄을 뺀다 */
-export function BoothDemoLanding({ clean = false }: { clean?: boolean }) {
+/** 랜딩 본문 — 서명(cleanKey)이 맞으면 워터마크 없는 데모 주소(demo=clean&k=…)로 열고 안내 문구에서 워터마크 줄을 뺀다 */
+export function BoothDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey?: string; cleanRejected?: boolean }) {
+  const clean = Boolean(cleanKey)
   return (
     <div className="bd">
+      {cleanRejected && (
+        <p className="bd-notice" role="status">워터마크 없는 링크가 아니거나 사용 기간이 지났어요. 워터마크가 있는 데모로 보여 드려요 — 새 링크는 담당자에게 요청해 주세요.</p>
+      )}
       <header className="bd-top">
         <span className="bd-brand">NEANDER</span>
         <span className="bd-pill">PHOTOBOOTH DEMO</span>
@@ -124,7 +130,7 @@ export function BoothDemoLanding({ clean = false }: { clean?: boolean }) {
                 <ul className="bd-grid">
                   {demos.map((demo) => (
                     <li key={demo.id}>
-                      <a className="bd-card" href={boothDemoHref(demo, clean)} target="_blank" rel="noopener" style={{ '--bd-tone': demo.color } as CSSProperties}>
+                      <a className="bd-card" href={boothDemoHref(demo, cleanKey)} target="_blank" rel="noopener" style={{ '--bd-tone': demo.color } as CSSProperties}>
                         <Booth print={demo.print}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={demo.screen} alt={`${demo.name} 화면`} width={960} height={540} loading="lazy" decoding="async" />
@@ -169,6 +175,7 @@ export function BoothDemoLanding({ clean = false }: { clean?: boolean }) {
         <a href="tel:02-336-3368">Tel. 02-336-3368</a>
         <a href="tel:010-8507-5121">Mobile. 010-8507-5121</a>
         <span>neander@neander.co.kr</span>
+        <DemoCleanLinkMaker />
       </footer>
     </div>
   )

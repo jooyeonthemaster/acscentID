@@ -17,6 +17,10 @@
 - 손님 휴대폰이 여는 `/kiosk/get/…`(결과 받기)·`/kiosk/upload/…`(사진 올리기)와 포토부스(`/booth`)는 해당 없다.
 - 화면을 막지는 않는다. `/api/kiosk/*`(분석·생성·기록)는 예전처럼 `KIOSK_ENABLED`·`KIOSK_ALLOW_REMOTE` 와 생성 상한만 본다 — 브라우저로도 프로그램을 끝까지 쓸 수 있고, 생성이 드는 프로그램은 그만큼 비용이 난다.
 - **워터마크 없는 데모(2026-10-22)**: 랜딩 `/kiosk-demo/clean` · `/booth-demo/clean` 은 기본 랜딩과 같고, 여기서 연 화면은 `demo=clean` 이라 워터마크를 깔지 않는다(사용자 지시: "없앤 버전은 링크가 달라지게"). 기본 랜딩(`/kiosk-demo` · `/booth-demo`, `demo=1`)은 그대로 워터마크. 하루 전의 관리자 PIN 끄기는 이것으로 대신해 없앴다.
+- **워터마크 없는 링크는 서명이 있어야(2026-11-11)**: 그 전에는 `/…-demo/clean` 주소만 알거나 데모 주소의 `demo=1` 을 `demo=clean` 으로 바꾸기만 해도 워터마크가 빠졌다. 이제 랜딩 바닥글 **'관리자 · 워터마크 없는 링크'** 에서 매장 관리자 비밀번호(6자리, 관리자 창과 같은 PIN)와 기간(7 · 30 · 90일)을 넣어 만든 링크(`/booth-demo/clean?k=…` · `/kiosk-demo/clean?k=…`)로만 빠진다. 데모 화면 주소는 `demo=clean&k=…` 이고, 워터마크(`KioskWatermark` · `BoothWatermark`)가 `/api/demo/clean?k=` 로 서명을 확인한 뒤에만 걷는다(확인 전 · 실패는 깐다, `src/lib/use-clean-demo.ts`). 서명이 없거나 지난 `/clean` 랜딩은 기본판(워터마크)으로 보여 주고 맨 위에 알린다.
+  - 서명: `src/lib/demo-clean-server.ts` — `<만료(초, 36진)>.<HMAC 32자>`, 비밀은 `SCREEN_BACKGROUND_SESSION_SECRET`(없으면 서비스 키). **내보낸 링크를 한꺼번에 무르려면 Vercel 환경 변수 `DEMO_CLEAN_LINK_VERSION` 을 바꾼다**(기본 `1`). 비밀번호 시도는 1분 8번(`pinAttemptAllowed`).
+  - 2026-11-11 이전에 보낸 `/…-demo/clean` 링크(서명 없음)는 이제 워터마크가 보인다 — 필요한 곳에는 새 링크를 보낸다.
+  - 워터마크는 여전히 화면 위의 막이라 개발자 도구로 지울 수 있다. 비용은 아래 'API 하루 상한'이 막는다.
 
 ## 노트북 가로 화면 (2026-10-28)
 
@@ -34,6 +38,22 @@
 - **워터마크**: 데모로 연 화면에는 'NEANDER' 워터마크가 깔린다('웹브라우저 워터마크' — 데모가 아니어도 웹브라우저면 깔린다). 접속 비밀번호는 없다.
 - 검색에 노출하지 않는다(`robots: noindex`). 로케일 라우팅 밖이라 `middleware.ts` 의 예외 목록에 들어 있다.
 - 키오스크 화면은 일반 브라우저에서도 세로 화면으로 가운데에 맞춰 보인다(PC·휴대폰 모두) — 데모용 틀을 따로 만들지 않았다.
+
+## 키오스크 API 하루 상한 (2026-11-11)
+
+운영 사이트의 키오스크 API(`/api/kiosk/*`, `KIOSK_ALLOW_REMOTE`)는 영업 데모 · 행사 노트북(`/kiosk/pc`) · 매장 키오스크가 함께 쓰고 로그인이 없다 — 워터마크를 지우거나 API 를 직접 불러도 쓸 수 있었고, 향 분석 · 사주 · 컬러 · 타로에는 횟수 제한이 아예 없었다(그림 생성은 서버 인스턴스 메모리 기준 하루 400장이라 인스턴스가 여러 개면 상한 구실을 못 했다). 누가 부르는지 확실히 가를 방법이 없어(행사 노트북은 일반 크롬, 매장 앱 표시는 꾸밀 수 있다) **날짜(KST)별 총량**을 서버 저장소에 세어 넘으면 429 로 막는다 — `src/lib/kiosk/usage-cap.ts`.
+
+| 종류 | 라우트 | main 몫 | demo 몫 |
+|---|---|---|---|
+| analysis | analyze(향) · analyze/saju · color · tarot · experience/career · expansion | 2000 | 150 |
+| image | experience/caricature · hairstyle · card-art · expansion-image | 400 | 40 |
+| share | share(휴대폰으로 받기 올리기) | 3000 | 200 |
+
+- **demo 몫**: 데모 화면(주소에 `demo=` — `/kiosk-demo` 에서 연 화면)에서 온 요청. 영업 데모를 누가 많이 써도 매장 · 행사 몫을 잡아먹지 않게 따로 센다. 데모인지는 Referer 로 본다 — 정직한 요청을 가르는 용도이고, Referer 를 지운 요청은 main 몫에 들어가 그 상한에 걸린다.
+- 기본값은 실제 기록의 하루 최대치를 넉넉히 넘게 잡았다(2026-11-11 조회: 분석 398건 · 10/31 행사(셸 2.0.0 키오스크), 사주 264건 · 10/3, 캐리커처 31건 · 받기 58건 · 11/4 JBNU 노트북). 바꾸려면 환경 변수 `KIOSK_DAILY_LIMIT_ANALYSIS` · `_IMAGE` · `_SHARE`, 데모 몫 `KIOSK_DEMO_DAILY_LIMIT_ANALYSIS` · `_IMAGE` · `_SHARE` — **큰 행사 전에는 늘려 둔다.**
+- 기록: 비공개 버킷 `screen-background-settings/kiosk-usage/<날짜>/<몫>-<종류>.json`(부스 데모 상한과 같은 방식 — 동시에 몰리면 몇 건 넘을 수 있다). AI 를 부르기 직전에 세므로 실패한 생성도 센다. 데모 결과(mock)는 세지 않는다. 저장소를 못 읽으면 막지 않는다(매장 손님을 세우지 않게).
+- 막히면 응답은 `429 { success: false, error, limited: true }` — 화면은 기존 실패 안내(다시 시도)를 보인다. 서버 로그 `[kiosk-usage] … 오늘 상한 …건에 닿아 막았습니다`.
+- 각 라우트의 분당 상한(인스턴스 메모리)은 그대로 둔다. 시험: `npm run test:demo-guard`.
 
 ## 기기별 체험 모드 (2026-10-13)
 

@@ -5,6 +5,7 @@ import { isKioskLang, type KioskLang } from '@/lib/kiosk/i18n';
 import { generateParsed, promptLine } from '@/lib/kiosk/program-core';
 import { buildTarotDemo, buildTarotPrompt, buildTarotSpread, parseTarotResponse, toTarotResult } from '@/lib/kiosk/tarot-analysis';
 import { TAROT_TOPICS, parseTarotDraws } from '@/lib/kiosk/tarot-deck';
+import { takeKioskUsage } from '@/lib/kiosk/usage-cap';
 
 // 키오스크 AI 타로 — 손님이 화면에서 뽑은 메이저 아르카나 세 장(과거·현재·미래)을 읽는다.
 // 카드는 요청에 실려 오고 서버는 검증만 한다(0~21, 서로 다른 세 장). 향 추천 없음 — 리딩만 만든다.
@@ -47,6 +48,10 @@ export async function POST(request: NextRequest) {
       console.log(`[${requestId}] 데모 응답 반환`);
       return NextResponse.json<KioskTarotResponse>({ success: true, data: buildTarotDemo(spread), mocked: true });
     }
+
+    // 하루 상한(src/lib/kiosk/usage-cap.ts) — 넘으면 429
+    const capped = await takeKioskUsage(request, 'analysis');
+    if (capped) return capped;
 
     const prompt = buildTarotPrompt({
       name: promptLine(body.name, 20) || 'Guest',

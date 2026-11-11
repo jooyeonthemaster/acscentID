@@ -140,3 +140,6 @@
   .kd-cycle img, .kd-now span { animation: none; }
   .kd-cycle img:first-child, .kd-now span:first-child { opacity: 1; }
 }
+
+/* 서명 없는 · 기간 지난 워터마크 없는 링크로 들어왔을 때 맨 위 알림(src/lib/demo-clean.ts) */
+.kd-notice { margin: 0; padding: 12px clamp(18px, 4vw, 40px); background: #fff3d6; color: #5c4300; font-size: 14px; font-weight: 600; line-height: 1.5; text-align: center; }

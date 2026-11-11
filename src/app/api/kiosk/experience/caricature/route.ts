@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { kioskEnabled } from '@/lib/kiosk/access'
 import { CARICATURE_LEVELS, CARICATURE_STYLES, generateCaricature, type CaricatureLevel, type CaricatureStyle } from '@/lib/kiosk/caricature'
 import { KioskImageError } from '@/lib/kiosk/image-gen'
+import { takeKioskUsage } from '@/lib/kiosk/usage-cap'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -22,6 +23,8 @@ export async function POST(request: NextRequest) {
     if (!CARICATURE_STYLES.includes(style) || !CARICATURE_LEVELS.includes(level) || typeof body?.photo !== 'string') {
       return NextResponse.json({ error: '잘못된 요청입니다' }, { status: 400 })
     }
+    const capped = await takeKioskUsage(request, 'image') // 하루 상한 — src/lib/kiosk/usage-cap.ts
+    if (capped) return capped
     const image = await generateCaricature(body.photo, style, level, body.group === true)
     return NextResponse.json({ success: true, image })
   } catch (error) {

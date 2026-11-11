@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { kioskEnabled } from '@/lib/kiosk/access'
 import { HAIR_STYLES, restyleHair, type HairStyle } from '@/lib/kiosk/hairstyle'
 import { KioskImageError } from '@/lib/kiosk/image-gen'
+import { takeKioskUsage } from '@/lib/kiosk/usage-cap'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,6 +19,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => null)
     const style = String(body?.style ?? '') as HairStyle
     if (!HAIR_STYLES.includes(style) || typeof body?.photo !== 'string') return NextResponse.json({ error: '잘못된 요청입니다' }, { status: 400 })
+    const capped = await takeKioskUsage(request, 'image') // 하루 상한 — src/lib/kiosk/usage-cap.ts
+    if (capped) return capped
     return NextResponse.json({ success: true, image: await restyleHair(body.photo, style) })
   } catch (error) {
     if (error instanceof KioskImageError) return NextResponse.json({ error: error.message }, { status: error.status })

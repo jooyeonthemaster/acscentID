@@ -7,14 +7,14 @@
 
 import { useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
-import { DEMO_CLEAN, KIOSK_DEMO_PARAM } from '@/lib/kiosk/demo'
+import { KIOSK_DEMO_PARAM } from '@/lib/kiosk/demo'
+import { useCleanDemo } from '@/lib/use-clean-demo'
 import './kiosk-watermark.css'
 
 const subscribeNever = () => () => {}
 function marked() {
   const demo = new URLSearchParams(window.location.search).get(KIOSK_DEMO_PARAM)
-  // 워터마크 없는 데모(/kiosk-demo/clean 에서 연 demo=clean)는 깔지 않는다
-  if (demo === DEMO_CLEAN) return false
+  // 데모 주소(demo=1 · demo=clean)는 어디서 열든 깐다 — demo=clean 은 서명이 확인되면 아래 useCleanDemo 가 걷는다
   if (demo !== null) return true
   if (window.kiosk?.isElectron === true) return false
   const host = window.location.hostname
@@ -23,6 +23,8 @@ function marked() {
 
 export function KioskWatermark() {
   const show = useSyncExternalStore(subscribeNever, marked, () => false)
-  if (!show) return null
+  // 워터마크 없는 데모 — demo=clean 이고 서명(k)이 서버 확인을 통과했을 때만(src/lib/demo-clean.ts)
+  const clean = useCleanDemo()
+  if (!show || clean) return null
   return createPortal(<div className="kdm-watermark" aria-hidden="true" />, document.body)
 }

@@ -11,6 +11,7 @@ import { toTraditionalChinesePrompt, applyTraditionalPersona } from '@/lib/kiosk
 import { getLocalizedPerfumeText } from '@/data/perfumes-i18n';
 import { allocatePerfumerScent } from '@/lib/kiosk/perfumer-allocation';
 import { normalizePerfumerRotation, pickPerfumerScent } from '@/lib/kiosk/perfumer-rotation';
+import { takeKioskUsage } from '@/lib/kiosk/usage-cap';
 
 // 키오스크 전용 분석 라우트 — /api/analyze와 동일한 파이프라인(프롬프트→Gemini→파서)이되
 // 인증·일일한도 게이트가 없다. 무인 기기에서 로그인 없이 돌아야 하기 때문.
@@ -288,6 +289,10 @@ export async function POST(request: NextRequest) {
         mocked: true,
       });
     }
+
+    // 하루 상한(src/lib/kiosk/usage-cap.ts) — 넘으면 429
+    const capped = await takeKioskUsage(request, 'analysis');
+    if (capped) return capped;
 
     const basePrompt = buildGeminiPrompt(cleanForm, locale, assignedPerfumeId);
     const localizedPrompt = traditional ? toTraditionalChinesePrompt(basePrompt) : basePrompt;

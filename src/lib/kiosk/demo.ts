@@ -4,10 +4,12 @@
 
 /** 데모로 연 화면임을 알리는 주소 칸 */
 export const KIOSK_DEMO_PARAM = 'demo'
-/** 워터마크 없는 데모 — 랜딩 /kiosk-demo/clean 에서 연 주소는 demo=clean (2026-10-22 사용자 지시: 없앤 버전은 링크가 다르게) */
-export const DEMO_CLEAN = 'clean'
+/** 워터마크 없는 데모 — 서명 있는 랜딩 /kiosk-demo/clean?k=… 에서 연 주소는 demo=clean&k=… (2026-10-22 사용자 지시: 없앤 버전은 링크가 다르게,
+ *  2026-11-11: 주소만 바꿔 워터마크를 빼지 못하게 관리자 비밀번호로 만든 기간 있는 서명이 있어야 빠진다 — src/lib/demo-clean.ts) */
+export const DEMO_CLEAN = DEMO_CLEAN_VALUE
 
 import { usesImage } from './expansion/image-prompts'
+import { DEMO_CLEAN_KEY_PARAM, DEMO_CLEAN_VALUE } from '../demo-clean'
 import { NO_PHOTO_IDS } from './expansion/housing'
 import { EXPANSION_IDS, EXPANSION_META } from './expansion/types'
 
@@ -49,4 +51,5 @@ export const KIOSK_DEMOS: KioskDemo[] = [
 ]
 
 /** 데모로 여는 주소 — 미리보기 주소에 데모 표시를 붙인다 */
-export const kioskDemoHref = (mode: string, clean = false) => `/kiosk?mode=${encodeURIComponent(mode)}&${KIOSK_DEMO_PARAM}=${clean ? DEMO_CLEAN : '1'}`
+export const kioskDemoHref = (mode: string, cleanKey?: string) =>
+  `/kiosk?mode=${encodeURIComponent(mode)}&${KIOSK_DEMO_PARAM}=${cleanKey ? `${DEMO_CLEAN}&${DEMO_CLEAN_KEY_PARAM}=${encodeURIComponent(cleanKey)}` : '1'}`
