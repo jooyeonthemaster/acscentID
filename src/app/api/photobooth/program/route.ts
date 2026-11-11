@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { findProgram, validChoices } from '@/lib/booth/programs/catalog'
-import { buildProgramPrompt } from '@/lib/booth/programs/prompts'
+import { buildProgramPrompt, programImageOptions } from '@/lib/booth/programs/prompts'
 import { generateBoothImage, IdolError, spendIdolTicket } from '@/lib/booth/idol-generate'
 import { DEMO_TICKET_OWNER, takeDemoGeneration } from '@/lib/booth/demo-server'
 import { buildCommentPrompt, fallbackComment, hasComment, parseComment } from '@/lib/booth/programs/comment'
@@ -12,7 +12,7 @@ export const maxDuration = 120
 
 /**
  * 포토부스 프로그램(런웨이·한복·웨딩 등 사진 12종) AI 사진 — 부스 전용, 비로그인
- * POST /api/photobooth/program  { ticket, program, choices: { 그룹id: 옵션id }, photos: ['data:image/jpeg;base64,…' (1~2장)] }
+ * POST /api/photobooth/program  { ticket, program, choices: { 그룹id: 옵션id }, photos: ['data:image/jpeg;base64,…' (1~2장)], people?: 얼굴 수 }
  * → { image: 'data:image/jpeg;base64,…', comment?: '한 줄 코멘트' }  (comment — 주거복지대전 제안서의 '코멘트 및 사진 인쇄' 프로그램만)
  *
  * ticket 은 AI 아이돌과 같은 생성 표(이용권 확인·이용권 없는 모드·영업용 데모가 준다) — 표 하나로 2번(첫 생성 + 재시도).
@@ -30,8 +30,10 @@ export async function POST(request: NextRequest) {
     if (photos.length !== program.capture.shots) {
       return NextResponse.json({ error: `사진 ${program.capture.shots}장이 필요해요.` }, { status: 400 })
     }
+    // 여럿 프로그램(capture.group)은 부스가 센 얼굴 수도 보낸다 — DRAW! 캐리커처가 세로(혼자) · 가로(여럿) 그림을 고른다. 못 세면 -1
+    const people = typeof body?.people === 'number' && Number.isFinite(body.people) ? Math.max(-1, Math.min(9, Math.round(body.people))) : undefined
     if (spendIdolTicket(body?.ticket) === DEMO_TICKET_OWNER) await takeDemoGeneration()
-    const image = await generateBoothImage(buildProgramPrompt(program, choices, photos.length), photos[0], photos.slice(1))
+    const image = await generateBoothImage(buildProgramPrompt(program, choices, photos.length, people), photos[0], photos.slice(1), programImageOptions(program, people))
     const comment = hasComment(program) ? await writeComment(program, choices, image) : undefined
     return NextResponse.json({ image, ...(comment ? { comment } : {}) }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {

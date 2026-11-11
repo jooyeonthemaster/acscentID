@@ -134,6 +134,43 @@ function seal(ctx: Ctx, cx: number, cy: number, s: number, glyph: string) {
   text(ctx, glyph, cx, cy + s * 0.28, `700 ${s * 0.7}px ${gowun.style.fontFamily}`, '#fbeee0')
 }
 
+// ── 인화 디자인에 쓰는 그림 파일 — 생성을 기다리는 동안 받아 둔다(loadPrintArt). 못 받으면 글자로 대신 그린다 ──
+
+/** DRAW! 캐리커처 워드마크 — 키오스크 DRAW! 와 같은 그림 */
+const DRAW_MARK = '/assets/kiosk-experiences/draw-wordmark.webp'
+const PRINT_ART: Partial<Record<string, string[]>> = { caricature: [DRAW_MARK] }
+const artCache = new Map<string, HTMLImageElement>()
+/** DRAW! 손글씨 — 한글까지 든 나눔손글씨 펜 원본(next/font 의 pen 은 라틴 글자만 받아 한글이 기본 글꼴로 나왔다). 키오스크 명함 디자이너와 같은 파일 */
+const DRAW_HAND = 'pg-draw-hand'
+const PRINT_FONTS: Partial<Record<string, [family: string, url: string][]>> = { caricature: [[DRAW_HAND, '/fonts/ui/nanum-pen/400.woff2']] }
+const fontsAdded = new Set<string>()
+
+export async function loadPrintArt(program: ProgramDef): Promise<void> {
+  const fonts = (PRINT_FONTS[program.id] ?? []).map(async ([family, url]) => {
+    if (fontsAdded.has(family)) return
+    try {
+      const face = new FontFace(family, `url(${url})`)
+      await face.load()
+      document.fonts.add(face)
+      fontsAdded.add(family)
+    } catch {
+      // next/font 손글씨(라틴) → 기본 글꼴로 그린다
+    }
+  })
+  const images = (PRINT_ART[program.id] ?? []).map(async (src) => {
+    if (artCache.has(src)) return
+    try {
+      const image = new Image()
+      image.src = src
+      await image.decode()
+      artCache.set(src, image)
+    } catch {
+      // 글자 워드마크로 대신 그린다
+    }
+  })
+  await Promise.all([...fonts, ...images])
+}
+
 export const today = () => {
   const d = new Date()
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
@@ -147,6 +184,11 @@ const B = () => bagel.style.fontFamily
 const H = () => blackHan.style.fontFamily
 export const G = () => gowun.style.fontFamily
 const S = () => pen.style.fontFamily
+/** DRAW! 손글씨(한글 포함) — 못 받았으면 next/font 손글씨 */
+const HAND = () => `'${DRAW_HAND}', ${S()}`
+
+/** DRAW! 캐리커처 — 키오스크 DRAW!(draw.css · DrawMode 포스터)와 같은 색 */
+const DRAW = { yellow: '#fef0aa', coral: '#f0563c', star: '#f6c531', ink: '#1f1d1b', paper: '#fffaf0' }
 
 const DESIGNS: Record<string, [Design, Design]> = {
   runway: [
@@ -360,6 +402,72 @@ const DESIGNS: Record<string, [Design, Design]> = {
       seal(ctx, 1040, 1590, 80, '印')
     },
   ],
+  // 키오스크 DRAW! 의 저장 포스터(노란 바탕 · 종이에 붙인 그림 · 코럴 꼬리표 · 원본 한 장)를 4×6 인화지로.
+  // 혼자면 세로 2:3 그림, 여럿이면 가로 3:2 그림 — 그림 모양을 보고 배치를 고른다
+  caricature: [
+    (ctx, { result, original, labels }) => {
+      const wide = isWide(result)
+      rect(ctx, 0, 0, PRINT_W, PRINT_H, DRAW.yellow)
+      drawMark(ctx, PRINT_W / 2, 48, 520)
+      rays(ctx, 250, 150, 70, Math.PI * 1.12)
+      rays(ctx, 950, 150, 70, -Math.PI * 0.12)
+      star(ctx, 112, wide ? 1180 : 330, 50, DRAW.star)
+      heart(ctx, 1094, wide ? 1140 : 300, 34, DRAW.coral)
+      const tag = drawTag(labels)
+      if (!wide) {
+        drawSheet(ctx, result, 150, 276, 900, 1320, -0.02, 30)
+        star(ctx, 1110, 1150, 34, DRAW.star)
+        smiley(ctx, 92, 1470, 34, DRAW.coral)
+        polaroid(ctx, original, 960, 1500, 300, 0.07, '원본')
+        drawTagChip(ctx, tag, 360, 1626, -0.045, 44)
+        text(ctx, today(), 80, 1752, `30px ${A()}`, DRAW.ink, 'left', (c) => { c.letterSpacing = '8px'; c.globalAlpha = 0.7 })
+        fitText(ctx, 'You Look Great!', PRINT_W - 70, 1756, 560, 64, HAND(), DRAW.coral, '', 'right')
+        return
+      }
+      drawSheet(ctx, result, 60, 290, 1080, 740, -0.015, 30)
+      polaroid(ctx, original, 850, 1330, 520, 0.06, '원본')
+      drawTagChip(ctx, tag, 330, 1196, -0.04, 42)
+      fitText(ctx, '오늘도 멋진 우리!', 330, 1360, 520, 100, HAND(), DRAW.ink)
+      fitText(ctx, 'You Look Great!', 330, 1462, 520, 76, HAND(), DRAW.coral)
+      star(ctx, 170, 1630, 46, DRAW.star)
+      smiley(ctx, 600, 1626, 36, DRAW.coral)
+      heart(ctx, 1030, 1630, 30, DRAW.coral)
+      star(ctx, 1110, 1580, 26, DRAW.star)
+      text(ctx, today(), PRINT_W / 2, 1752, `32px ${A()}`, DRAW.ink, 'center', (c) => { c.letterSpacing = '10px'; c.globalAlpha = 0.7 })
+    },
+    (ctx, { result, original, labels }) => {
+      // 스케치북 한 장 — 위 스프링, 종이에 붙인 그림(마스킹 테이프), 아래 손글씨
+      const wide = isWide(result)
+      paper(ctx, DRAW.paper, 'rgba(120,100,40,0.06)', 1600)
+      spiral(ctx)
+      const tag = drawTag(labels)
+      if (!wide) {
+        sketchFrame(ctx, result, 150, 176, 900, 1350)
+        tape(ctx, 196, 196, -0.5, DRAW.coral)
+        tape(ctx, 1004, 196, 0.5, DRAW.star)
+        fitText(ctx, 'Smile, you’re drawn!', 150, 1652, 600, 92, HAND(), DRAW.coral, '', 'left')
+        text(ctx, tag, 154, 1728, `800 36px Pretendard`, DRAW.ink, 'left')
+        drawMark(ctx, 930, 1560, 300)
+        text(ctx, today(), 930, 1740, `28px ${A()}`, DRAW.ink, 'center', (c) => { c.letterSpacing = '8px'; c.globalAlpha = 0.7 })
+        star(ctx, 1108, 1300, 28, DRAW.star)
+        heart(ctx, 96, 1240, 26, DRAW.coral)
+        return
+      }
+      sketchFrame(ctx, result, 80, 186, 1040, 693)
+      tape(ctx, 126, 206, -0.5, DRAW.coral)
+      tape(ctx, 1074, 206, 0.5, DRAW.star)
+      taped(ctx, original, 330, 1150, 480, -0.04)
+      text(ctx, '원본 ♡', 330, 1388, `60px ${HAND()}`, DRAW.ink)
+      drawMark(ctx, 870, 990, 400)
+      text(ctx, tag, 870, 1218, `800 38px Pretendard`, DRAW.ink)
+      fitText(ctx, 'Smile, you’re drawn!', 870, 1316, 560, 76, HAND(), DRAW.coral)
+      fitText(ctx, '오늘도 멋진 우리!', PRINT_W / 2, 1580, 900, 130, HAND(), DRAW.ink)
+      star(ctx, 150, 1540, 40, DRAW.star)
+      heart(ctx, 1060, 1530, 30, DRAW.coral)
+      smiley(ctx, 1090, 1360, 30, DRAW.coral)
+      text(ctx, today(), PRINT_W / 2, 1730, `30px ${A()}`, DRAW.ink, 'center', (c) => { c.letterSpacing = '10px'; c.globalAlpha = 0.7 })
+    },
+  ],
   wedding: [
     (ctx, { result, labels }) => {
       rect(ctx, 0, 0, PRINT_W, PRINT_H, '#faf5ef')
@@ -526,6 +634,142 @@ function fanCard(ctx: Ctx, input: PrintInput, x: number, y: number, w: number, h
   draw(ctx, -w / 2 + pad + s * 0.9, h * 0.25, s * 0.8, tint)
   text(ctx, 'WITH!', w / 2 - pad, -h / 2 + pad + h * 0.78 - s * 0.4, `${w * 0.07}px ${B()}`, '#ffffff', 'right', (c) => shadow(c, 8, 'rgba(0,0,0,0.3)'))
   ctx.restore()
+}
+
+// ── DRAW! 캐리커처 부품 ──
+
+const isWide = (pic: Pic) => { const { w, h } = size(pic); return w > h }
+
+/** 워드마크(그림) — 위쪽 가운데 기준. 그림을 못 받았으면 글자 + 코럴 밑줄 */
+function drawMark(ctx: Ctx, cx: number, top: number, width: number) {
+  const mark = artCache.get(DRAW_MARK)
+  if (mark) {
+    ctx.drawImage(mark, cx - width / 2, top, width, (width * mark.naturalHeight) / mark.naturalWidth)
+    return
+  }
+  const px = width * 0.3
+  text(ctx, 'DRAW!', cx, top + px, `${px}px ${A()}`, DRAW.ink)
+  rect(ctx, cx - width * 0.32, top + px * 1.12, width * 0.64, px * 0.12, DRAW.coral, px * 0.06)
+}
+
+/** 튀는 선 세 줄(낙서) — angle 방향으로 */
+function rays(ctx: Ctx, cx: number, cy: number, length: number, angle: number) {
+  ctx.save()
+  ctx.strokeStyle = DRAW.coral; ctx.lineWidth = 9; ctx.lineCap = 'round'
+  for (const d of [-0.42, 0, 0.42]) {
+    const a = angle + d
+    ctx.beginPath()
+    ctx.moveTo(cx + Math.cos(a) * length * 0.35, cy + Math.sin(a) * length * 0.35)
+    ctx.lineTo(cx + Math.cos(a) * length, cy + Math.sin(a) * length)
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
+function smiley(ctx: Ctx, cx: number, cy: number, r: number, color: string) {
+  ctx.save()
+  ctx.strokeStyle = color; ctx.lineWidth = r * 0.16; ctx.lineCap = 'round'
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke()
+  ctx.beginPath(); ctx.arc(cx, cy + r * 0.05, r * 0.52, Math.PI * 0.18, Math.PI * 0.82); ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(cx - r * 0.34, cy - r * 0.36); ctx.lineTo(cx - r * 0.34, cy - r * 0.16)
+  ctx.moveTo(cx + r * 0.34, cy - r * 0.36); ctx.lineTo(cx + r * 0.34, cy - r * 0.16)
+  ctx.stroke()
+  ctx.restore()
+}
+
+/** 꼬리표 글자 — 키오스크와 같은 '코믹 · 재미있게' */
+const drawTag = (labels: Record<string, string>) => [labels.style, labels.level].filter(Boolean).join(' · ')
+
+/** 코럴 꼬리표(흰 글자, 살짝 기울임) */
+function drawTagChip(ctx: Ctx, value: string, cx: number, cy: number, tilt: number, px: number) {
+  ctx.save()
+  ctx.translate(cx, cy); ctx.rotate(tilt)
+  ctx.font = `800 ${px}px Pretendard`
+  const w = ctx.measureText(value).width + px * 2.1, h = px * 1.9
+  ctx.shadowColor = 'rgba(90,70,10,0.25)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 5
+  rect(ctx, -w / 2, -h / 2, w, h, DRAW.coral, px * 0.34)
+  ctx.shadowColor = 'transparent'
+  ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+  ctx.fillText(value, 0, px * 0.06)
+  ctx.restore()
+}
+
+/** 종이 한 장에 붙인 그림 — 기울기 · 그림자 · 여백 */
+function drawSheet(ctx: Ctx, pic: Pic, x: number, y: number, w: number, h: number, tilt: number, pad: number) {
+  ctx.save()
+  ctx.translate(x + w / 2, y + h / 2); ctx.rotate(tilt)
+  ctx.shadowColor = 'rgba(90,70,10,0.28)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 12
+  ctx.fillStyle = DRAW.paper; ctx.fillRect(-w / 2, -h / 2, w, h)
+  ctx.shadowColor = 'transparent'
+  cover(ctx, pic, -w / 2 + pad, -h / 2 + pad, w - pad * 2, h - pad * 2, 0.4)
+  ctx.restore()
+}
+
+/** 원본 사진 폴라로이드(가로 4:3 사진 칸 + 아래 글자) — 가운데 기준 */
+function polaroid(ctx: Ctx, pic: Pic, cx: number, cy: number, width: number, tilt: number, caption: string) {
+  const pad = Math.round(width * 0.055), pw = width - pad * 2, ph = Math.round((pw * 3) / 4), foot = Math.round(width * 0.18)
+  const h = pad + ph + foot
+  ctx.save()
+  ctx.translate(cx, cy); ctx.rotate(tilt)
+  ctx.shadowColor = 'rgba(90,70,10,0.3)'; ctx.shadowBlur = 22; ctx.shadowOffsetY = 8
+  ctx.fillStyle = DRAW.paper; ctx.fillRect(-width / 2, -h / 2, width, h)
+  ctx.shadowColor = 'transparent'
+  cover(ctx, pic, -width / 2 + pad, -h / 2 + pad, pw, ph, 0.35)
+  text(ctx, caption, 0, h / 2 - foot * 0.32, `800 ${Math.round(foot * 0.42)}px Pretendard`, DRAW.ink)
+  ctx.restore()
+}
+
+/** 스케치북 위 스프링 */
+function spiral(ctx: Ctx) {
+  rect(ctx, 0, 0, PRINT_W, 120, 'rgba(31,29,27,0.04)')
+  for (let x = 66; x < PRINT_W - 40; x += 78) {
+    ctx.save()
+    ctx.fillStyle = '#3a342c'
+    ctx.beginPath(); ctx.arc(x, 92, 11, 0, Math.PI * 2); ctx.fill()
+    ctx.strokeStyle = '#9b958a'; ctx.lineWidth = 7; ctx.lineCap = 'round'
+    ctx.beginPath(); ctx.moveTo(x + 4, 90); ctx.bezierCurveTo(x + 6, 40, x - 14, 18, x - 18, 52); ctx.stroke()
+    ctx.restore()
+  }
+}
+
+/** 종이에 바로 그린 듯 — 그림 + 연필 테두리 두 줄(살짝 어긋나게) */
+function sketchFrame(ctx: Ctx, pic: Pic, x: number, y: number, w: number, h: number) {
+  cover(ctx, pic, x, y, w, h, 0.4)
+  ctx.save()
+  ctx.strokeStyle = DRAW.ink; ctx.lineWidth = 4; ctx.lineJoin = 'round'
+  ctx.strokeRect(x, y, w, h)
+  ctx.globalAlpha = 0.45; ctx.lineWidth = 2
+  ctx.translate(x + w / 2, y + h / 2); ctx.rotate(0.004)
+  ctx.strokeRect(-w / 2 - 8, -h / 2 - 6, w + 14, h + 12)
+  ctx.restore()
+}
+
+/** 마스킹 테이프 한 조각 — 가운데 기준 */
+function tape(ctx: Ctx, cx: number, cy: number, tilt: number, color: string) {
+  ctx.save()
+  ctx.translate(cx, cy); ctx.rotate(tilt)
+  ctx.globalAlpha = 0.72
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(-90, -24); ctx.lineTo(90, -24); ctx.lineTo(84, -12); ctx.lineTo(90, 0); ctx.lineTo(84, 12); ctx.lineTo(90, 24)
+  ctx.lineTo(-90, 24); ctx.lineTo(-84, 12); ctx.lineTo(-90, 0); ctx.lineTo(-84, -12); ctx.closePath()
+  ctx.fill()
+  ctx.restore()
+}
+
+/** 테이프로 붙인 원본 사진(흰 테두리 · 가로 4:3) — 가운데 기준 */
+function taped(ctx: Ctx, pic: Pic, cx: number, cy: number, width: number, tilt: number) {
+  const pad = 14, h = Math.round(((width - pad * 2) * 3) / 4) + pad * 2
+  ctx.save()
+  ctx.translate(cx, cy); ctx.rotate(tilt)
+  ctx.shadowColor = 'rgba(60,45,10,0.22)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 6
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(-width / 2, -h / 2, width, h)
+  ctx.shadowColor = 'transparent'
+  cover(ctx, pic, -width / 2 + pad, -h / 2 + pad, width - pad * 2, h - pad * 2, 0.35)
+  ctx.restore()
+  tape(ctx, cx - width * 0.36, cy - h / 2 + 4, -0.6 + tilt, DRAW.star)
+  tape(ctx, cx + width * 0.36, cy - h / 2 + 4, 0.6 + tilt, DRAW.coral)
 }
 
 /** 인화 디자인 한 장(JPEG data URL) */

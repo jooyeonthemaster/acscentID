@@ -3,7 +3,24 @@
 // 글자·로고·실존 인물 닮게·노출 의상은 넣지 않는다. 화면에서 온 문장은 쓰지 않고 옵션 id 로 catalog 의 조각을 찾는다.
 
 import { buildIdolPrompt, findIdolConcept } from '../idol-concepts'
+import type { BoothImageOptions } from '../idol-generate'
+import { buildCaricaturePrompt, isCaricatureLevel, isCaricatureStyle, type CaricatureFrame } from '@/lib/kiosk/caricature-prompt'
 import { optionOf, type ProgramDef } from './catalog'
+
+/** DRAW! 캐리커처 — 4×6 인화지에 맞춘 비율(혼자 세로 2:3 · 여럿 가로 3:2). programImageOptions 의 aspectRatio 와 같다 */
+const BOOTH_CARICATURE_FRAME: CaricatureFrame = { tall: '2:3', wide: '3:2' }
+
+/** 여럿이 찍은 사진인가 — 부스가 센 얼굴 수(못 세면 0 또는 -1 → 혼자로 그린다. 혼자 프롬프트도 '여럿이면 모두 그려라'를 담고 있다) */
+const isGroupShot = (faces: number | undefined) => typeof faces === 'number' && faces >= 2
+
+/**
+ * 프로그램별 생성 모양 — 기본은 인화 원판(세로 2:3, 첫 모델 60초 → 빠른 예비 모델).
+ * DRAW! 를 여럿이 찍으면 가로 3:2 로 그리고, AI 아이돌 단체처럼 같은 모델로 한 번 더(작은 모델은 여러 얼굴을 한꺼번에 지키기 어렵다)
+ */
+export function programImageOptions(program: ProgramDef, faces?: number): BoothImageOptions {
+  if (program.id === 'caricature' && isGroupShot(faces)) return { aspectRatio: '3:2', retryModel: 'primary', timeouts: [60_000, 50_000] }
+  return {}
+}
 
 const NO_TEXT = 'DO NOT add any text, captions, logos, watermarks or signatures, and no readable letters or numbers anywhere in the image. Do not make anyone resemble a real celebrity. Clothing is modest and age-appropriate.'
 
@@ -38,8 +55,8 @@ const photo = (framing: string) =>
 
 const pick = (program: ProgramDef, choices: Record<string, string>, group: string) => optionOf(program, group, choices[group])?.prompt ?? ''
 
-/** 프로그램 · 고른 옵션 · 사람 수 · 넣는 사진 수 → 생성 프롬프트 */
-export function buildProgramPrompt(program: ProgramDef, choices: Record<string, string>, inputs: number): string {
+/** 프로그램 · 고른 옵션 · 넣는 사진 수 · (여럿 프로그램이면) 부스가 센 얼굴 수 → 생성 프롬프트 */
+export function buildProgramPrompt(program: ProgramDef, choices: Record<string, string>, inputs: number, faces?: number): string {
   const people = program.capture.people
   const c = (group: string) => pick(program, choices, group)
   switch (program.id) {
@@ -109,6 +126,11 @@ export function buildProgramPrompt(program: ProgramDef, choices: Record<string, 
         identity(people, inputs), '',
         'The face keeps the exact likeness rendered with brush strokes; clothes become a soft traditional robe; vertical 2:3 composition filling the frame, the person from the chest up.', NO_TEXT,
       ].join('\n')
+    case 'caricature': {
+      // 키오스크 DRAW! 와 같은 그림 규칙 — 비율만 인화지에 맞춘다
+      if (!isCaricatureStyle(choices.style) || !isCaricatureLevel(choices.level)) throw new Error('unknown caricature option')
+      return buildCaricaturePrompt(choices.style, choices.level, isGroupShot(faces), BOOTH_CARICATURE_FRAME)
+    }
     case 'wedding':
       return [
         `EDIT IMAGE 1 into a romantic wedding photo of the SAME two real people from the photo, standing close together as a couple — styled according to each person's own gender presentation (wedding dress, suit or tuxedo).`,

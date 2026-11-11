@@ -14,7 +14,7 @@ const HOUSING_ORDER = ['housing-movein', 'housing-2046', 'history']
 const order = (mode: string) => { const i = HOUSING_ORDER.indexOf(mode); return i < 0 ? 99 : i }
 
 const GROUPS: { id: BoothDemo['group']; title: string; short: string; note: string }[] = [
-  { id: 'photo', title: 'AI 사진 프로그램', short: 'AI 사진', note: '런웨이 · 패션 타임머신 · 졸업 · 한복 · 웨딩 · 초상화 — 한 컷을 찍으면 프로그램마다 다른 화면과 인화 디자인으로 AI 사진을 만들어 4×6 인화와 QR로 줍니다' },
+  { id: 'photo', title: 'AI 사진 프로그램', short: 'AI 사진', note: '런웨이 · 패션 타임머신 · 졸업 · 한복 · 웨딩 · 초상화 · 캐리커처 — 한 컷을 찍으면 프로그램마다 다른 화면과 인화 디자인으로 AI 사진을 만들어 4×6 인화와 QR로 줍니다' },
   { id: 'housing', title: '주거복지 · 공공 행사', short: '주거복지', note: '2026 대한민국 주거복지대전 AI 체험존 — 입주 기념사진 · 2046 미래 도시 주민 카드 · 과거로의 여행. 사진(4×6)과 AI 코멘트를 함께 인화합니다' },
   { id: 'video', title: '영상 프로그램', short: '영상', note: '15초 뮤직비디오와 사진 5~20장으로 만드는 추억 영상 — 부스에서 편집해 QR로 휴대폰에 받습니다(AI 영상이 아닌 편집 영상)' },
   { id: 'idol', title: 'AI 아이돌 포토', short: 'AI 아이돌', note: '한 컷을 찍으면 내 얼굴 그대로 K-POP 아이돌 컨셉 사진을 만들어 4×6으로 인화합니다' },

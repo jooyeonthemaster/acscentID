@@ -6,6 +6,8 @@
 export const PROGRAM_IDS = [
   'runway', 'fashion-time', 'idol-makeup', 'fan-card', 'graduation', 'history', 'timecapsule',
   'brand-avatar', 'hanbok', 'traditional', 'wedding', 'future-family', 'music-video', 'memory-movie',
+  // 키오스크 캐리커처(DRAW!)를 가로 부스 · 4×6 인화로(2026-11-11) — docs/photobooth-programs.md 'DRAW! 캐리커처'
+  'caricature',
   // 2026 대한민국 주거복지대전(2026-12-16) 특화 — docs/photobooth-programs.md '주거복지대전 3종'
   'housing-movein', 'housing-cover', 'housing-2046',
   // 2026 안산사이언스밸리 과학축제(11-07~08) AI 포토존 — 운영 모드 'ANSAN'(modes.ts), docs/photobooth-programs.md 'ANSAN 타임캡슐'
@@ -83,6 +85,9 @@ export interface ProgramDef {
 const intro = (id: ProgramId) => `/assets/booth-programs/${id}.webp`
 /** 주거복지대전 3종의 선택지 그림 — 파일 이름은 booth-housing-<프로그램>-<그룹>-<선택지> (목업 design-review/housing-mockups) */
 const housingArt = (program: 'movein' | 'cover' | '2046', group: string, option: string) => `/assets/booth-programs/housing/booth-housing-${program}-${group}-${option}.webp`
+
+/** 키오스크 캐리커처(DRAW!)와 같은 그림 — 워드마크 · 시작 그림 · 스타일 예시(src/app/kiosk/experience/draw) */
+const DRAW_ART = '/assets/kiosk-experiences'
 
 /** 사진 프로그램의 기본 시간 */
 const PHOTO_STAGES: [string, string, string] = ['사진 확인', '스타일 생성 중', '마무리']
@@ -352,6 +357,34 @@ export const PROGRAMS: ProgramDef[] = [
     save: { title: '나만의 작품을 간직하세요', sub: 'QR 코드를 스캔해 휴대폰에 저장할 수 있어요' },
     intro: intro('traditional'), script: '오늘, 특별한 순간이 그림이 되도록', designs: ['족자 표구', '낙관 액자'],
     card: { tag: 'INK!', desc: '동양화·민화·수묵화 — 내 얼굴을 붓결 초상화로 그려 낙관까지 찍어요.', color: '#3b3128', badges: ['AI 생성', '초상화', '4×6 인화'] },
+  },
+  // 키오스크 캐리커처(DRAW!)의 부스판 — 같은 버터 옐로 · 코럴 스케치북, 같은 스타일 3 · 과장 정도 2, 같은 그림 규칙(caricature-prompt.ts).
+  // 다른 점: 가로 화면 · 혼자도 여럿도 한 컷(얼굴 수로 세로 2:3 / 가로 3:2 를 고른다) · 영수증 대신 4×6 인화지
+  {
+    id: 'caricature', kind: 'photo', name: '캐리커처 스튜디오', wordmark: 'DRAW!',
+    headline: '평범한 사진에,\n유쾌한 한 끗', lead: '한 컷을 찍으면 손그림 캐리커처로 그려 4×6 사진으로 뽑아 드려요',
+    steps: ['촬영', '스타일', '인화'], startCta: '내 캐리커처 그리기',
+    capture: { title: '편하게 웃어 주세요', hint: '혼자도, 친구·가족과 함께도 좋아요(최대 4명). 머리 모양까지 다 보이면 더 닮게 그려져요', people: 1, shots: 1, group: true },
+    options: {
+      title: '어떤 그림이 나다울까요?', sub: '그림 스타일과 과장 정도를 골라 주세요', cta: '이 스타일로 그리기',
+      groups: [
+        // id 는 caricature-prompt.ts 의 CARICATURE_STYLES · CARICATURE_LEVELS 와 같다(그림 문장은 거기서 찾는다). 첫 항목이 기본값 — 키오스크와 같은 코믹 · 재미있게
+        { id: 'style', label: '그림 스타일', look: 'tiles', options: [
+          { id: 'comic', label: '코믹', sub: '굵은 선 · 원색', image: `${DRAW_ART}/draw-style-comic.webp` },
+          { id: 'water', label: '수채화', sub: '번지는 물감', image: `${DRAW_ART}/draw-style-water.webp` },
+          { id: 'line', label: '라인아트', sub: '펜 선화 · 흑백', image: `${DRAW_ART}/draw-style-line.webp` },
+        ] },
+        { id: 'level', label: '과장 정도', look: 'chips', options: [
+          { id: 'fun', label: '재미있게' },
+          { id: 'soft', label: '은은하게' },
+        ] },
+      ],
+    },
+    generating: { title: '쓱쓱,\n그리는 중이에요', sub: '윤곽을 잡고, 표정을 살리고, 마무리 선을 긋고 있어요', stages: ['사진 확인', '그림 그리는 중', '인화 원판 만들기'] },
+    result: { title: '이런 나도,\n꽤 멋진데요?', sub: '인화할 디자인을 골라 주세요' },
+    save: { title: '내 캐리커처를 가져가세요', sub: '4×6 사진으로 인화하고, QR로 휴대폰에도 저장해요' },
+    intro: `${DRAW_ART}/draw-hero.webp`, script: 'Smile, you’re drawn!', designs: ['스케치북 포스터', '스케치북 한 장'],
+    card: { tag: 'DRAW!', desc: '한 컷을 찍으면 코믹·수채화·라인아트 손그림 캐리커처로 그려 4×6 사진으로 뽑아 줘요. 혼자도, 여럿이 함께도.', color: '#d9472f', badges: ['AI 생성', '1~4인', '4×6 인화'] },
   },
   {
     id: 'wedding', kind: 'photo', name: '웨딩 포토부스', wordmark: 'VOW!',

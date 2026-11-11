@@ -10,7 +10,7 @@ import { countFaces } from '@/lib/booth/face-detect'
 import { useCamera } from './use-camera'
 import { toRequestJpeg, useAlbum, type FlowCtx } from './flow'
 import { loadCanvasFonts } from './fonts'
-import { renderProgramPrint, type PrintInput } from './print-designs'
+import { loadPrintArt, renderProgramPrint, type PrintInput } from './print-designs'
 import { savePhoto } from './save'
 import { PrintCard, QrCard, usePrint, useSavedLink } from './SavePanel'
 import { Creative, Modal, OptionGroups, PanelHead, Progress, Split, Stages, useElapsed } from './ui'
@@ -347,16 +347,18 @@ function Generate({ ctx, shots, shotUrls, choices, labels, onDone, onStyle }: {
     ;(async () => {
       try {
         const photos = shots.map((s) => toRequestJpeg(s))
+        // 여럿 프로그램은 얼굴 수도 보낸다 — DRAW! 캐리커처는 혼자면 세로, 여럿이면 가로 그림(촬영 때 센 결과가 남아 있어 바로 나온다, 못 세면 -1)
+        const people = program.capture.group ? await countFaces(shots[0]) : undefined
         setStage(1)
         const ticket = await ctx.getTicket()
         const res = await fetch('/api/photobooth/program', {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: abort.signal,
-          body: JSON.stringify({ ticket, program: program.id, choices, photos }),
+          body: JSON.stringify({ ticket, program: program.id, choices, photos, people }),
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || typeof data.image !== 'string') throw new Error(data.error || `AI 사진을 만들지 못했어요 (${res.status}).`)
         setStage(2)
-        const [image] = await Promise.all([loadImage(data.image), loadCanvasFonts()])
+        const [image] = await Promise.all([loadImage(data.image), loadCanvasFonts(), loadPrintArt(program)])
         const original = shots[0]
         // 코멘트(주거복지대전 제안서 '코멘트 및 사진 인쇄') — 있으면 결과 화면과 인화물에
         const comment = typeof data.comment === 'string' ? data.comment : undefined

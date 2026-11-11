@@ -622,3 +622,62 @@ canvas.pg-cam-video { transform: none; }
 /* AI 코멘트(주거복지대전 제안서 '코멘트 및 사진 인쇄') — 결과 패널 제목 아래 한 줄 */
 .pg-comment { margin: 4px 0 10px; padding: 10px 14px; border-radius: var(--pg-radius); background: color-mix(in srgb, var(--pg-accent) 10%, var(--pg-surface)); color: var(--pg-ink); font-size: 16px; font-weight: 700; line-height: 1.5; }
 .pg-comment span { color: var(--pg-accent); font-size: 20px; }
+
+/* 18 캐리커처 DRAW! — 키오스크 DRAW!(src/app/kiosk/experience/draw/draw.css)와 같은 버터 옐로 · 코럴 아티스트 스케치북.
+   워드마크 · 시작 그림 · 스타일 예시는 키오스크 그림 그대로(바탕이 같은 노랑이라 위에 그대로 얹는다). 종이 한 장 · 낙서 · 연필 */
+.pg[data-program='caricature'] {
+  --pg-bg: #fef0aa; --pg-outer: #fef0aa; --pg-ink: #1f1d1b; --pg-muted: #6b5f45; --pg-accent: #f0563c; --pg-on-accent: #fff;
+  --pg-surface: #fffaf0; --pg-line: #e6d59a; --pg-radius: 12px; --pg-display: var(--pg-f-anton), Impact, sans-serif;
+  --pg-script: var(--pg-f-pen), cursive;
+  --pg-photo-border: 12px solid #fffaf0; --pg-photo-shadow: 0 10px 24px rgba(110, 85, 10, 0.24);
+}
+.pg[data-program='caricature'] .pg-wordmark { display: inline-block; flex: none; aspect-ratio: 768 / 279; font-size: 0; color: transparent; background: url('/assets/kiosk-experiences/draw-wordmark.webp') no-repeat left center / contain; }
+.pg[data-program='caricature'] .pg-wordmark--sm { height: 40px; align-self: center; }
+.pg[data-program='caricature'] .pg-wordmark--xl { height: 150px; margin: -6px 0 -4px -8px; }
+.pg[data-program='caricature'] .pg-top-mid { align-items: center; }
+.pg[data-program='caricature'] .pg-start .pg-panel { background: transparent; border: 0; }
+.pg[data-program='caricature'] .pg-intro { border: 0; border-radius: 0; box-shadow: none; overflow: visible; background: transparent; }
+.pg[data-program='caricature'] .pg-intro img { object-fit: contain; object-position: center; }
+.pg[data-program='caricature'] .pg-intro figcaption { background: rgba(31, 29, 27, 0.7); }
+.pg[data-program='caricature'] .pg-script { left: auto; right: 12px; bottom: 6px; color: #f0563c; text-shadow: none; font-size: 46px; transform: rotate(-5deg); }
+.pg[data-program='caricature'] .pg-headline { font-size: 38px; font-weight: 900; line-height: 1.18; }
+.pg[data-program='caricature'] .pg-lead { color: #3b342a; font-weight: 600; }
+.pg[data-program='caricature'] .pg-flow-steps li { background: #fffaf0; border: 2px solid #1f1d1b; }
+.pg[data-program='caricature'] .pg-flow-steps i { background: #f0563c; }
+/* 패널은 종이 한 장 */
+.pg[data-program='caricature'] .pg-panel { border: 0; border-radius: 4px; box-shadow: 0 10px 24px rgba(110, 85, 10, 0.2); }
+.pg[data-program='caricature'] .pg-head h2 span:last-child { width: fit-content; padding-bottom: 6px; background: linear-gradient(#f0563c, #f0563c) no-repeat 30% 100% / 86% 7px; }
+/* 버튼 — 키오스크처럼 먹색 버튼 · 먹색 테두리, 고른 것은 코럴 */
+.pg[data-program='caricature'] .pg-btn--accent { background: #1f1d1b; color: #fff; box-shadow: 0 5px 0 rgba(31, 29, 27, 0.22); }
+.pg[data-program='caricature'] .pg-btn--line, .pg[data-program='caricature'] .pg-timer button { border-color: #1f1d1b; background: #fffaf0; }
+.pg[data-program='caricature'] .pg-timer button[aria-checked='true'] { border-color: #f0563c; background: #f0563c; color: #fff; }
+.pg[data-program='caricature'] .pg-opt { border-color: transparent; box-shadow: 0 3px 10px rgba(110, 85, 10, 0.18); }
+.pg[data-program='caricature'] .pg-group--chips .pg-opt { border-color: #1f1d1b; box-shadow: none; font-size: 18px; }
+.pg[data-program='caricature'] .pg-opt[aria-checked='true'] { border-color: #f0563c; box-shadow: 0 0 0 2px rgba(240, 86, 60, 0.3); }
+.pg[data-program='caricature'] .pg-opt--art .pg-opt-img { aspect-ratio: 1.12; }
+.pg[data-program='caricature'] .pg-opt--art .pg-opt-label { font-size: 16px; }
+.pg[data-program='caricature'] .pg-consent { background: rgba(255, 250, 240, 0.8); }
+.pg[data-program='caricature'] .pg-modal-card { --pg-accent: #f0563c; }
+/* 사진은 종이에 붙인 한 장 — 살짝 기울인다 */
+.pg[data-program='caricature'] .pg-cam, .pg[data-program='caricature'] .pg-photo-frame { border-radius: 2px; transform: rotate(-1.2deg); }
+.pg[data-program='caricature'] .pg-print-preview img { border-radius: 2px; box-shadow: 0 14px 30px rgba(110, 85, 10, 0.3); }
+/* 낙서 — 별 · 하트(시작 그림에는 이미 있다) */
+.pg[data-program='caricature'] .pg-split:not(.pg-start) .pg-visual::before,
+.pg[data-program='caricature'] .pg-split:not(.pg-start) .pg-visual::after { content: ''; position: absolute; z-index: 2; pointer-events: none; background: no-repeat center / contain; animation: pgc-float 4.6s ease-in-out infinite; }
+.pg[data-program='caricature'] .pg-split:not(.pg-start) .pg-visual::before { left: -14px; top: 6px; width: 46px; height: 46px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20 2l5 12 13 1-10 9 3 13-11-7-11 7 3-13L2 15l13-1z' fill='%23f6c531' stroke='%23f6c531' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.pg[data-program='caricature'] .pg-split:not(.pg-start) .pg-visual::after { right: -10px; bottom: 10px; width: 42px; height: 42px; animation-delay: -2.2s; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20 35C4 24 4 8 14 8c4 0 6 3 6 5 0-2 2-5 6-5 10 0 10 16-6 27z' fill='%23f0563c'/%3E%3C/svg%3E"); }
+@keyframes pgc-float { 50% { transform: translateY(-6px) rotate(6deg); } }
+/* 그리는 중 — 사진이 연필 선화로 바뀌었다 돌아오고, 연필이 종이 위를 오간다(키오스크 '쓱쓱, 그리는 중') */
+.pg[data-program='caricature'] .pg-scan > i { display: none; }
+.pg[data-program='caricature'] .pg-generating .pg-photo-frame img { animation: pgc-sketch 2.8s ease-in-out infinite alternate; }
+@keyframes pgc-sketch { to { filter: grayscale(1) contrast(1.7) brightness(1.3); } }
+.pg[data-program='caricature'] .pg-scan::after { content: ''; position: absolute; left: 50%; top: 50%; z-index: 3; width: 78px; height: 78px; margin: -39px 0 0 -39px; border-radius: 50%; box-shadow: 0 6px 16px rgba(60, 45, 5, 0.3); pointer-events: none; animation: pgc-scribble 3.6s ease-in-out infinite;
+  background: #fffaf0 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f1d1b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E") no-repeat center / 44px; }
+@keyframes pgc-scribble {
+  0%, 100% { transform: translate(-160px, -150px) rotate(-8deg); }
+  16% { transform: translate(140px, -100px) rotate(6deg); }
+  33% { transform: translate(-120px, -20px) rotate(-10deg); }
+  50% { transform: translate(160px, 50px) rotate(8deg); }
+  66% { transform: translate(-140px, 130px) rotate(-6deg); }
+  83% { transform: translate(120px, 170px) rotate(10deg); }
+}
