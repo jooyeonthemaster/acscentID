@@ -35,7 +35,7 @@
 | A | DREAM! 꿈의 직업 포토 — 6직업 × 2장면, 옷 · 일터만 바꿈(1~4명) | 2 | 새로 | `/booth?mode=dream&site=funground` (Seedream) | $0.018 |
 | B | FUTURE NEWS! — 기사는 미리 쓴 틀(`news-template.ts`) | 2 | 새로 | `/booth-demo/funground/news?engine=local` | $0 |
 
-DREAM! 가상 어린이 시험(5건, 2026-11-14): 얼굴 유사도 0.80~0.95, 1~4명 모두 유지, 나이 그대로. 우주복에 국기 · 패치가 그려져 프롬프트에 「깃발 · 패치 · 이름표 없음」을 더했다.
+DREAM! 가상 어린이 시험(5건, 2026-11-14): 얼굴 유사도 0.80~0.95, 1~4명 모두 유지, 나이 그대로. 우주비행사는 「깃발 · 패치 없음」을 적어도 Seedream 이 우주복에 국기를 그려(3번 시험) 천문학자(천문대)로 바꿨다.
 
 뺀 프로그램(IDOL! · ERA! · GRAD! · WITH! · QUEST! · MVP! · THEME! · MV!)의 코드는 남아 있고 주소로만 열린다. B안 LATER! 는 THEME! 합성 코드를 쓴다.
 

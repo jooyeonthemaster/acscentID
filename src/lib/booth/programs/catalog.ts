@@ -657,7 +657,7 @@ export const PROGRAMS: ProgramDef[] = [
       title: '어떤 직업을 입어 볼까요?', sub: '꿈의 직업과 장면을 골라 주세요', cta: '이 꿈으로 만들기',
       groups: [
         { id: 'job', label: '꿈의 직업', look: 'tiles', options: [
-          { id: 'astronaut', label: '우주비행사', sub: '우주 정거장', swatch: 'radial-gradient(circle at 70% 30%,#9fd3ff 0 8%,transparent 9%),linear-gradient(170deg,#1b2a6b,#070b24 70%)', prompt: 'as astronauts inside a bright space station with Earth in the round window behind them, wearing plain white space suits with NO flags, NO patches, NO mission badges and NO name tags, the helmet off (held under the arm or floating nearby)' },
+          { id: 'astronomer', label: '천문학자', sub: '별빛 천문대', swatch: 'radial-gradient(circle at 70% 30%,#fff3b0 0 4%,transparent 5%),radial-gradient(circle at 30% 60%,#fff3b0 0 3%,transparent 4%),linear-gradient(170deg,#2a2f7a,#0b0d2a 70%)', prompt: 'as astronomers at a big observatory at night beside a large telescope under the open dome, a sky full of stars and the Milky Way above, wearing plain warm navy jackets, one pointing up at the stars' },
           { id: 'chef', label: '셰프', sub: '레스토랑 주방', swatch: 'linear-gradient(170deg,#ffe9c9,#f2a65a 60%,#b4562a)', prompt: 'as chefs in a warm, busy restaurant kitchen, wearing white double-breasted chef jackets and tall white chef hats, proudly presenting a beautiful plate of food' },
           { id: 'vet', label: '수의사', sub: '동물 병원', swatch: 'linear-gradient(170deg,#d8f3e6,#6cc7a0 60%,#2f8a68)', prompt: 'as veterinarians in a bright, friendly animal clinic, wearing light blue scrubs with a stethoscope, gently holding a happy puppy or a kitten' },
           { id: 'scientist', label: '과학자', sub: '연구실', swatch: 'radial-gradient(circle at 30% 30%,#a6f0ff 0 7%,transparent 8%),linear-gradient(170deg,#e9f4ff,#7fb2e8 60%,#2b5ea8)', prompt: 'as scientists in a modern laboratory with glowing experiment equipment, wearing white lab coats and clear safety goggles pushed up on the head' },
@@ -675,7 +675,7 @@ export const PROGRAMS: ProgramDef[] = [
     save: { title: '꿈의 순간을 가져가세요', sub: '4×6 사진으로 인화해요' },
     creative: '꿈을 미리 그려 보는 상상 사진이에요 — AI가 만든 창작 이미지예요',
     intro: intro('dream'), script: 'Dream it, wear it', designs: ['꿈의 직업 포스터', '꿈의 명함'],
-    card: { tag: 'DREAM!', desc: '우주비행사 · 셰프 · 수의사 · 과학자 · 소방관 · 게임 개발자 — 얼굴은 그대로, 꿈의 직업 옷과 일터로.', color: '#1f8fd0', badges: ['AI 생성', '1~4인', '4×6 인화'] },
+    card: { tag: 'DREAM!', desc: '천문학자 · 셰프 · 수의사 · 과학자 · 소방관 · 게임 개발자 — 얼굴은 그대로, 꿈의 직업 옷과 일터로.', color: '#1f8fd0', badges: ['AI 생성', '1~4인', '4×6 인화'] },
   },
 ]
 

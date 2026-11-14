@@ -88,7 +88,7 @@ export const FUNGROUND_PROGRAMS: FungroundProgram[] = [
     note: '사진은 기기 안에서 오려 신문에 · AI는 기사 글만(약 $0.002)',
   },
   {
-    key: 'a-dream', plan: 'a', no: 6, tag: 'DREAM!', name: '꿈의 직업 포토', desc: '우주비행사 · 셰프 · 수의사 · 과학자 · 소방관 · 게임 개발자 — 얼굴은 그대로, 꿈의 직업 옷과 일터로 바꿔 4×6 사진으로 줘요.', phase: 2, build: 'new', badges: ['AI 생성', '1~4명', '4×6 인화'], color: '#1f8fd0', screen: shot('a-dream'),
+    key: 'a-dream', plan: 'a', no: 6, tag: 'DREAM!', name: '꿈의 직업 포토', desc: '천문학자 · 셰프 · 수의사 · 과학자 · 소방관 · 게임 개발자 — 얼굴은 그대로, 꿈의 직업 옷과 일터로 바꿔 4×6 사진으로 줘요.', phase: 2, build: 'new', badges: ['AI 생성', '1~4명', '4×6 인화'], color: '#1f8fd0', screen: shot('a-dream'),
     targets: [{ kind: 'booth', id: 'dream' }],
     note: 'Seedream — 옷 · 배경만 바꿔 얼굴이 잘 남는다(1장 $0.018)',
   },
