@@ -58,7 +58,12 @@ function identityGroup(keepClothes = true): string {
  */
 const GLASSES_RULE = 'GLASSES: anyone wearing glasses in IMAGE 1 keeps the very same glasses on (same frame shape and color) — never remove or add glasses.'
 export const FUNGROUND_RULES = `AGE RULE (overrides anything above): many guests are children or teenagers aged 9 to 19. Keep every person exactly their real age with the natural body proportions of that age — never make anyone look older, taller or more mature. Keep any makeup light and youthful for children and teenagers. Clothing is modest and age-appropriate.\n${GLASSES_RULE}`
-/** 나이 들기 프로그램(타임캡슐) — 위 나이 규칙 대신: 요청한 햇수만큼만 자연스럽게, 그 밖의 얼굴 특징 · 안경은 그대로 */
+/**
+ * 나이 들기 프로그램(타임캡슐) — 위 나이 규칙 대신: 요청한 햇수만큼만 자연스럽게, 그 밖의 얼굴 특징 · 안경은 그대로.
+ * 2026-11-14 가상 어린이 시험(Gemini 3 Pro): 아이는 목표보다 덜 자란다(+10년에 +4~5, 7세 +20년에 20세). 「지금 나이를 어림하고 예를 든」 규칙으로
+ * 바꾸면 남자아이는 제 나이만큼 자랐지만 얼굴 유사도가 떨어졌고(0.75 → 0.51), 어린 여자아이는 어느 쪽이든 12세쯤에 머물렀다 —
+ * 아이 얼굴 유사도를 우선해(메모 booth-ai-photo-quality-over-cost) 이 규칙을 그대로 둔다.
+ */
 const FUNGROUND_AGING_RULES = `AGE RULE (overrides anything above): many guests are children or teenagers. Age each person by exactly the requested number of years from their real current age (a 12-year-old in 10 years looks about 22), naturally and kindly, keeping them clearly recognizable. Clothing is modest and appropriate.\n${GLASSES_RULE}`
 /** 펀그라운드 생성에 붙이는 규칙 — 프로그램에 맞게 */
 export const fungroundRules = (programId: string) => (programId === 'timecapsule' ? FUNGROUND_AGING_RULES : FUNGROUND_RULES)

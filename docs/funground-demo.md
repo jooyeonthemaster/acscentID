@@ -30,6 +30,15 @@
 
 뺀 프로그램(IDOL! · ERA! · GRAD! · WITH! · QUEST! · MVP! · THEME! · MV!)의 코드는 남아 있고 주소로만 열린다. B안 LATER! 는 THEME! 합성 코드를 쓴다.
 
+## 1회 비용 (2026-11-14 실측, usage.cost)
+| 프로그램 | A안 | B안 |
+|---|---|---|
+| LATER! | GPT Image 2.6 Sunburst 1장 $0.041~0.048 | AI 호출 없음 $0 (배경 그림은 만들 때 한 번 $0.28) |
+| COLOR! | gemini-3-flash-preview 분석 1회 약 $0.0036 | $0 |
+| NEXT! | gemini-3-flash-preview 풀이 1회 약 $0.0017 | $0 |
+| FORTUNE! | gemini-2.5-flash 풀이 1회 약 $0.0022 | $0 |
+QR 받기 업로드는 우리 서버 저장소라 AI 비용이 없다. COLOR! · NEXT! 는 키오스크 경로라 사이트 기본 키(`OPENROUTER_API_KEY`)로 나간다(나머지 A안은 펀그라운드 키).
+
 ## 사진 · 결과물 받기(모든 프로그램)
 - 모든 프로그램은 사진을 찍는다(2026-11-14 사용자 지시). 포춘 · 미래 직업(B)은 사진을 결과 카드에만 쓴다 — AI 포춘도 사진을 AI 에 보내지 않는다.
 - 마지막 「인쇄하기」: 설치 기기는 프린터로 바로, 노트북 · 폰은 **인쇄 미리보기 창 + QR**(`src/components/funground/FgResultSheet.tsx`). 결과물은 4×6 사진(1200×1800).
@@ -39,7 +48,7 @@
   - 데모 상한: 받기 업로드는 키오스크 데모 몫(하루 200).
 
 ## A안 — AI 생성형
-- **LATER!**(`/booth?mode=timecapsule&site=funground`): 펀그라운드 생성(`src/lib/booth/image-models.ts`)은 `FUNGROUND_PRIMARY.timecapsule = Gemini 3 Pro Image`(2K) → 예비 Gemini 2.5 Flash Image. 나이 들기는 Seedream 이 약해서(시험 반영률 0.35). 실측 1장 $0.138 · 24초. 프롬프트 끝에 `fungroundRules('timecapsule')`(요청한 햇수만큼만 · 안경 유지). 데모 상한은 부스 데모와 함께 1분 3장 · 하루 40장 → 하루 최대 약 $5.5.
+- **LATER!**(`/booth?mode=timecapsule&site=funground`): 펀그라운드 생성(`src/lib/booth/image-models.ts`)은 `FUNGROUND_PRIMARY.timecapsule = GPT Image 2.6 Sunburst`(`openai/gpt-image-2.6-sunburst`, images API) → 예비 Gemini 2.5 Flash Image. 2026-11-14 사용자 결정으로 Gemini 3 Pro Image($0.138)에서 바꿨다 — 가상 어린이 5건 비교에서 얼굴 유사도(ArcFace 0.61~0.81 vs 0.55~0.75) · 나이 반영 모두 나았고, Seedream 5.0 Flash 는 나이를 거의 안 바꾸고 남매 중 한 명을 뺐다. 실측 1장 $0.041~0.048 · 23~41초 · 1024×1536(인화 원판보다 15% 작아 조금 키워 찍힌다). 프롬프트 끝에 `fungroundRules('timecapsule')`. 데모 상한(부스 데모와 함께 하루 40장) → 하루 최대 약 $1.9.
 - **COLOR! · NEXT!**: 키오스크 노트북판 그대로(AI 분석 — 기존 키). 데모 주소일 때만 결과의 「휴대폰으로 받기」가 「인쇄하기」 미리보기(`src/app/kiosk/pc/PrintPreview.tsx`, `demo-link.ts`, `data-kiosk-demo`) — 행사 노트북 링크는 그대로.
 - **FORTUNE!**(`/api/funground/fortune`, `src/lib/funground/saju-fortune.ts`): 서버에서 만세력 → `google/gemini-2.5-flash` 가 공부 · 친구 · 진로 · 꿈 풀이(향 처방 없음). 실패 · 금지어면 B안 문장 엔진으로(`fallback: true`). 사진은 카드에만 — AI 에 보내지 않는다(요청은 생일만). 상한은 키오스크 데모 몫(하루 150).
 - 키: `OPENROUTER_FUNGROUND_API_KEY` = 오픈라우터 **STUDIO_FUNGROUND_DONGJU**(2026-11-14, 월 $250 · 매달 초기화) — 로컬 `.env.local` · Vercel Production. ERP 「API 비용」 붙일 곳 PJ-2612-09, 「AI 사용료」 주인 동주.

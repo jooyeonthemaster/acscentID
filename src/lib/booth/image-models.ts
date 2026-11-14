@@ -26,6 +26,8 @@ export interface ImageModel {
 export const IMAGE_MODELS = {
   'seedream-5-flash': { id: 'bytedance-seed/seedream-5-0-flash', api: 'images', usdPerImage: 0.018 },
   'gemini-3-pro-image': { id: 'google/gemini-3-pro-image-preview', api: 'chat', usdPerImage: 0.139 },
+  // 2026-11-14 가상 어린이 5건 비교(타임캡슐 지시문): 얼굴 유사도 0.61~0.81(Gemini 3 Pro 0.55~0.75) · 나이 반영도 더 크다 · 1024×1536 · 23~41초
+  'gpt-image-2.6-sunburst': { id: 'openai/gpt-image-2.6-sunburst', api: 'images', usdPerImage: 0.045 },
   'gemini-2.5-flash-image': { id: 'google/gemini-2.5-flash-image', api: 'chat', usdPerImage: 0.039 },
 } as const satisfies Record<string, ImageModel>
 export type ImageModelKey = keyof typeof IMAGE_MODELS
@@ -38,8 +40,9 @@ export const FALLBACK_IMAGE_MODEL: ImageModelKey = 'gemini-2.5-flash-image'
  * 옷 · 배경만 바꾸는 사진형 6종(A안 AI 포토). 나이 들기 · 캐리커처는 넣지 않는다(시험에서 약했다)
  */
 export const FUNGROUND_PRIMARY: Partial<Record<ProgramId, ImageModelKey>> = {
-  // A안 LATER! 타임캡슐(2026-11-14 데모 프로그램을 LATER! · COLOR! · NEXT! · FORTUNE! 넷으로) — 나이 들기는 Seedream 이 약해(반영률 0.35) Gemini 3 Pro Image 먼저
-  timecapsule: 'gemini-3-pro-image',
+  // A안 LATER! 타임캡슐 — 2026-11-14 사용자 결정: Gemini 3 Pro Image($0.138) → GPT Image 2.6 Sunburst(약 $0.045).
+  // 같은 날 가상 어린이 비교에서 얼굴 유사도 · 나이 반영 모두 Gemini 3 Pro 보다 나았다. Seedream 은 나이를 거의 안 바꾸고 남매 중 한 명을 뺐다
+  timecapsule: 'gpt-image-2.6-sunburst',
   // 아래는 데모 목록에서 뺀 프로그램(주소로만 열린다)
   'idol-makeup': 'seedream-5-flash',
   'fashion-time': 'seedream-5-flash',
