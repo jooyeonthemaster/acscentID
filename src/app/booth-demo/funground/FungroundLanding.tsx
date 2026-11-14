@@ -22,7 +22,7 @@ const NOTES = [
   'A안: 사진은 AI 사진을 만드는 동안만 AI 서비스로 보내고, 결과 사진과 원본을 데모 서버에 남기지 않습니다.',
   'B안: 외부 AI 서비스를 부르지 않습니다. 사진은 브라우저(설치 때는 기기) 안에서 처리합니다.',
   '모든 프로그램은 사진을 찍고, 마지막에 「인쇄하기」로 결과물을 받습니다. 노트북 · 폰에서는 인쇄 미리보기와 QR이 뜨고, QR로 받기를 누른 결과만 24시간 보관한 뒤 지웁니다(설치 기기에서는 프린터로 바로 나옵니다).',
-  '타임캡슐 · 포춘 · 미래 직업은 재미로 보는 상상 · 풀이입니다. 퍼스널 컬러는 점수 없이 「어울리는 색」만 알려 드립니다.',
+  '미래 신문 · 꿈의 직업 사진 · 포춘 · 미래 직업은 재미로 보는 상상 · 풀이입니다. 퍼스널 컬러는 점수 없이 「어울리는 색」만 알려 드립니다.',
     '펀그라운드 색 · 로고 자리는 임시입니다. 실제 로고를 받으면 바꿉니다.',
   '데모 화면에는 DEMO 워터마크가 표시됩니다. 실제 기기와 인화물에는 표시되지 않습니다.',
 ]
@@ -134,7 +134,7 @@ export function FungroundLanding({ cleanKey, cleanRejected = false }: { cleanKey
         <section className="fl-plan-section" aria-labelledby="fl-plan-title">
           <div className="fl-group-head">
             <h2 id="fl-plan-title">{PLAN_INFO[plan].title}<span>{PLAN_INFO[plan].quote}</span></h2>
-            <p>{PLAN_INFO[plan].line}{plan === 'b' ? ' LATER! · COLOR! · NEXT! · FORTUNE! 을 기기 안에서 — 타임캡슐 · 퍼스널 컬러 · 미래 신문은 AI 인식(기기 안)을 쓰고, 미래 직업 · 포춘은 체험 프로그램입니다. 새로 만든 FUTURE NEWS! 는 비교용으로 함께 넣었습니다.' : ' LATER! · COLOR! · NEXT! · FORTUNE! 을 AI로 — 미래의 나를 그리고, 어울리는 색 · 직업 · 운세를 AI가 풀어 줍니다. 새로 만든 FUTURE NEWS! · DREAM! 은 비교용으로 함께 넣었습니다(1회 비용이 LATER! 보다 낮습니다).'}</p>
+            <p>{PLAN_INFO[plan].line}{plan === 'b' ? ' COLOR! · NEXT! · FORTUNE! · FUTURE NEWS! 을 기기 안에서 — 퍼스널 컬러 · 미래 신문은 AI 인식(기기 안)을 쓰고, 미래 직업 · 포춘은 체험 프로그램입니다.' : ' COLOR! · NEXT! · FORTUNE! · FUTURE NEWS! · DREAM! 을 AI로 — 어울리는 색 · 직업 · 운세를 AI가 풀고, 미래 신문 기사를 쓰고, 꿈의 직업 사진을 만들어 줍니다.'}</p>
           </div>
           {[{ phase: 1 as const, list: phase1 }, { phase: 2 as const, list: phase2 }].filter((g) => g.list.length).map((g) => (
             <div key={g.phase} className="fl-phase">

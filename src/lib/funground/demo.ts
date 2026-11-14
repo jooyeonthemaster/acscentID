@@ -60,61 +60,55 @@ export const PLAN_INFO: Record<FungroundPlan, { title: string; quote: string; sh
 const shot = (key: string) => `/assets/booth-demo/funground/${key}.webp`
 
 export const FUNGROUND_PROGRAMS: FungroundProgram[] = [
-  // 2026-11-14 사용자 지시: A안 · B안 모두 같은 네 프로그램(LATER! · COLOR! · NEXT! · FORTUNE!)만 — 나머지(IDOL! · ERA! · GRAD! · WITH! · QUEST! · MVP! · THEME! · MV!)는 이 데모에서 뺐다.
+  // 2026-11-14 사용자 지시: A안 COLOR! · NEXT! · FORTUNE! · FUTURE NEWS! · DREAM!, B안 COLOR! · NEXT! · FORTUNE! · FUTURE NEWS!.
+  // LATER!(타임캡슐 — A안 이미지 생성 1장 약 $0.045)는 같은 날 더 싼 FUTURE NEWS! · DREAM! 으로 바꾸며 뺐다(코드 · 화면은 주소로만 열린다).
+  // 그 전에 뺀 프로그램: IDOL! · ERA! · GRAD! · WITH! · QUEST! · MVP! · THEME! · MV!
   // 모든 프로그램은 사진을 찍고, 마지막에 「인쇄하기」(노트북 · 폰: 인쇄 미리보기 + QR)로 결과물을 받는다.
   // ───────── A안 — AI 생성형(견적 26-217) ─────────
+
   {
-    key: 'a-later', plan: 'a', no: 1, tag: 'LATER!', name: '타임캡슐 포토', desc: '오늘의 나를 찍으면 AI가 10년 · 20년 뒤의 나를 상상해 그려 4×6 사진으로 줘요. 재미로 보는 상상 사진이에요.', phase: 1, build: 'existing', badges: ['AI 생성', '4×6 인화'], color: '#5b55d6', screen: shot('a-later'),
-    targets: [{ kind: 'booth', id: 'timecapsule' }],
-  },
-  {
-    key: 'a-color', plan: 'a', no: 2, tag: 'COLOR!', name: 'AI 퍼스널 컬러', desc: '사진 한 장으로 AI가 8유형 중 어울리는 색을 찾아 주고, 옷 색을 바꿔 대어 봐요.', phase: 1, build: 'existing', badges: ['AI 분석', '결과 카드'], color: '#26307a', screen: shot('a-color'),
+    key: 'a-color', plan: 'a', no: 1, tag: 'COLOR!', name: 'AI 퍼스널 컬러', desc: '사진 한 장으로 AI가 8유형 중 어울리는 색을 찾아 주고, 옷 색을 바꿔 대어 봐요.', phase: 1, build: 'existing', badges: ['AI 분석', '결과 카드'], color: '#26307a', screen: shot('a-color'),
     // 설치 기기 화면이 가로라 키오스크 세로 화면 대신 같은 프로그램의 노트북 가로판(/kiosk/pc)을 연다
     targets: [{ kind: 'pc', id: 'color' }],
   },
   {
-    key: 'a-next', plan: 'a', no: 3, tag: 'NEXT!', name: 'AI 미래 직업 탐색', desc: '질문 여덟 개와 사진 한 장을 AI가 함께 보고 탐색해 볼 직업과 가이드를 만들어 줘요.', phase: 1, build: 'existing', badges: ['AI 분석', '결과 카드'], color: '#315ca8', screen: shot('a-next'),
+    key: 'a-next', plan: 'a', no: 2, tag: 'NEXT!', name: 'AI 미래 직업 탐색', desc: '질문 여덟 개와 사진 한 장을 AI가 함께 보고 탐색해 볼 직업과 가이드를 만들어 줘요.', phase: 1, build: 'existing', badges: ['AI 분석', '결과 카드'], color: '#315ca8', screen: shot('a-next'),
     targets: [{ kind: 'pc', id: 'career' }],
   },
   {
-    key: 'a-fortune', plan: 'a', no: 4, tag: 'FORTUNE!', name: 'AI 포춘', desc: '사진 한 장과 생년월일로 사주를 계산하고, AI가 공부 · 친구 · 진로 · 꿈 이야기로 풀어 내 사진이 든 카드로 줘요. 재미로 보는 풀이예요.', phase: 1, build: 'adapted', badges: ['AI 생성', '4×6 인화', '재미로 보는 풀이'], color: '#1f5a45', screen: shot('a-fortune'),
+    key: 'a-fortune', plan: 'a', no: 3, tag: 'FORTUNE!', name: 'AI 포춘', desc: '사진 한 장과 생년월일로 사주를 계산하고, AI가 공부 · 친구 · 진로 · 꿈 이야기로 풀어 내 사진이 든 카드로 줘요. 재미로 보는 풀이예요.', phase: 1, build: 'adapted', badges: ['AI 생성', '4×6 인화', '재미로 보는 풀이'], color: '#1f5a45', screen: shot('a-fortune'),
     targets: [{ kind: 'screen', id: 'saju', query: { engine: 'ai' } }],
     note: '사주(SAJU!)에서 향 처방을 빼고 공부 · 친구 · 진로 · 꿈 이야기로',
   },
-  // ───── 2026-11-14 새 프로그램(사용자 지시: FUTURE NEWS! · DREAM! 을 데모에 더해 비교) — LATER! 보다 1회 비용이 낮다 ─────
   {
-    key: 'a-news', plan: 'a', no: 5, tag: 'FUTURE NEWS!', name: '2046 별내 신문', desc: '사진 한 장과 질문 세 개로, AI 기자가 2046년 신문 1면에 나의 미래 이야기를 써 줘요. 얼굴은 진짜 나 그대로예요.', phase: 2, build: 'new', badges: ['AI 생성(글)', '4×6 인화', '재미로 보는 상상'], color: '#2b2f3a', screen: shot('a-news'),
+    key: 'a-news', plan: 'a', no: 4, tag: 'FUTURE NEWS!', name: '2046 별내 신문', desc: '사진 한 장과 질문 세 개로, AI 기자가 2046년 신문 1면에 나의 미래 이야기를 써 줘요. 얼굴은 진짜 나 그대로예요.', phase: 2, build: 'new', badges: ['AI 생성(글)', '4×6 인화', '재미로 보는 상상'], color: '#2b2f3a', screen: shot('a-news'),
     targets: [{ kind: 'screen', id: 'news', query: { engine: 'ai' } }],
-    note: '사진은 기기 안에서 오려 신문에 · AI는 기사 글만(약 $0.002)',
+    note: '사진은 기기 안에서 오려 신문에 · AI는 기사 글만 써요',
   },
   {
-    key: 'a-dream', plan: 'a', no: 6, tag: 'DREAM!', name: '꿈의 직업 포토', desc: '천문학자 · 셰프 · 수의사 · 과학자 · 소방관 · 게임 개발자 — 얼굴은 그대로, 꿈의 직업 옷과 일터로 바꿔 4×6 사진으로 줘요.', phase: 2, build: 'new', badges: ['AI 생성', '1~4명', '4×6 인화'], color: '#1f8fd0', screen: shot('a-dream'),
+    key: 'a-dream', plan: 'a', no: 5, tag: 'DREAM!', name: '꿈의 직업 포토', desc: '천문학자 · 셰프 · 수의사 · 과학자 · 소방관 · 게임 개발자 — 얼굴은 그대로, 꿈의 직업 옷과 일터로 바꿔 4×6 사진으로 줘요.', phase: 2, build: 'new', badges: ['AI 생성', '1~4명', '4×6 인화'], color: '#1f8fd0', screen: shot('a-dream'),
     targets: [{ kind: 'booth', id: 'dream' }],
-    note: 'Seedream — 옷 · 배경만 바꿔 얼굴이 잘 남는다(1장 $0.018)',
+    note: '옷 · 일터만 바꿔 얼굴이 그대로 남아요',
   },
   // ───────── B안 — 기기 안 처리형(견적 26-218 · 외부 AI API 0) ─────────
+
   {
-    key: 'b-later', plan: 'b', no: 1, tag: 'LATER!', name: '타임캡슐 포토', desc: '오늘의 나를 찍어 미래 배경에 합성하고, 미래의 나에게 한마디와 열어 볼 날을 적은 4×6 사진으로 줘요. 얼굴은 바꾸지 않아요.', phase: 2, build: 'new', badges: ['AI 인물 인식', '1~4명', '4×6 인화'], color: '#5b55d6', screen: shot('b-later'),
-    targets: [{ kind: 'screen', id: 'later' }],
-    note: 'AI로 나이를 바꾸는 대신 기기 안 사람 분리 합성 · 미래의 나에게 한마디',
-  },
-  {
-    key: 'b-color', plan: 'b', no: 2, tag: 'COLOR!', name: '퍼스널 컬러', desc: '기기 안에서 피부 · 머리카락 색을 재어 8유형 중 어울리는 색을 알려 줘요. 판정은 기기 안에서 해요.', phase: 2, build: 'adapted', badges: ['AI 인식 기반', '기기 안 판정', '4×6 인화'], color: '#26307a', screen: shot('b-color'),
+    key: 'b-color', plan: 'b', no: 1, tag: 'COLOR!', name: '퍼스널 컬러', desc: '기기 안에서 피부 · 머리카락 색을 재어 8유형 중 어울리는 색을 알려 줘요. 판정은 기기 안에서 해요.', phase: 2, build: 'adapted', badges: ['AI 인식 기반', '기기 안 판정', '4×6 인화'], color: '#26307a', screen: shot('b-color'),
     targets: [{ kind: 'screen', id: 'color' }],
     note: '판정을 기기 안 숫자 규칙으로 · 결과 문장은 미리 써 둠',
   },
   {
-    key: 'b-next', plan: 'b', no: 3, tag: 'NEXT!', name: '미래 직업 탐색', desc: '사진 한 장을 찍고 질문 여덟 개로 관심 축을 찾아, 탐색해 볼 직업 세 가지를 내 사진이 든 카드로 보여 줘요.', phase: 1, build: 'adapted', badges: ['체험 프로그램', '질문 8개', '4×6 인화'], color: '#315ca8', screen: shot('b-next'),
+    key: 'b-next', plan: 'b', no: 2, tag: 'NEXT!', name: '미래 직업 탐색', desc: '사진 한 장을 찍고 질문 여덟 개로 관심 축을 찾아, 탐색해 볼 직업 세 가지를 내 사진이 든 카드로 보여 줘요.', phase: 1, build: 'adapted', badges: ['체험 프로그램', '질문 8개', '4×6 인화'], color: '#315ca8', screen: shot('b-next'),
     targets: [{ kind: 'screen', id: 'career' }],
     note: '관상 분석 대신 결과 카드용 사진 · AI 풀이 대신 미리 쓴 축 조합 풀이',
   },
   {
-    key: 'b-fortune', plan: 'b', no: 4, tag: 'FORTUNE!', name: '포춘', desc: '사진 한 장과 생년월일로 만세력을 계산하고, 미리 써 둔 풀이 문장에서 골라 내 사진이 든 카드로 보여 줘요. 재미로 보는 풀이예요.', phase: 1, build: 'adapted', badges: ['체험 프로그램', '기기 안 계산', '4×6 인화'], color: '#1f5a45', screen: shot('b-fortune'),
+    key: 'b-fortune', plan: 'b', no: 3, tag: 'FORTUNE!', name: '포춘', desc: '사진 한 장과 생년월일로 만세력을 계산하고, 미리 써 둔 풀이 문장에서 골라 내 사진이 든 카드로 보여 줘요. 재미로 보는 풀이예요.', phase: 1, build: 'adapted', badges: ['체험 프로그램', '기기 안 계산', '4×6 인화'], color: '#1f5a45', screen: shot('b-fortune'),
     targets: [{ kind: 'screen', id: 'saju', query: { engine: 'local' } }],
     note: '만세력 그대로 · 풀이는 미리 쓴 문장에서',
   },
   {
-    key: 'b-news', plan: 'b', no: 5, tag: 'FUTURE NEWS!', name: '2046 별내 신문', desc: '사진 한 장과 질문 세 개로, 2046년 신문 1면에 나의 미래 이야기가 실려요. 기사는 미리 써 둔 틀에서 골라요.', phase: 2, build: 'new', badges: ['AI 인물 인식', '4×6 인화', '재미로 보는 상상'], color: '#2b2f3a', screen: shot('b-news'),
+    key: 'b-news', plan: 'b', no: 4, tag: 'FUTURE NEWS!', name: '2046 별내 신문', desc: '사진 한 장과 질문 세 개로, 2046년 신문 1면에 나의 미래 이야기가 실려요. 기사는 미리 써 둔 틀에서 골라요.', phase: 2, build: 'new', badges: ['AI 인물 인식', '4×6 인화', '재미로 보는 상상'], color: '#2b2f3a', screen: shot('b-news'),
     targets: [{ kind: 'screen', id: 'news', query: { engine: 'local' } }],
     note: '사진은 기기 안에서 오려 신문에 · 기사는 미리 쓴 틀',
   },

@@ -16,19 +16,22 @@
 - 카메라 권한을 처음 한 번 묻는다(시작 화면 안에서 연 프로그램도 같은 사이트라 한 번). 거절하면 화면마다 「주소창에서 카메라(뮤직비디오는 카메라 · 마이크) 권한을 허용」 안내와 다시 연결 단추.
 - 펀그라운드에서 연 부스 프로그램은 웹캠만 쓴다 — DSLR 브리지(127.0.0.1:9120)를 찾지 않는다(크롬의 로컬 네트워크 권한 창 · 대기 없음, `fungroundWebcamOnly`). 설치 기기는 주소에 `camera=dslr`.
 
-## 프로그램 (2026-11-14 사용자 지시: 두 안 모두 LATER! · COLOR! · NEXT! · FORTUNE! 넷만, 나머지는 데모에서 뺌)
-| 안 | 프로그램 | 단계 | 구분 | 여는 곳 |
-|---|---|---|---|---|
-| A | LATER! 타임캡슐 포토 — AI가 10 · 20년 뒤의 나 | 1 | 기존 | `/booth?mode=timecapsule&site=funground` (Gemini 3 Pro Image 먼저) |
-| A | COLOR! AI 퍼스널 컬러 | 1 | 기존 | `/kiosk/pc/color` |
-| A | NEXT! AI 미래 직업 탐색(관상 사진 포함) | 1 | 기존 | `/kiosk/pc/career` |
-| A | FORTUNE! AI 포춘 | 1 | 고쳐 씀 | `/booth-demo/funground/saju?engine=ai` |
-| B | LATER! 타임캡슐 포토 — 기기 안 사람 분리로 미래 배경 + 미래의 나에게 한마디 · 열어 볼 날 | 2 | 새로 | `/booth-demo/funground/later` |
-| B | COLOR! 퍼스널 컬러(기기 안 판정) | 2 | 고쳐 씀 | `/booth-demo/funground/color` |
-| B | NEXT! 미래 직업 탐색(질문 8 + 결과 카드용 사진) | 1 | 고쳐 씀 | `/booth-demo/funground/career` |
-| B | FORTUNE! 포춘(만세력 + 미리 쓴 문장) | 1 | 고쳐 씀 | `/booth-demo/funground/saju?engine=local` |
+## 프로그램 (2026-11-14 최종 — 사용자 지시)
+| 안 | 프로그램 | 단계 | 구분 | 여는 곳 | 1회 비용 |
+|---|---|---|---|---|---|
+| A | COLOR! AI 퍼스널 컬러 | 1 | 기존 | `/kiosk/pc/color` | 약 $0.0036 |
+| A | NEXT! AI 미래 직업 탐색(관상 사진 포함) | 1 | 기존 | `/kiosk/pc/career` | 약 $0.0017 |
+| A | FORTUNE! AI 포춘 | 1 | 고쳐 씀 | `/booth-demo/funground/saju?engine=ai` | 약 $0.0022 |
+| A | FUTURE NEWS! 2046 별내 신문 | 2 | 새로 | `/booth-demo/funground/news?engine=ai` | 약 $0.001 |
+| A | DREAM! 꿈의 직업 포토 | 2 | 새로 | `/booth?mode=dream&site=funground` | $0.018 |
+| B | COLOR! 퍼스널 컬러(기기 안 판정) | 2 | 고쳐 씀 | `/booth-demo/funground/color` | $0 |
+| B | NEXT! 미래 직업 탐색(질문 8 + 결과 카드용 사진) | 1 | 고쳐 씀 | `/booth-demo/funground/career` | $0 |
+| B | FORTUNE! 포춘(만세력 + 미리 쓴 문장) | 1 | 고쳐 씀 | `/booth-demo/funground/saju?engine=local` | $0 |
+| B | FUTURE NEWS! 2046 별내 신문(미리 쓴 기사) | 2 | 새로 | `/booth-demo/funground/news?engine=local` | $0 |
 
-**새 프로그램(2026-11-14, LATER! 보다 싼 대안 — 사용자 지시로 데모에 더해 비교)**
+LATER! 타임캡슐(A안 GPT Image 2.6 Sunburst 1장 약 $0.045 · B안 기기 안 합성)은 같은 날 더 싼 FUTURE NEWS! · DREAM! 으로 바꾸며 데모 목록에서 뺐다 — 코드 · 화면은 남아 주소로만 열린다(`/booth?mode=timecapsule&site=funground`, `/booth-demo/funground/later`).
+
+**새 프로그램 메모(2026-11-14, LATER! 보다 싼 대안으로 만들어 비교한 뒤 채택)**
 | 안 | 프로그램 | 단계 | 구분 | 여는 곳 | 1회 비용 |
 |---|---|---|---|---|---|
 | A | FUTURE NEWS! 2046 별내 신문 — 사진(기기 안 오리기) + 질문 3 → AI 기자가 1면 기사 | 2 | 새로 | `/booth-demo/funground/news?engine=ai` | 글 1회 약 $0.002 |
