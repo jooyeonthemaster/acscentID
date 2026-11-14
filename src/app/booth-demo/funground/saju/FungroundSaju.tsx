@@ -1,6 +1,6 @@
 'use client'
 
-// 펀그라운드 별내 사주 — 1080×1920 세로 화면(FgStage). 주소의 engine 으로 두 안을 같은 화면에서 보여 준다.
+// 펀그라운드 별내 사주 — 1920×1080 가로 화면(FgStage · 32인치 가로 터치스크린, 노트북 창에서도 같은 배치). 주소의 engine 으로 두 안을 같은 화면에서 보여 준다.
 //   engine=local(B안 SAJU! · 체험 프로그램): 만세력(src/lib/saju)과 풀이 고르기(src/lib/funground/saju-reading.ts)를 모두 이 기기에서 한다 — /api 를 부르지 않는다.
 //     'AI'라고 쓰지 않는다.
 //   engine=ai(A안 FORTUNE! AI 포춘): /api/funground/fortune 에 생일을 보내 AI 풀이를 받는다. 실패 · 하루 상한(429) · 연결 끊김이면 이 기기에서 미리 쓴 풀이로 대신한다.
@@ -72,6 +72,41 @@ function Steps({ now }: { now: 0 | 1 | 2 }) {
     <ol className="fg-steps fgsj-steps" aria-label={`3단계 중 ${now + 1}단계`}>
       {[0, 1, 2].map((i) => <li key={i} data-state={i < now ? 'done' : i === now ? 'now' : undefined} />)}
     </ol>
+  )
+}
+
+/** 고른 생일 한 줄 */
+interface BirthRow { key: 'year' | 'date' | 'hour'; label: string; value: string | null }
+
+/** 고른 생일 — 지금 고르는 줄(now)은 색을 넣고, 아직 안 고른 줄은 「—」 */
+function BirthSummary({ rows, now }: { rows: BirthRow[]; now?: BirthRow['key'] }) {
+  return (
+    <div className="fg-card fgsj-sum">
+      <p className="fgsj-sum-head">나의 생일</p>
+      <ul>
+        {rows.map((r) => (
+          <li key={r.key} data-now={r.key === now || undefined} data-empty={!r.value || undefined}>
+            <span>{r.label}</span>
+            <b>{r.value ?? (r.key === now ? '고르는 중' : '—')}</b>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+/** 시작 · 계산 화면 왼쪽 그림 — 時日月年 네 기둥(busy 면 차례로 깜빡인다) */
+function PillarArt({ word, busy = false }: { word: string; busy?: boolean }) {
+  return (
+    <div className="fgsj-art" data-busy={busy || undefined} aria-hidden="true">
+      <p className="fgsj-word">{word}</p>
+      <div className="fgsj-motif">
+        {[['時', '시'], ['日', '날'], ['月', '달'], ['年', '해']].map(([h, k]) => (
+          <span key={h}><b>{h}</b><i>{k}</i></span>
+        ))}
+      </div>
+      <p className="fgsj-art-cap">네 기둥 · 여덟 글자</p>
+    </div>
   )
 }
 
@@ -183,30 +218,34 @@ export function FungroundSaju() {
   const word = ai ? 'FORTUNE!' : 'SAJU!'
   const kicker = ai ? 'AI 포춘 · 재미로 보는 풀이' : '사주 · 체험 프로그램'
 
+  /** 고른 생일 — 입력 단계 왼쪽 · 계산 화면에 보여 준다 */
+  const birthRows: BirthRow[] = [
+    { key: 'year', label: '태어난 해', value: year ? `${year}년` : null },
+    { key: 'date', label: '달 · 날', value: month && day ? `${calendar === 'lunar' ? `음력 ${leap ? '윤' : ''}` : '양력 '}${month}월 ${day}일` : null },
+    { key: 'hour', label: '태어난 시', value: hourIndex !== null ? `${FG_HOURS[hourIndex].label} · ${FG_HOURS[hourIndex].range}` : step === 'loading' ? '모름' : null },
+  ]
+
   // ───────── 시작 ─────────
   if (step === 'intro') {
     return (
       <FgStage className="fgsj fgsj--intro" tone={TONE} onHome={home}>
-        <section className="fgsj-intro">
-          <p className="fgsj-word">{word}</p>
-          <p className="fg-kicker">{kicker}</p>
-          <h1 className="fg-title">{ai ? 'AI가 풀어 주는\n나의 사주 이야기' : '생일로 알아보는\n나의 사주'}</h1>
-          <p className="fg-lead">{'태어난 해 · 달 · 날 · 시의 글자 여덟 개로\n나의 기운과 2027년 흐름을 알아봐요'}</p>
-          <div className="fgsj-motif" aria-hidden="true">
-            {[['時', '시'], ['日', '날'], ['月', '달'], ['年', '해']].map(([h, k]) => (
-              <span key={h}><b>{h}</b><i>{k}</i></span>
-            ))}
-          </div>
-          <span className="fg-fun">재미로 보는 풀이예요</span>
-          <button type="button" className="fg-btn fg-btn--primary fgsj-start" onClick={() => setStep('year')}>
-            시작하기<ArrowRight size={44} strokeWidth={2.8} aria-hidden="true" />
-          </button>
-          <p className="fg-note fgsj-privacy">
-            {ai
-              ? '생일은 풀이를 쓰는 동안에만 쓰고 저장하지 않아요. 이름 · 사진은 받지 않아요.'
-              : '생일은 이 기기 안에서만 계산하고 저장하지 않아요. 이름 · 사진은 받지 않아요.'}
-          </p>
-        </section>
+        <div className="fg-split">
+          <PillarArt word={word} />
+          <section className="fg-panel fgsj-intro">
+            <p className="fg-kicker">{kicker}</p>
+            <h1 className="fg-title">{ai ? 'AI가 풀어 주는\n나의 사주 이야기' : '생일로 알아보는\n나의 사주'}</h1>
+            <p className="fg-lead">{'태어난 해 · 달 · 날 · 시의 글자 여덟 개로\n나의 기운과 2027년 흐름을 알아봐요'}</p>
+            <span className="fg-fun">재미로 보는 풀이예요</span>
+            <button type="button" className="fg-btn fg-btn--primary fgsj-start" onClick={() => setStep('year')}>
+              시작하기<ArrowRight size={44} strokeWidth={2.8} aria-hidden="true" />
+            </button>
+            <p className="fg-note fgsj-privacy">
+              {ai
+                ? '생일은 풀이를 쓰는 동안에만 쓰고 저장하지 않아요. 이름 · 사진은 받지 않아요.'
+                : '생일은 이 기기 안에서만 계산하고 저장하지 않아요. 이름 · 사진은 받지 않아요.'}
+            </p>
+          </section>
+        </div>
       </FgStage>
     )
   }
@@ -216,72 +255,82 @@ export function FungroundSaju() {
     const years = Array.from({ length: YEAR_PAGE }, (_, i) => yearPage + i)
     return (
       <FgStage className="fgsj" tone={TONE} onHome={home}>
-        <section className="fgsj-ask">
-          <Steps now={0} />
-          <h1 className="fg-title fg-title--md">몇 년에 태어났어요?</h1>
-          <div className="fgsj-yearbar">
-            <button type="button" className="fgsj-page" onClick={() => setYearPage((p) => Math.max(YEAR_MIN, p - YEAR_PAGE))} disabled={yearPage <= YEAR_MIN} aria-label="이전 연도">
-              <ChevronLeft size={52} strokeWidth={2.6} aria-hidden="true" />
-            </button>
-            <b>{yearPage} ~ {yearPage + YEAR_PAGE - 1}</b>
-            <button type="button" className="fgsj-page" onClick={() => setYearPage((p) => p + YEAR_PAGE)} disabled={yearPage + YEAR_PAGE > today.y} aria-label="다음 연도">
-              <ChevronRight size={52} strokeWidth={2.6} aria-hidden="true" />
-            </button>
-          </div>
-          <div className="fgsj-years">
-            {years.map((y) => (
-              <button key={y} type="button" className="fg-chip fgsj-year" data-on={year === y} disabled={y > today.y || y < YEAR_MIN}
-                onClick={() => { setYear(y); setDateError(null) }}>
-                {y}<small>년</small>
+        <div className="fg-split fgsj-ask">
+          <section className="fg-panel fgsj-side">
+            <Steps now={0} />
+            <h1 className="fg-title">{'몇 년에\n태어났어요?'}</h1>
+            <p className="fg-lead">{'옆 화살표로\n다른 해도 고를 수 있어요'}</p>
+            <BirthSummary rows={birthRows} now="year" />
+          </section>
+          <section className="fg-panel fgsj-pad">
+            <div className="fgsj-yearbar">
+              <button type="button" className="fgsj-page" onClick={() => setYearPage((p) => Math.max(YEAR_MIN, p - YEAR_PAGE))} disabled={yearPage <= YEAR_MIN} aria-label="이전 연도">
+                <ChevronLeft size={52} strokeWidth={2.6} aria-hidden="true" />
               </button>
-            ))}
-          </div>
-          <p className="fg-note fgsj-hint">{'옆 화살표로 다른 해도 고를 수 있어요'}</p>
-          <div className="fg-actions fg-actions--row fgsj-nav">
-            <button type="button" className="fg-btn fg-btn--ghost" onClick={() => setStep('intro')}><ArrowLeft size={40} strokeWidth={2.8} aria-hidden="true" />이전</button>
-            <button type="button" className="fg-btn fg-btn--primary" disabled={!year} onClick={() => setStep('date')}>다음<ArrowRight size={40} strokeWidth={2.8} aria-hidden="true" /></button>
-          </div>
-        </section>
+              <b>{yearPage} ~ {yearPage + YEAR_PAGE - 1}</b>
+              <button type="button" className="fgsj-page" onClick={() => setYearPage((p) => p + YEAR_PAGE)} disabled={yearPage + YEAR_PAGE > today.y} aria-label="다음 연도">
+                <ChevronRight size={52} strokeWidth={2.6} aria-hidden="true" />
+              </button>
+            </div>
+            <div className="fgsj-years">
+              {years.map((y) => (
+                <button key={y} type="button" className="fg-chip fgsj-year" data-on={year === y} disabled={y > today.y || y < YEAR_MIN}
+                  onClick={() => { setYear(y); setDateError(null) }}>
+                  {y}<small>년</small>
+                </button>
+              ))}
+            </div>
+            <div className="fg-actions fg-actions--row fgsj-nav">
+              <button type="button" className="fg-btn fg-btn--ghost" onClick={() => setStep('intro')}><ArrowLeft size={40} strokeWidth={2.8} aria-hidden="true" />이전</button>
+              <button type="button" className="fg-btn fg-btn--primary" disabled={!year} onClick={() => setStep('date')}>다음<ArrowRight size={40} strokeWidth={2.8} aria-hidden="true" /></button>
+            </div>
+          </section>
+        </div>
       </FgStage>
     )
   }
 
   // ───────── 달 · 날 ─────────
+  // 왼쪽: 양력 · 음력 · 윤달과 월 / 오른쪽: 날 · 다음(31칸이 오른쪽 한 칸에 다 들어가게)
   if (step === 'date') {
     return (
       <FgStage className="fgsj" tone={TONE} onHome={home}>
-        <section className="fgsj-ask">
-          <Steps now={1} />
-          <h1 className="fg-title fg-title--md">{year}년 몇 월 며칠?</h1>
-          <div className="fgsj-cal">
-            <button type="button" className="fg-chip" data-on={calendar === 'solar'} onClick={() => { setCalendar('solar'); setLeap(false); if (month) pickMonth(month, 'solar'); setDateError(null) }}>양력</button>
-            <button type="button" className="fg-chip" data-on={calendar === 'lunar'} onClick={() => { setCalendar('lunar'); if (month) pickMonth(month, 'lunar'); setDateError(null) }}>음력</button>
-            {calendar === 'lunar' && (
-              <button type="button" className="fg-chip fgsj-leap" data-on={leap} onClick={() => { setLeap((v) => !v); setDateError(null) }}>
-                <i aria-hidden="true">{leap ? '✓' : ''}</i>윤달
-              </button>
-            )}
-          </div>
-          <p className="fgsj-label">월</p>
-          <div className="fgsj-months">
-            {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-              <button key={m} type="button" className="fg-chip fgsj-cell" data-on={month === m} disabled={isFuture(m)}
-                onClick={() => pickMonth(m)}>{m}</button>
-            ))}
-          </div>
-          <p className="fgsj-label">일{calendar === 'lunar' ? ' (음력)' : ''}</p>
-          <div className="fgsj-days" data-off={!month || undefined}>
-            {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
-              <button key={d} type="button" className="fg-chip fgsj-cell fgsj-day" data-on={day === d} disabled={!month || isFuture(month, d)}
-                onClick={() => { setDay(d); setDateError(null) }}>{d}</button>
-            ))}
-          </div>
-          <p className="fgsj-error" role="alert">{dateError ?? (month ? '' : '먼저 월을 골라 주세요')}</p>
-          <div className="fg-actions fg-actions--row fgsj-nav">
-            <button type="button" className="fg-btn fg-btn--ghost" onClick={() => setStep('year')}><ArrowLeft size={40} strokeWidth={2.8} aria-hidden="true" />이전</button>
-            <button type="button" className="fg-btn fg-btn--primary" disabled={!month || !day} onClick={checkDate}>다음<ArrowRight size={40} strokeWidth={2.8} aria-hidden="true" /></button>
-          </div>
-        </section>
+        <div className="fg-split fgsj-ask">
+          <section className="fg-panel fgsj-side">
+            <Steps now={1} />
+            <h1 className="fg-title">{`${year}년\n몇 월 며칠?`}</h1>
+            <div className="fgsj-cal">
+              <button type="button" className="fg-chip" data-on={calendar === 'solar'} onClick={() => { setCalendar('solar'); setLeap(false); if (month) pickMonth(month, 'solar'); setDateError(null) }}>양력</button>
+              <button type="button" className="fg-chip" data-on={calendar === 'lunar'} onClick={() => { setCalendar('lunar'); if (month) pickMonth(month, 'lunar'); setDateError(null) }}>음력</button>
+              {calendar === 'lunar' && (
+                <button type="button" className="fg-chip fgsj-leap" data-on={leap} onClick={() => { setLeap((v) => !v); setDateError(null) }}>
+                  <i aria-hidden="true">{leap ? '✓' : ''}</i>윤달
+                </button>
+              )}
+            </div>
+            <p className="fgsj-label">월</p>
+            <div className="fgsj-months">
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                <button key={m} type="button" className="fg-chip fgsj-cell" data-on={month === m} disabled={isFuture(m)}
+                  onClick={() => pickMonth(m)}>{m}</button>
+              ))}
+            </div>
+          </section>
+          <section className="fg-panel fgsj-pad">
+            <p className="fgsj-label">일{calendar === 'lunar' ? ' (음력)' : ''}</p>
+            <div className="fgsj-days" data-off={!month || undefined}>
+              {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
+                <button key={d} type="button" className="fg-chip fgsj-cell fgsj-day" data-on={day === d} disabled={!month || isFuture(month, d)}
+                  onClick={() => { setDay(d); setDateError(null) }}>{d}</button>
+              ))}
+            </div>
+            <p className="fgsj-error" role="alert">{dateError ?? (month ? '' : '먼저 왼쪽에서 월을 골라 주세요')}</p>
+            <div className="fg-actions fg-actions--row fgsj-nav">
+              <button type="button" className="fg-btn fg-btn--ghost" onClick={() => setStep('year')}><ArrowLeft size={40} strokeWidth={2.8} aria-hidden="true" />이전</button>
+              <button type="button" className="fg-btn fg-btn--primary" disabled={!month || !day} onClick={checkDate}>다음<ArrowRight size={40} strokeWidth={2.8} aria-hidden="true" /></button>
+            </div>
+          </section>
+        </div>
       </FgStage>
     )
   }
@@ -290,27 +339,32 @@ export function FungroundSaju() {
   if (step === 'hour') {
     return (
       <FgStage className="fgsj" tone={TONE} onHome={home}>
-        <section className="fgsj-ask">
-          <Steps now={2} />
-          <h1 className="fg-title fg-title--md">몇 시쯤 태어났어요?</h1>
-          <p className="fg-lead fgsj-sub">모르면 건너뛰어도 괜찮아요</p>
-          <div className="fgsj-hours">
-            {FG_HOURS.map((h, i) => (
-              <button key={h.hanja} type="button" className="fg-chip fgsj-hour" data-on={hourIndex === i} onClick={() => setHourIndex(i)}>
-                <span className="fgsj-hour-hanja">{h.hanja}</span>
-                <b>{h.range}</b>
-                <small>{h.label}</small>
-              </button>
-            ))}
-          </div>
-          <button type="button" className="fg-btn fg-btn--ghost fgsj-skip" onClick={() => run(null)}>
-            <Clock3 size={40} strokeWidth={2.6} aria-hidden="true" />태어난 시간을 몰라요 · 건너뛰기
-          </button>
-          <div className="fg-actions fg-actions--row fgsj-nav">
-            <button type="button" className="fg-btn fg-btn--ghost" onClick={() => setStep('date')}><ArrowLeft size={40} strokeWidth={2.8} aria-hidden="true" />이전</button>
-            <button type="button" className="fg-btn fg-btn--primary" disabled={hourIndex === null} onClick={() => run(hourIndex)}>결과 보기<ArrowRight size={40} strokeWidth={2.8} aria-hidden="true" /></button>
-          </div>
-        </section>
+        <div className="fg-split fgsj-ask">
+          <section className="fg-panel fgsj-side">
+            <Steps now={2} />
+            <h1 className="fg-title">{'몇 시쯤\n태어났어요?'}</h1>
+            <p className="fg-lead">모르면 건너뛰어도 괜찮아요</p>
+            <button type="button" className="fg-btn fg-btn--ghost fgsj-skip" onClick={() => run(null)}>
+              <Clock3 size={40} strokeWidth={2.6} aria-hidden="true" />태어난 시간을 몰라요 · 건너뛰기
+            </button>
+            <BirthSummary rows={birthRows} now="hour" />
+          </section>
+          <section className="fg-panel fgsj-pad">
+            <div className="fgsj-hours">
+              {FG_HOURS.map((h, i) => (
+                <button key={h.hanja} type="button" className="fg-chip fgsj-hour" data-on={hourIndex === i} onClick={() => setHourIndex(i)}>
+                  <span className="fgsj-hour-hanja">{h.hanja}</span>
+                  <b>{h.range}</b>
+                  <small>{h.label}</small>
+                </button>
+              ))}
+            </div>
+            <div className="fg-actions fg-actions--row fgsj-nav">
+              <button type="button" className="fg-btn fg-btn--ghost" onClick={() => setStep('date')}><ArrowLeft size={40} strokeWidth={2.8} aria-hidden="true" />이전</button>
+              <button type="button" className="fg-btn fg-btn--primary" disabled={hourIndex === null} onClick={() => run(hourIndex)}>결과 보기<ArrowRight size={40} strokeWidth={2.8} aria-hidden="true" /></button>
+            </div>
+          </section>
+        </div>
       </FgStage>
     )
   }
@@ -319,126 +373,149 @@ export function FungroundSaju() {
   if (step === 'loading' || !result) {
     return (
       <FgStage className="fgsj" tone={TONE}>
-        <section className="fgsj-loading">
-          <div className="fg-spin" aria-hidden="true" />
-          <h1 className="fg-title fg-title--md">{ai ? 'AI가 풀이를 쓰고 있어요' : '만세력을 계산하고 있어요'}</h1>
-          <p className="fg-lead">{ai ? '사주 여덟 글자를 계산하고\n청소년 이야기로 풀어 쓰는 중이에요' : '태어난 해 · 달 · 날 · 시의\n하늘 글자와 땅 글자를 찾는 중이에요'}</p>
-        </section>
+        <div className="fg-split">
+          <PillarArt word={word} busy />
+          <section className="fg-panel fgsj-loading">
+            <div className="fg-spin" aria-hidden="true" />
+            <h1 className="fg-title fg-title--md">{ai ? 'AI가 풀이를 쓰고 있어요' : '만세력을 계산하고 있어요'}</h1>
+            <p className="fg-lead">{ai ? '사주 여덟 글자를 계산하고\n청소년 이야기로 풀어 쓰는 중이에요' : '태어난 해 · 달 · 날 · 시의\n하늘 글자와 땅 글자를 찾는 중이에요'}</p>
+            <BirthSummary rows={birthRows} />
+          </section>
+        </div>
       </FgStage>
     )
   }
 
   // ───────── 결과 ─────────
+  // 왼쪽(넘기지 않음): 나의 일간 · 만세력 · 오행 막대 / 오른쪽: 풀이 카드 — 오른쪽 칸 안에서만 위아래로 넘긴다.
   const { chart, reading } = result
   const dmColor = ELEMENT_COLOR[reading.dayMaster.element]
   return (
     <FgStage className="fgsj fgsj--result" tone={TONE} onHome={home}>
-      <div className="fgsj-scroll">
-        <header className="fgsj-rhead">
-          <span className="fgsj-rword">{word}</span>
-          <span className="fg-fun">재미로 보는 풀이예요</span>
-        </header>
+      <div className="fg-split fgsj-rsplit">
+        <div className="fgsj-rleft">
+          <div className="fgsj-rtop">
+            {/* 나의 일간 */}
+            <section className="fgsj-hero" style={{ '--el': dmColor } as CSSProperties}>
+              <p className="fgsj-hero-kicker">나의 일간</p>
+              <span className="fgsj-hero-glyph" aria-hidden="true">{reading.dayMaster.hanja}</span>
+              <p className="fgsj-hero-gan">{reading.dayMaster.gan}{reading.dayMaster.element}({reading.dayMaster.hanja}{FG_ELEMENT_HANJA[reading.dayMaster.element]})</p>
+              <h1 className="fgsj-hero-title">{reading.dayMaster.title}</h1>
+            </section>
 
-        {/* 나의 일간 */}
-        <section className="fgsj-hero" style={{ '--el': dmColor } as CSSProperties}>
-          <span className="fgsj-hero-glyph" aria-hidden="true">{reading.dayMaster.hanja}</span>
-          <div>
-            <p className="fgsj-hero-kicker">나의 일간 · {reading.dayMaster.gan}{reading.dayMaster.element}({reading.dayMaster.hanja}{FG_ELEMENT_HANJA[reading.dayMaster.element]})</p>
-            <h1 className="fgsj-hero-title">{reading.dayMaster.title}</h1>
-          </div>
-          <p className="fgsj-hero-text">{reading.dayMaster.text}</p>
-        </section>
-
-        {/* 만세력 */}
-        <section className="fg-card fgsj-card">
-          <h2 className="fgsj-h2">나의 만세력<small>{calendar === 'lunar' ? chart.lunarLabel : chart.solarLabel} · {chart.zodiac}띠{chart.isThreePillar ? ' · 시간 모름' : ''}</small></h2>
-          <div className="fgsj-pillars">
-            {chart.pillars.map(({ key, label, pillar }) => (
-              <div key={key} className="fgsj-pillar" data-me={key === 'day' || undefined}>
-                <span className="fgsj-pillar-label">{key === 'day' ? '나 · 태어난 날' : label}</span>
-                {pillar ? (
-                  <>
-                    <span className="fgsj-glyph" style={{ '--el': ELEMENT_COLOR[pillar.ganElement] } as CSSProperties}>
-                      <b>{pillar.ganHanja}</b><i>{pillar.gan} · {pillar.ganElement}</i>
-                    </span>
-                    <span className="fgsj-glyph" style={{ '--el': ELEMENT_COLOR[pillar.jiElement] } as CSSProperties}>
-                      <b>{pillar.jiHanja}</b><i>{pillar.ji} · {pillar.jiElement}</i>
-                    </span>
-                  </>
-                ) : (
-                  <span className="fgsj-glyph fgsj-glyph--none">모름</span>
-                )}
+            {/* 만세력 */}
+            <section className="fg-card fgsj-card fgsj-chart">
+              <h2 className="fgsj-h2">나의 만세력<small>{calendar === 'lunar' ? chart.lunarLabel : chart.solarLabel} · {chart.zodiac}띠{chart.isThreePillar ? ' · 시간 모름' : ''}</small></h2>
+              <div className="fgsj-pillars">
+                {chart.pillars.map(({ key, label, pillar }) => (
+                  <div key={key} className="fgsj-pillar" data-me={key === 'day' || undefined}>
+                    <span className="fgsj-pillar-label">{key === 'day' ? '나 · 날' : label}</span>
+                    {pillar ? (
+                      <>
+                        <span className="fgsj-glyph" style={{ '--el': ELEMENT_COLOR[pillar.ganElement] } as CSSProperties}>
+                          <b>{pillar.ganHanja}</b><i>{pillar.gan} · {pillar.ganElement}</i>
+                        </span>
+                        <span className="fgsj-glyph" style={{ '--el': ELEMENT_COLOR[pillar.jiElement] } as CSSProperties}>
+                          <b>{pillar.jiHanja}</b><i>{pillar.ji} · {pillar.jiElement}</i>
+                        </span>
+                      </>
+                    ) : (
+                      <span className="fgsj-glyph fgsj-glyph--none">모름</span>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
+            </section>
           </div>
-          {chart.isJasiBirth && <p className="fg-note">자시(밤 11시~새벽 1시)에 태어나면 보는 방법에 따라 날 기둥이 달라질 수 있어요.</p>}
-        </section>
 
-        {/* 오행 */}
-        <section className="fg-card fgsj-card">
-          <h2 className="fgsj-h2">나의 오행<small>여덟 글자에 담긴 다섯 기운</small></h2>
-          <ul className="fgsj-bars">
-            {FG_ELEMENTS.map((e) => (
-              <li key={e} style={{ '--el': ELEMENT_COLOR[e] } as CSSProperties}>
-                <span className="fgsj-bar-name"><b>{FG_ELEMENT_HANJA[e]}</b>{e} · {FG_ELEMENT_WORD[e]}</span>
-                <span className="fgsj-bar"><i style={{ width: `${Math.max(chart.percent[e], 2)}%` }} /></span>
-                <span className="fgsj-bar-pct">{chart.percent[e]}%</span>
-              </li>
-            ))}
-          </ul>
-          <div className="fgsj-flow">
-            {[
-              { key: 'strong', tag: '많은 기운', line: reading.strong },
-              { key: 'weak', tag: '적은 기운', line: reading.weak },
-              { key: 'yong', tag: '힘이 되는 기운', line: reading.yongsin },
-            ].map(({ key, tag, line }) => (
-              <div key={key} className="fgsj-flow-row" style={{ '--el': ELEMENT_COLOR[line.element] } as CSSProperties}>
-                <span className="fgsj-flow-tag">{tag}<b>{FG_ELEMENT_HANJA[line.element]}</b></span>
-                <div><h3>{line.title}</h3><p>{line.text}</p></div>
+          {/* 오행 */}
+          <section className="fg-card fgsj-card fgsj-five">
+            <h2 className="fgsj-h2">나의 오행<small>여덟 글자에 담긴 다섯 기운</small></h2>
+            <ul className="fgsj-bars">
+              {FG_ELEMENTS.map((e) => (
+                <li key={e} style={{ '--el': ELEMENT_COLOR[e] } as CSSProperties}>
+                  <span className="fgsj-bar-name"><b>{FG_ELEMENT_HANJA[e]}</b>{e} · {FG_ELEMENT_WORD[e]}</span>
+                  <span className="fgsj-bar"><i style={{ width: `${Math.max(chart.percent[e], 2)}%` }} /></span>
+                  <span className="fgsj-bar-pct">{chart.percent[e]}%</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+
+        <div className="fg-panel fgsj-rright">
+          <header className="fgsj-rhead">
+            <span className="fgsj-rword">{word}</span>
+            <span className="fg-fun">재미로 보는 풀이예요</span>
+          </header>
+
+          <div className="fgsj-scroll">
+            {/* 나의 일간 이야기 */}
+            <section className="fg-card fgsj-card fgsj-me" style={{ '--el': dmColor } as CSSProperties}>
+              <h2 className="fgsj-h2">나의 일간 이야기<small>{reading.dayMaster.title}</small></h2>
+              <p className="fgsj-text">{reading.dayMaster.text}</p>
+              {chart.isJasiBirth && <p className="fg-note fgsj-jasi">자시(밤 11시~새벽 1시)에 태어나면 보는 방법에 따라 날 기둥이 달라질 수 있어요.</p>}
+            </section>
+
+            {/* 많은 · 적은 · 힘이 되는 기운 */}
+            <section className="fg-card fgsj-card">
+              <h2 className="fgsj-h2">나의 기운 이야기<small>오행으로 본 나</small></h2>
+              <div className="fgsj-flow">
+                {[
+                  { key: 'strong', tag: '많은 기운', line: reading.strong },
+                  { key: 'weak', tag: '적은 기운', line: reading.weak },
+                  { key: 'yong', tag: '힘이 되는 기운', line: reading.yongsin },
+                ].map(({ key, tag, line }) => (
+                  <div key={key} className="fgsj-flow-row" style={{ '--el': ELEMENT_COLOR[line.element] } as CSSProperties}>
+                    <span className="fgsj-flow-tag">{tag}<b>{FG_ELEMENT_HANJA[line.element]}</b></span>
+                    <div><h3>{line.title}</h3><p>{line.text}</p></div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </section>
+
+            {/* 2027년 */}
+            <section className="fg-card fgsj-card fgsj-year27">
+              <h2 className="fgsj-h2">{FG_YEAR}년 나의 흐름<small>{FG_YEAR_GANJI.label} · 붉은 양의 해</small></h2>
+              <h3 className="fgsj-h3">{reading.year2027.title}</h3>
+              <p className="fgsj-text">{reading.year2027.text}</p>
+            </section>
+
+            {/* 공부 · 친구 · 진로 · 꿈 · 마음 */}
+            <section className="fgsj-topics">
+              {FG_TOPICS.map((t) => {
+                const Icon = TOPIC_ICON[t.key]
+                const line = reading.topics[t.key]
+                return (
+                  <article key={t.key} className="fg-card fgsj-topic">
+                    <span className="fgsj-topic-tag"><Icon size={36} strokeWidth={2.4} aria-hidden="true" />{t.label}</span>
+                    <div><h3>{line.title}</h3><p>{line.text}</p></div>
+                  </article>
+                )
+              })}
+            </section>
+
+            {/* 행운 */}
+            <section className="fg-card fgsj-card fgsj-lucky" style={{ '--el': reading.lucky.swatch } as CSSProperties}>
+              <h2 className="fgsj-h2"><Star size={40} strokeWidth={2.4} aria-hidden="true" />나의 행운<small>힘이 되는 기운 {reading.lucky.element}({FG_ELEMENT_HANJA[reading.lucky.element]})</small></h2>
+              <ul className="fgsj-lucky-list">
+                <li><span className="fgsj-swatch" aria-hidden="true" /><small>색</small><b>{reading.lucky.color}</b></li>
+                <li><small>물건</small><b>{reading.lucky.item}</b></li>
+                <li><small>습관</small><b>{reading.lucky.habit}</b></li>
+              </ul>
+              <p className="fgsj-text">{reading.lucky.text}</p>
+            </section>
+
+            <p className="fg-note fgsj-foot">
+              {notice ?? (ai ? 'AI가 만세력을 바탕으로 쓴 풀이예요.' : '만세력은 이 기기에서 계산하고, 풀이는 미리 써 둔 문장에서 골랐어요.')}
+              {' '}재미로 보는 풀이이니 가볍게 즐겨 주세요.
+            </p>
           </div>
-        </section>
 
-        {/* 2027년 */}
-        <section className="fg-card fgsj-card fgsj-year27">
-          <h2 className="fgsj-h2">{FG_YEAR}년 나의 흐름<small>{FG_YEAR_GANJI.label} · 붉은 양의 해</small></h2>
-          <h3 className="fgsj-h3">{reading.year2027.title}</h3>
-          <p className="fgsj-text">{reading.year2027.text}</p>
-        </section>
-
-        {/* 공부 · 친구 · 진로 · 꿈 · 마음 */}
-        <section className="fgsj-topics">
-          {FG_TOPICS.map((t) => {
-            const Icon = TOPIC_ICON[t.key]
-            const line = reading.topics[t.key]
-            return (
-              <article key={t.key} className="fg-card fgsj-topic">
-                <span className="fgsj-topic-tag"><Icon size={36} strokeWidth={2.4} aria-hidden="true" />{t.label}</span>
-                <div><h3>{line.title}</h3><p>{line.text}</p></div>
-              </article>
-            )
-          })}
-        </section>
-
-        {/* 행운 */}
-        <section className="fg-card fgsj-card fgsj-lucky" style={{ '--el': reading.lucky.swatch } as CSSProperties}>
-          <h2 className="fgsj-h2"><Star size={40} strokeWidth={2.4} aria-hidden="true" />나의 행운<small>힘이 되는 기운 {reading.lucky.element}({FG_ELEMENT_HANJA[reading.lucky.element]})</small></h2>
-          <ul className="fgsj-lucky-list">
-            <li><span className="fgsj-swatch" aria-hidden="true" /><small>색</small><b>{reading.lucky.color}</b></li>
-            <li><small>물건</small><b>{reading.lucky.item}</b></li>
-            <li><small>습관</small><b>{reading.lucky.habit}</b></li>
-          </ul>
-          <p className="fgsj-text">{reading.lucky.text}</p>
-        </section>
-
-        <p className="fg-note fgsj-foot">
-          {notice ?? (ai ? 'AI가 만세력을 바탕으로 쓴 풀이예요.' : '만세력은 이 기기에서 계산하고, 풀이는 미리 써 둔 문장에서 골랐어요.')}
-          {' '}재미로 보는 풀이이니 가볍게 즐겨 주세요.
-        </p>
-      </div>
-      <div className="fgsj-bottom">
-        <button type="button" className="fg-btn fg-btn--primary" onClick={home}>처음으로</button>
+          <div className="fgsj-bottom">
+            <button type="button" className="fg-btn fg-btn--primary" onClick={home}>처음으로</button>
+          </div>
+        </div>
       </div>
     </FgStage>
   )

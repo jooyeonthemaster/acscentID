@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowUpRight, MonitorSmartphone, RotateCw } from 'lucide-react'
+import { ArrowUpRight, Monitor } from 'lucide-react'
 import { useEffect, useState, type CSSProperties } from 'react'
 import { DemoCleanLinkMaker } from '@/components/demo/DemoCleanLinkMaker'
 import {
@@ -11,12 +11,13 @@ import './funground-landing.css'
 
 // 펀그라운드 별내 견적 데모 랜딩(/booth-demo/funground) — 포토부스 데모 랜딩(BoothDemoLanding)과 같은 카드 · 기기 그림 짜임.
 // A안 / B안 탭(#a · #b 로 기억). 카드마다 단계(1단계 12월 · 2단계 1월)와 제작 구분(기존 · 고쳐 씀 · 새로)을 단다.
-// 설치 기기는 32인치 세로 터치스크린 1대 — '세로 시작 화면'에서 프로그램을 고르는 흐름을 열어 볼 수 있다.
+// 설치 기기는 32인치 가로 터치스크린 1대(2026-11-14 세로 → 가로) — 프로그램 화면도 모두 가로. '시작 화면'에서 프로그램을 고르는 흐름을 열어 볼 수 있다.
+// 노트북으로 열어 노트북 카메라 · 마이크로 끝까지 해 볼 수 있다.
 // /booth-demo/funground/clean?k=… 은 같은 랜딩의 워터마크 없는 판(서명이 맞을 때만, src/lib/demo-clean.ts).
 
 const NOTES = [
-  '카메라를 쓰는 프로그램은 브라우저가 권한을 물을 때 허용해 주세요. 설치 기기는 세로 화면(1080×1920)입니다 — 노트북에서는 화면 비율에 맞춰 줄여 보여 드려요.',
-  '「가로 화면」 표시가 있는 프로그램은 지금 부스용 가로 화면으로 열립니다. 설치 때 세로 화면으로 바꿉니다.',
+  '노트북으로 열어 노트북 카메라 · 마이크로 해 볼 수 있습니다. 브라우저가 카메라(뮤직비디오는 마이크도) 권한을 물으면 허용해 주세요. 크롬을 권합니다.',
+  '설치 기기는 32인치 가로 터치스크린입니다. 노트북에서는 같은 가로 화면을 창 크기에 맞춰 보여 드려요 — 전체 화면(F11 · ⌃⌘F)으로 보면 가장 크게 보입니다.',
   'A안의 AI 사진은 찍은 뒤 15~40초쯤 걸립니다. 데모의 AI 생성은 하루 이용 횟수가 정해져 있어, 넘으면 안내가 나옵니다.',
   'A안: 사진은 AI 사진을 만드는 동안만 AI 서비스로 보내고, 결과 사진과 원본을 데모 서버에 남기지 않습니다.',
   'B안: 외부 AI 서비스를 부르지 않습니다. 사진은 브라우저(설치 때는 기기) 안에서만 처리합니다.',
@@ -28,13 +29,13 @@ const NOTES = [
 
 const readPlan = (): FungroundPlan => (typeof window !== 'undefined' && window.location.hash === '#b' ? 'b' : 'a')
 
-/** 벽에 매입한 세로 체험기 정면 — 그림 파일 없이 코드로 그린다(funground-landing.css 의 .fl-device). 가로 프로그램은 화면 안에 가로로 */
-function Device({ screen, landscape, alt, hero = false }: { screen: string; landscape: boolean; alt: string; hero?: boolean }) {
+/** 벽에 매입한 가로 체험기 정면 — 그림 파일 없이 코드로 그린다(funground-landing.css 의 .fl-device): 위 카메라 · 16:9 화면 · 아래 인화 · 영수증 출구 */
+function Device({ screen, alt, hero = false }: { screen: string; alt: string; hero?: boolean }) {
   return (
     <span className={`fl-device${hero ? ' fl-device--hero' : ''}`}>
       <span className="fl-device-body">
         <span className="fl-device-cam" aria-hidden="true"><i /></span>
-        <span className={`fl-device-screen${landscape ? ' fl-device-screen--wide' : ''}`}>
+        <span className="fl-device-screen">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={screen} alt={alt} loading={hero ? 'eager' : 'lazy'} decoding="async" />
         </span>
@@ -45,11 +46,10 @@ function Device({ screen, landscape, alt, hero = false }: { screen: string; land
 }
 
 function Card({ program, cleanKey }: { program: FungroundProgram; cleanKey?: string }) {
-  const landscape = program.orientation === 'landscape'
   const two = program.targets.length > 1
   return (
     <li className="fl-card" style={{ '--fl-tone': program.color } as CSSProperties}>
-      <Device screen={program.screen} landscape={landscape} alt={`${program.name} 화면`} />
+      <Device screen={program.screen} alt={`${program.name} 화면`} />
       <div className="fl-card-body">
         <div className="fl-flags">
           <span className="fl-flag fl-flag--phase" data-phase={program.phase}>{PHASE_LABEL[program.phase]}</span>
@@ -59,7 +59,6 @@ function Card({ program, cleanKey }: { program: FungroundProgram; cleanKey?: str
         <b className="fl-name">{program.name}</b>
         <span className="fl-desc">{program.desc}</span>
         {program.note && <span className="fl-note">{program.note}</span>}
-        {landscape && <span className="fl-rotate"><RotateCw size={15} strokeWidth={2.4} aria-hidden="true" />가로 화면 · 설치 때 세로로 바꿈</span>}
         <span className="fl-badges">{program.badges.map((b) => <i key={b}>{b}</i>)}</span>
         <span className="fl-opens">
           {program.targets.map((target) => (
@@ -103,9 +102,9 @@ export function FungroundLanding({ cleanKey, cleanRejected = false }: { cleanKey
       <main>
         <section className="fl-hero">
           <div className="fl-hero-copy">
-            <p className="fl-eyebrow">32인치 세로 터치스크린 1대 · 카메라 · 4×6 포토 프린터 · 영수증 프린터</p>
+            <p className="fl-eyebrow">32인치 가로 터치스크린 1대 · 카메라 · 4×6 포토 프린터 · 영수증 프린터</p>
             <h1>펀그라운드 별내<br />체험 부스 데모</h1>
-            <p className="fl-lead">9~19세 청소년이 혼자, 친구와 함께 즐기는 상설 체험기입니다. 견적 두 안의 프로그램을 아래에서 직접 눌러 보세요. 기기 한 대에 프로그램을 모두 담고, 세로 시작 화면에서 고릅니다.</p>
+            <p className="fl-lead">9~19세 청소년이 혼자, 친구와 함께 즐기는 상설 체험기입니다. 견적 두 안의 프로그램을 아래에서 직접 눌러 보세요. 기기 한 대에 프로그램을 모두 담고, 시작 화면에서 고릅니다. 노트북 카메라 · 마이크로 직접 해 볼 수 있어요.</p>
             <div className="fl-compare" role="tablist" aria-label="견적안">
               {(['a', 'b'] as const).map((id) => (
                 <button key={id} type="button" role="tab" aria-selected={plan === id} className="fl-plan" data-plan={id} onClick={() => choose(id)}>
@@ -117,9 +116,9 @@ export function FungroundLanding({ cleanKey, cleanRejected = false }: { cleanKey
             </div>
           </div>
           <figure className="fl-hero-stage">
-            <Device hero screen={`/assets/booth-demo/funground/start-${plan}.webp`} landscape={false} alt={`${PLAN_INFO[plan].short} 세로 시작 화면`} />
+            <Device hero screen={`/assets/booth-demo/funground/start-${plan}.webp`} alt={`${PLAN_INFO[plan].short} 시작 화면`} />
             <a className="fl-button" href={fungroundStartHref(plan, cleanKey)} target="_blank" rel="noopener">
-              <MonitorSmartphone size={20} strokeWidth={2.2} aria-hidden="true" />{PLAN_INFO[plan].short} 세로 시작 화면 열기
+              <Monitor size={20} strokeWidth={2.2} aria-hidden="true" />{PLAN_INFO[plan].short} 시작 화면 열기
             </a>
           </figure>
         </section>

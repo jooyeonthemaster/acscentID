@@ -1,6 +1,9 @@
 'use client'
 
-// 펀그라운드 별내 B안 미래 직업 탐색(NEXT!) — 1080×1920 세로 화면(FgStage).
+// 펀그라운드 별내 B안 미래 직업 탐색(NEXT!) — 1920×1080 가로 화면(FgStage · 32인치 가로 터치스크린, 2026-11-14 세로에서 바꿈).
+// 가로 배치는 노트북판 /kiosk/pc/career(experience-pc.css)를 따른다 — 첫 화면: 왼쪽 그림 · 오른쪽 글과 시작 단추 /
+//   질문: 위에 질문 한 줄, 가운데 답을 가로로 넓게(활동 4열 · MBTI 8열 · 답 셋 · 넷 나란히), 맨 아래 이전 · 고른 수 · 다음 /
+//   결과: 왼쪽 재미로 보는 풀이, 오른쪽 직업 셋 · 첫 도전 · 처음으로.
 // 키오스크 studio-career(CareerMode)를 건드리지 않으려고 화면은 따로 두고, 규칙표 · 문구는 그대로 가져다 쓴다:
 //   data.ts(활동 · MBTI · 상황 질문 다섯 · 16개 직업) · text.ts(한국어 문구) · 축 그림(public/assets/kiosk-experiences/career-*.webp)
 // 바뀐 점: 관상 사진 단계 없음(카메라를 켜지 않는다) · 새 상황 질문 하나(src/lib/funground/career.ts) · AI 풀이 대신 축 조합 풀이(career-combos.ts).
@@ -37,6 +40,8 @@ const SITUATIONS = [
   ...CAREER_QUESTIONS.map((q, i) => ({ title: t.questions[i].title, options: q.icons.map((icon, n) => ({ icon, label: t.questions[i].options[n] })) })),
   { title: FG_CAREER_EXTRA_QUESTION.title, options: FG_CAREER_EXTRA_QUESTION.options.map(({ icon, label }) => ({ icon, label })) },
 ]
+/** 보기 글이 줄을 바꿀 때 「·」가 줄 맨 앞에 오지 않게 — 앞 낱말에 붙인다(글은 그대로, 앞 칸만 줄 안 바뀌는 칸으로) */
+const keepDot = (label: string) => label.replace(/ · /g, '\u00a0· ')
 const emptyAnswers = () => Array.from({ length: FG_CAREER_QUESTION_COUNT }, () => null as number | null)
 
 /** 아무 입력이 없으면 ms 뒤 onIdle — 누를 때마다 다시 센다 */
@@ -74,24 +79,30 @@ export function FungroundCareer() {
   if (step === 'intro') {
     return (
       <FgStage className="fgc fgc--intro" tone={TONE} onHome={home}>
-        <section className="fgc-intro">
-          <p className="fgc-word">NEXT!</p>
-          <p className="fg-kicker">미래 직업 탐색 · 체험 프로그램</p>
-          <h1 className="fg-title">{'나의 다음 가능성을\n찾아 볼까요?'}</h1>
-          <p className="fg-lead">{'좋아하는 활동과 질문 여덟 개로\n탐색해 볼 직업 세 가지를 찾아요'}</p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="fgc-hero" src="/assets/kiosk-experiences/career-hero.webp" alt="" draggable={false} />
-          <ul className="fgc-facts">
-            <li>질문 8개</li>
-            <li>약 2분</li>
-            <li>사진은 찍지 않아요</li>
-          </ul>
-        </section>
-        <div className="fgc-bottom">
-          <button type="button" className="fg-btn fg-btn--primary fgc-wide" onClick={() => { setIndex(0); setStep('ask') }}>
-            탐색 시작<ArrowRight size={44} strokeWidth={2.6} aria-hidden="true" />
-          </button>
-          <p className="fg-note fgc-center">재미로 보는 탐색이에요 · 적성 검사가 아니에요</p>
+        <div className="fg-split fgc-intro">
+          {/* 왼쪽 — 큰 글자 · 그림 */}
+          <div className="fgc-visual">
+            <p className="fgc-word">NEXT!</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="fgc-hero" src="/assets/kiosk-experiences/career-hero.webp" alt="" draggable={false} />
+          </div>
+          {/* 오른쪽 — 소개 · 시작 */}
+          <section className="fg-panel fgc-panel">
+            <p className="fg-kicker">미래 직업 탐색 · 체험 프로그램</p>
+            <h1 className="fg-title">{'나의 다음 가능성을\n찾아 볼까요?'}</h1>
+            <p className="fg-lead">{'좋아하는 활동과 질문 여덟 개로\n탐색해 볼 직업 세 가지를 찾아요'}</p>
+            <ul className="fgc-facts">
+              <li>질문 8개</li>
+              <li>약 2분</li>
+              <li>사진은 찍지 않아요</li>
+            </ul>
+            <div className="fgc-bottom">
+              <button type="button" className="fg-btn fg-btn--primary fgc-wide" onClick={() => { setIndex(0); setStep('ask') }}>
+                탐색 시작<ArrowRight size={44} strokeWidth={2.6} aria-hidden="true" />
+              </button>
+              <p className="fg-note">재미로 보는 탐색이에요 · 적성 검사가 아니에요</p>
+            </div>
+          </section>
         </div>
       </FgStage>
     )
@@ -114,9 +125,10 @@ export function FungroundCareer() {
           <p className="fgc-count"><b>{index + 1}</b> / {FG_CAREER_TOTAL}</p>
         </div>
         {/* 질문이 바뀔 때마다 새로 올라온다 */}
-        <section className="fgc-q" key={index}>
+        <section className="fgc-q" key={index} data-kind={kind}>
+          {/* 두 줄로 나눠 쓰던 상황 질문을 한 줄로(가로가 넉넉하다) */}
           <h1 className="fg-title fg-title--md">
-            {kind === 'interests' ? t.q1Title : kind === 'mbti' ? t.mbtiTitle : situation!.title.join('\n')}
+            {kind === 'interests' ? t.q1Title : kind === 'mbti' ? t.mbtiTitle : situation!.title.join(' ')}
           </h1>
           <p className="fg-lead">{kind === 'interests' ? t.q1Sub : kind === 'mbti' ? t.mbtiSub : t.qSub}</p>
 
@@ -159,7 +171,7 @@ export function FungroundCareer() {
                   <button key={i} type="button" role="radio" aria-checked={on} className="fgc-option" data-on={on || undefined}
                     onClick={() => setAnswers((list) => list.map((value, n) => (n === at ? i : value)))}>
                     <span className="fgc-icon"><Icon size={58} strokeWidth={1.7} aria-hidden="true" /></span>
-                    <b>{option.label}</b>
+                    <b>{keepDot(option.label)}</b>
                     <i className="fgc-radio" aria-hidden="true">{on && <Check size={34} strokeWidth={3.4} />}</i>
                   </button>
                 )
@@ -168,16 +180,15 @@ export function FungroundCareer() {
           )}
         </section>
 
-        <div className="fgc-bottom">
+        {/* 맨 아래 한 줄 — 왼쪽 이전 · 가운데 고른 수 · 오른쪽 다음 */}
+        <div className="fgc-bar">
+          <button type="button" className="fg-btn fg-btn--ghost fgc-back" onClick={back}>
+            <ArrowLeft size={40} strokeWidth={2.6} aria-hidden="true" />{index === 0 ? '처음 화면' : '이전'}
+          </button>
           {kind === 'interests' && <p className="fgc-picked" aria-live="polite">{t.picked(picks.length)}</p>}
-          <div className="fg-actions fg-actions--row">
-            <button type="button" className="fg-btn fg-btn--ghost fgc-back" onClick={back}>
-              <ArrowLeft size={40} strokeWidth={2.6} aria-hidden="true" />{index === 0 ? '처음 화면' : '이전'}
-            </button>
-            <button type="button" className="fg-btn fg-btn--primary fgc-next" disabled={!answered} onClick={next}>
-              {kind === 'mbti' && !mbti ? t.mbtiSkip : last ? '결과 보기' : '다음'}<ArrowRight size={40} strokeWidth={2.6} aria-hidden="true" />
-            </button>
-          </div>
+          <button type="button" className="fg-btn fg-btn--primary fgc-next" disabled={!answered} onClick={next}>
+            {kind === 'mbti' && !mbti ? t.mbtiSkip : last ? '결과 보기' : '다음'}<ArrowRight size={40} strokeWidth={2.6} aria-hidden="true" />
+          </button>
         </div>
       </FgStage>
     )
@@ -187,48 +198,58 @@ export function FungroundCareer() {
   const topCareer = result.careers[0]
   return (
     <FgStage className="fgc fgc--result" tone={TONE} onHome={home}>
-      <section className="fgc-result">
-        <p className="fgc-done"><i aria-hidden="true"><Check size={26} strokeWidth={3.4} /></i>{t.done}</p>
-        <h1 className="fg-title fg-title--md">{t.resultTitle}</h1>
-        <p className="fgc-tags">
-          {result.axes.slice(0, 2).map((axis) => <span key={axis}>#{t.axes[axis]}</span>)}
-          {mbti && <span data-clue>{mbti}</span>}
-        </p>
+      <div className="fg-split fgc-result">
+        {/* 왼쪽 — 완료 · 축 태그 · 재미로 보는 풀이 */}
+        <section className="fg-panel fgc-read">
+          <p className="fgc-head">
+            <span className="fgc-done"><i aria-hidden="true"><Check size={26} strokeWidth={3.4} /></i>{t.done}</span>
+            <span className="fgc-tags">
+              {result.axes.slice(0, 2).map((axis) => <span key={axis}>#{t.axes[axis]}</span>)}
+              {mbti && <span data-clue>{mbti}</span>}
+            </span>
+          </p>
 
-        <article className="fgc-combo" aria-label="재미로 보는 풀이">
-          <span className="fg-fun">재미로 보는 풀이예요</span>
-          <h2>{combo.title}</h2>
-          <p className="fgc-combo-axes">{t.axes[combo.primary]} × {t.axes[combo.secondary]}</p>
-          <p className="fgc-combo-body">{combo.body.join(' ')}</p>
-        </article>
+          <article className="fgc-combo" aria-label="재미로 보는 풀이">
+            <span className="fg-fun">재미로 보는 풀이예요</span>
+            <h2>{combo.title}</h2>
+            <p className="fgc-combo-axes">{t.axes[combo.primary]} × {t.axes[combo.secondary]}</p>
+            <p className="fgc-combo-body">{combo.body.join(' ')}</p>
+          </article>
+        </section>
 
-        <ol className="fgc-careers">
-          {result.careers.map((id, i) => {
-            const career = CAREERS[id]
-            return (
-              <li key={id}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={axisArt(career.primary)} alt="" draggable={false} />
-                <div>
-                  <b><em>{String(i + 1).padStart(2, '0')}</em>{t.careers[id].name}</b>
-                  <span>{t.careers[id].desc}</span>
-                </div>
-              </li>
-            )
-          })}
-        </ol>
+        {/* 오른쪽 — 탐색해 볼 직업 셋 · 작은 첫 도전 · 처음으로 */}
+        <section className="fg-panel fgc-picks">
+          <h1 className="fg-title fg-title--md">{t.resultTitle}</h1>
 
-        <section className="fgc-first">
-          <Lightbulb size={52} strokeWidth={1.8} aria-hidden="true" />
-          <div>
-            <em>{t.firstLabel}</em>
-            <b>{t.careers[topCareer].first}</b>
+          <ol className="fgc-careers">
+            {result.careers.map((id, i) => {
+              const career = CAREERS[id]
+              return (
+                <li key={id}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={axisArt(career.primary)} alt="" draggable={false} />
+                  <div>
+                    <b><em>{String(i + 1).padStart(2, '0')}</em>{t.careers[id].name}</b>
+                    <span>{t.careers[id].desc}</span>
+                  </div>
+                </li>
+              )
+            })}
+          </ol>
+
+          <section className="fgc-first">
+            <Lightbulb size={52} strokeWidth={1.8} aria-hidden="true" />
+            <div>
+              <em>{t.firstLabel}</em>
+              <b>{t.careers[topCareer].first}</b>
+            </div>
+          </section>
+
+          <div className="fgc-bottom">
+            <button type="button" className="fg-btn fg-btn--primary fgc-wide" onClick={home}>처음으로</button>
+            <p className="fg-note fgc-center">{t.resultFoot}</p>
           </div>
         </section>
-      </section>
-      <div className="fgc-bottom">
-        <button type="button" className="fg-btn fg-btn--primary fgc-wide" onClick={home}>처음으로</button>
-        <p className="fg-note fgc-center">{t.resultFoot}</p>
       </div>
     </FgStage>
   )

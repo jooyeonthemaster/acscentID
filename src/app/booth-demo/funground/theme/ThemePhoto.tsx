@@ -1,7 +1,8 @@
 'use client'
 /* eslint-disable @next/next/no-img-element -- 화면의 그림은 모두 기기 안에서 만든 data: 그림이라 next/image 를 거치지 않는다 */
 
-// 펀그라운드 B안 1. 테마 포토 「THEME!」 — 세로 1080×1920 화면.
+// 펀그라운드 B안 1. 테마 포토 「THEME!」 — 가로 1920×1080 화면(32인치 가로 터치스크린 · 가로 카메라, 2026-11-14 바뀜).
+// 화면마다 왼쪽 큰 그림(견본 · 카메라 · 찍은 사진 · 세로 4×6 결과) / 오른쪽 제목 · 고르기 · 단추 — 부스 프로그램 화면과 같은 짜임. 인화만 세로 4×6.
 // 시작 → 테마 고르기(6) → 카메라(1~4명, 3-2-1, 다시 찍기) → 기기 안 합성(사람만 분리 → 테마 배경 + 사람 + 앞 장식) → 4×6 결과 → 인쇄 / 처음으로.
 // 외부 AI · 이미지 서비스는 부르지 않는다. 사람 분리는 부스 「같이 찍기」와 같은 cutoutPerson(MediaPipe 다중 클래스 + u2netp, 모델 · WASM 은 우리 public/).
 // 사진은 이 화면 메모리에만 있다 — 서버로 올리지 않는다(휴대폰 QR 저장은 이 데모에 없다).
@@ -10,8 +11,8 @@
 // 주소에 camera=dslr 를 붙이면 useCamera 가 브리지를 먼저 찾고(라이브뷰 · 원본 촬영), 없으면 웹캠으로 돌아간다.
 // 인쇄: 부스 앱(tools/booth-app)이면 boothShell.print 로 프린터에 바로, 브라우저면 인쇄 창(4×6 한 장만 보이게 theme.css @media print).
 
-import { Camera, Check, Loader2, Printer, RotateCcw, ScanFace, ShieldCheck, Sparkles, Timer, Users } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Camera, CameraOff, Check, Home, Loader2, Printer, RefreshCw, RotateCcw, ScanFace, ShieldCheck, Sparkles, Timer, Users } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { FgStage, useFgHome } from '@/components/funground/FgStage'
 import { useCamera } from '@/app/booth/programs/use-camera'
@@ -26,8 +27,12 @@ import './theme.css'
 type Step = 'intro' | 'pick' | 'camera' | 'review' | 'making' | 'result'
 type PrintState = 'idle' | 'sending' | 'sent' | 'failed'
 
-/** 카메라 화면 · 찍는 사진 비율(가로 4:3) — 미리보기에 보인 만큼만 찍는다 */
-const SHOT_ASPECT = 4 / 3
+/**
+ * 카메라 화면 · 찍는 사진 비율(가로 16:9) — 미리보기에 보인 만큼만 찍는다.
+ * 가로 카메라(웹캠 1920×1080 · 노트북 1280×720)를 좌우로 자르지 않는다 — 나란히 선 4명 중 양 끝 사람이 잘리지 않게.
+ * (예전 4:3 은 16:9 화면 양옆을 12.5%씩 잘라 끝 사람 어깨 · 얼굴이 빠졌다.) DSLR 3:2 · 4:3 웹캠은 위아래를 조금 잘라 맞춘다.
+ */
+const SHOT_ASPECT = 16 / 9
 /** 아무도 만지지 않으면 처음으로(초) */
 const IDLE_SECONDS = 90
 /** 인물 면적이 이보다 작으면 사람을 못 찾은 것으로 본다(부스 같이 찍기와 같은 기준) */
@@ -123,7 +128,7 @@ export function ThemePhoto({ artReady }: { artReady: ThemeId[] }) {
   const capture = useCallback(async () => {
     try {
       const still = await takeStill()
-      // DSLR 원본은 그대로(브리지가 긴 변 2400 으로 줄여 준다), 웹캠은 미리보기와 같은 4:3 가운데
+      // 미리보기(16:9, 가득 채움)와 같은 범위 — 16:9 웹캠은 그대로, DSLR 3:2 는 위아래만 조금
       const canvas = cropToAspect(still, SHOT_ASPECT)
       setShot({ canvas, url: canvas.toDataURL('image/jpeg', 0.9) })
       setStep('review')
@@ -204,19 +209,26 @@ export function ThemePhoto({ artReady }: { artReady: ThemeId[] }) {
     return STEP_DOTS.map((s, i) => (i < at ? 'done' : s === now ? 'now' : 'todo'))
   }, [step])
 
+  const stepDots = (
+    <ol className="fg-steps fgt-steps" aria-label="진행 단계">
+      {dots.map((state, i) => <li key={i} data-state={state} />)}
+    </ol>
+  )
+  /** 고른 테마 — 카메라 · 확인 화면 오른쪽 */
+  const chosenCard = (note: ReactNode, action?: ReactNode) => theme && (
+    <div className="fgt-chosen">
+      {thumbs[theme.id] && <img src={thumbs[theme.id]} alt="" />}
+      <div>
+        <p><b>「{theme.name}」</b> 배경에 합성돼요.<br />{note}</p>
+        {action}
+      </div>
+    </div>
+  )
+
   return (
     <FgStage onHome={home} tone={theme?.color ?? REGISTRY_TONE} className="fgt">
-      {step !== 'intro' && (
-        <ol className="fg-steps fgt-steps" aria-label="진행 단계">
-          {dots.map((state, i) => <li key={i} data-state={state} />)}
-        </ol>
-      )}
-
       {step === 'intro' && (
-        <section className="fgt-intro">
-          <p className="fg-kicker">B안 · 기기 안 처리형</p>
-          <h1 className="fgt-hero">THEME!<span>테마 포토</span></h1>
-          <p className="fg-lead">사람만 오려 6가지 테마 배경에 넣어 드려요.{'\n'}옷과 얼굴은 그대로, 1~4명이 함께.</p>
+        <section className="fg-split fgt-intro">
           <div className="fgt-fan" aria-hidden="true">
             {THEMES.map((t, i) => (
               <span key={t.id} style={{ ['--i' as string]: i - 2.5 }}>
@@ -224,18 +236,22 @@ export function ThemePhoto({ artReady }: { artReady: ThemeId[] }) {
               </span>
             ))}
           </div>
-          <ul className="fgt-badges">
-            <li><Sparkles size={30} aria-hidden="true" />AI 인물 인식</li>
-            <li><ShieldCheck size={30} aria-hidden="true" />사진은 기기 밖으로 나가지 않아요</li>
-            <li><Printer size={30} aria-hidden="true" />4×6 인화</li>
-          </ul>
-          <button type="button" className="fg-btn fg-btn--primary fgt-cta" onClick={() => setStep('pick')}>시작하기</button>
+          <div className="fg-panel fgt-panel">
+            <p className="fg-kicker">B안 · 기기 안 처리형</p>
+            <h1 className="fgt-hero">THEME!<span>테마 포토</span></h1>
+            <p className="fg-lead">사람만 오려 6가지 테마 배경에 넣어 드려요.{'\n'}옷과 얼굴은 그대로, 1~4명이 함께.</p>
+            <ul className="fgt-badges">
+              <li><Sparkles size={30} aria-hidden="true" />AI 인물 인식</li>
+              <li><Printer size={30} aria-hidden="true" />4×6 인화</li>
+              <li><ShieldCheck size={30} aria-hidden="true" />사진은 기기 밖으로 나가지 않아요</li>
+            </ul>
+            <button type="button" className="fg-btn fg-btn--primary fgt-cta" onClick={() => setStep('pick')}>시작하기</button>
+          </div>
         </section>
       )}
 
       {step === 'pick' && (
-        <section className="fgt-pick">
-          <h2 className="fg-title fg-title--md">테마를 골라 주세요</h2>
+        <section className="fg-split fgt-pick">
           <ul className="fgt-grid">
             {THEMES.map((t) => (
               <li key={t.id}>
@@ -250,99 +266,129 @@ export function ThemePhoto({ artReady }: { artReady: ThemeId[] }) {
               </li>
             ))}
           </ul>
-          <button type="button" className="fg-btn fg-btn--primary fgt-cta" disabled={!themeId} onClick={() => setStep('camera')}>
-            <Camera size={44} aria-hidden="true" />{theme ? '이 테마로 찍기' : '테마를 먼저 골라 주세요'}
-          </button>
+          <div className="fg-panel fgt-panel">
+            {stepDots}
+            <h2 className="fg-title fg-title--md">테마를 골라 주세요</h2>
+            {theme ? (
+              <div className="fgt-preview">
+                {thumbs[theme.id] && <img src={thumbs[theme.id]} alt={`${theme.name} 견본`} />}
+                <p><b>{theme.name}</b>{theme.line}<small>이 배경에 사람만 오려 넣어{'\n'}4×6 사진으로 뽑아요.</small></p>
+              </div>
+            ) : (
+              <p className="fgt-preview fgt-preview--empty"><span aria-hidden="true">←</span>왼쪽에서 하나를 눌러 보세요.{'\n'}여기에 4×6 사진 견본이 보여요.</p>
+            )}
+            <button type="button" className="fg-btn fg-btn--primary fgt-cta" disabled={!themeId} onClick={() => setStep('camera')}>
+              <Camera size={44} aria-hidden="true" />{theme ? '이 테마로 찍기' : '테마를 먼저 골라 주세요'}
+            </button>
+          </div>
         </section>
       )}
 
       {step === 'camera' && theme && (
-        <section className="fgt-camera">
-          <h2 className="fg-title fg-title--md">점선 안에 서 주세요</h2>
-          <p className="fgt-sub"><Users size={34} aria-hidden="true" />1~4명이 함께 찍을 수 있어요</p>
-          <div className="fgt-view">
-            {cam.source === 'dslr'
-              ? <canvas ref={cam.liveRef} className="fgt-feed" />
-              : <video ref={cam.videoRef} className="fgt-feed fgt-feed--mirror" muted playsInline autoPlay />}
-            <div className="fgt-guide" aria-hidden="true"><span>얼굴이 점선 안에</span></div>
-            {cam.state === 'starting' && <div className="fgt-view-msg"><Loader2 className="fgt-spin" size={64} />카메라를 켜는 중…</div>}
-            {cam.state === 'error' && (
-              <div className="fgt-view-msg">
-                <p>{cam.error}</p>
-                <button type="button" className="fg-btn fg-btn--ghost fgt-btn-light" onClick={cam.retry}>다시 시도</button>
-              </div>
-            )}
-            {count !== null && count > 0 && <div className="fgt-count" key={count}>{count}</div>}
-            {flash && <div className="fgt-flash" />}
+        <section className="fg-split fgt-shot">
+          <div className="fgt-left">
+            <div className="fgt-view">
+              {cam.source === 'dslr'
+                ? <canvas ref={cam.liveRef} className="fgt-feed" />
+                : <video ref={cam.videoRef} className="fgt-feed fgt-feed--mirror" muted playsInline autoPlay />}
+              {cam.state === 'ready' && <div className="fgt-guide" aria-hidden="true"><span>1~4명 · 얼굴이 점선 안에</span></div>}
+              {cam.state === 'starting' && <div className="fgt-view-msg"><Loader2 className="fgt-spin" size={64} />카메라를 켜는 중…</div>}
+              {cam.state === 'error' && (
+                <div className="fgt-view-msg">
+                  <CameraOff size={72} aria-hidden="true" />
+                  <p>{cam.error}</p>
+                  <button type="button" className="fg-btn fg-btn--ghost fgt-btn-light" onClick={cam.retry}><RefreshCw size={36} aria-hidden="true" />다시 시도</button>
+                </div>
+              )}
+              {count !== null && count > 0 && <div className="fgt-count" key={count}>{count}</div>}
+              {flash && <div className="fgt-flash" />}
+            </div>
+            <ul className="fgt-tips">
+              <li><Users size={30} aria-hidden="true" />1~4명 나란히</li>
+              <li><ScanFace size={30} aria-hidden="true" />얼굴이 가려지지 않게</li>
+              <li><Timer size={30} aria-hidden="true" />3초 뒤 찰칵</li>
+            </ul>
           </div>
-          <div className="fgt-chosen">
-            {thumbs[theme.id] && <img src={thumbs[theme.id]} alt="" />}
-            <p><b>「{theme.name}」</b> 배경에 합성돼요.<br />AI 인물 인식으로 사람만 오려 내요.</p>
-            <button type="button" className="fg-btn fg-btn--ghost fgt-small" disabled={count !== null} onClick={() => setStep('pick')}>테마 바꾸기</button>
+          <div className="fg-panel fgt-panel">
+            {stepDots}
+            <h2 className="fg-title fg-title--md">점선 안에{'\n'}서 주세요</h2>
+            <p className="fgt-sub"><Users size={34} aria-hidden="true" />1~4명이 함께 찍을 수 있어요</p>
+            {chosenCard('AI 인물 인식으로 사람만 오려 내요.', (
+              <button type="button" className="fg-btn fg-btn--ghost fgt-small" disabled={count !== null} onClick={() => setStep('pick')}>테마 바꾸기</button>
+            ))}
+            {error && <p className="fgt-error" role="alert">{error}</p>}
+            <button type="button" className="fg-btn fg-btn--primary fgt-cta" disabled={cam.state !== 'ready' || count !== null} onClick={() => { setError(null); setCount(3) }}>
+              <Camera size={44} aria-hidden="true" />{count !== null ? '곧 찍어요!' : '찍기 · 3초 뒤'}
+            </button>
           </div>
-          <ul className="fgt-tips">
-            <li><Users size={30} aria-hidden="true" />1~4명</li>
-            <li><ScanFace size={30} aria-hidden="true" />얼굴이 가려지지 않게</li>
-            <li><Timer size={30} aria-hidden="true" />3초 뒤 찰칵</li>
-          </ul>
-          {error && <p className="fgt-error" role="alert">{error}</p>}
-          <button type="button" className="fg-btn fg-btn--primary fgt-cta" disabled={cam.state !== 'ready' || count !== null} onClick={() => { setError(null); setCount(3) }}>
-            <Camera size={44} aria-hidden="true" />{count !== null ? '곧 찍어요!' : '찍기 · 3초 뒤'}
-          </button>
         </section>
       )}
 
       {step === 'review' && shot && (
-        <section className="fgt-review">
-          <h2 className="fg-title fg-title--md">이 사진으로 만들까요?</h2>
-          <div className="fgt-view">
-            <img src={shot.url} alt="방금 찍은 사진" className="fgt-feed" />
-          </div>
-          {error
-            ? <p className="fgt-error" role="alert">{error}</p>
-            : <p className="fgt-sub">모두의 얼굴이 잘 보이면 「만들기」를 눌러 주세요.</p>}
-          {theme && (
-            <div className="fgt-chosen">
-              {thumbs[theme.id] && <img src={thumbs[theme.id]} alt="" />}
-              <p><b>「{theme.name}」</b> 배경에 합성돼요.<br />옷과 얼굴은 그대로, 사람만 오려 넣어요.</p>
+        <section className="fg-split fgt-shot">
+          <div className="fgt-left">
+            <div className="fgt-view">
+              <img src={shot.url} alt="방금 찍은 사진" className="fgt-feed" />
             </div>
-          )}
-          <div className="fg-actions fg-actions--row fgt-row">
-            <button type="button" className="fg-btn fg-btn--ghost" onClick={retake}><RotateCcw size={40} aria-hidden="true" />다시 찍기</button>
-            <button type="button" className="fg-btn fg-btn--primary" onClick={() => void make()} disabled={!font}><Sparkles size={40} aria-hidden="true" />만들기</button>
+          </div>
+          <div className="fg-panel fgt-panel">
+            {stepDots}
+            <h2 className="fg-title fg-title--md">이 사진으로{'\n'}만들까요?</h2>
+            {error
+              ? <p className="fgt-error" role="alert">{error}</p>
+              : <p className="fgt-sub">모두의 얼굴이 잘 보이면{'\n'}「만들기」를 눌러 주세요.</p>}
+            {chosenCard('옷과 얼굴은 그대로, 사람만 오려 넣어요.')}
+            <div className="fg-actions fgt-cta">
+              <button type="button" className="fg-btn fg-btn--primary" onClick={() => void make()} disabled={!font}><Sparkles size={40} aria-hidden="true" />만들기</button>
+              <button type="button" className="fg-btn fg-btn--ghost" onClick={retake}><RotateCcw size={40} aria-hidden="true" />다시 찍기</button>
+            </div>
           </div>
         </section>
       )}
 
       {step === 'making' && (
-        <section className="fgt-making" aria-live="polite">
-          <div className="fg-spin" />
-          <h2 className="fg-title fg-title--md">사람만 오려 내는 중</h2>
-          <p className="fg-lead">AI 인물 인식이 이 기기 안에서 사람을 찾아{'\n'}테마 배경에 앉혀요. 사진은 밖으로 나가지 않아요.</p>
+        <section className="fg-split fgt-shot" aria-live="polite">
+          <div className="fgt-left">
+            <div className="fgt-view fgt-view--busy">
+              {shot && <img src={shot.url} alt="" className="fgt-feed" />}
+              <div className="fgt-view-msg"><div className="fg-spin" /></div>
+            </div>
+          </div>
+          <div className="fg-panel fgt-panel fgt-making">
+            {stepDots}
+            <h2 className="fg-title fg-title--md">사람만{'\n'}오려 내는 중</h2>
+            <p className="fg-lead">AI 인물 인식이 이 기기 안에서 사람을 찾아 테마 배경에 앉혀요.{'\n'}사진은 밖으로 나가지 않아요.</p>
+          </div>
         </section>
       )}
 
       {step === 'result' && result && theme && (
-        <section className="fgt-result">
-          <h2 className="fgt-result-title">완성! <span>4×6 사진</span></h2>
+        <section className="fg-split fgt-result">
           <div className="fgt-print">
             <img src={result} alt={`${theme.name} 테마 사진`} />
           </div>
-          <div className="fgt-switch" role="group" aria-label="다른 테마로 바꿔 보기">
-            {THEMES.map((t) => (
-              <button key={t.id} type="button" data-on={t.id === theme.id} style={{ ['--t' as string]: t.color }} onClick={() => switchTheme(t.id)} aria-label={t.name} aria-pressed={t.id === theme.id}>
-                {thumbs[t.id] && <img src={thumbs[t.id]} alt="" />}
+          <div className="fg-panel fgt-panel">
+            {stepDots}
+            <h2 className="fgt-result-title">완성! <span>4×6 사진</span></h2>
+            <p className="fgt-sub fgt-sub--left">다른 테마도 눌러 보세요 — 같은 사진으로 바로 바뀌어요.</p>
+            <div className="fgt-switch" role="group" aria-label="다른 테마로 바꿔 보기">
+              {THEMES.map((t) => (
+                <button key={t.id} type="button" data-on={t.id === theme.id} style={{ ['--t' as string]: t.color }} onClick={() => switchTheme(t.id)} aria-label={t.name} aria-pressed={t.id === theme.id}>
+                  <span>{thumbs[t.id] && <img src={thumbs[t.id]} alt="" />}</span>
+                  <b aria-hidden="true">{t.name}</b>
+                </button>
+              ))}
+            </div>
+            {printState === 'sent' && <p className="fgt-sub fgt-sub--left" role="status">{getBoothShell() ? '프린터로 보냈어요. 1분쯤 뒤 출구에서 나와요.' : '인쇄 창을 열었어요. 설치 기기에서는 프린터로 바로 나와요.'}</p>}
+            {printState === 'failed' && <p className="fgt-error" role="alert">지금은 인쇄할 수 없어요. 직원에게 프린터 확인을 요청해 주세요.</p>}
+            <div className="fgt-result-actions fgt-cta">
+              <button type="button" className="fg-btn fg-btn--primary" onClick={() => void print()} disabled={printState === 'sending' || printState === 'sent'}>
+                {printState === 'sending' ? <Loader2 className="fgt-spin" size={44} /> : <Printer size={44} aria-hidden="true" />}
+                {printState === 'sent' ? '인쇄 보냄' : '인쇄하기'}
               </button>
-            ))}
-          </div>
-          {printState === 'sent' && <p className="fgt-sub" role="status">{getBoothShell() ? '프린터로 보냈어요. 1분쯤 뒤 출구에서 나와요.' : '인쇄 창을 열었어요. 설치 기기에서는 프린터로 바로 나와요.'}</p>}
-          {printState === 'failed' && <p className="fgt-error" role="alert">지금은 인쇄할 수 없어요. 직원에게 프린터 확인을 요청해 주세요.</p>}
-          <div className="fg-actions fg-actions--row fgt-row">
-            <button type="button" className="fg-btn fg-btn--ghost" onClick={retake}><RotateCcw size={40} aria-hidden="true" />다시 찍기</button>
-            <button type="button" className="fg-btn fg-btn--primary" onClick={() => void print()} disabled={printState === 'sending' || printState === 'sent'}>
-              {printState === 'sending' ? <Loader2 className="fgt-spin" size={40} /> : <Printer size={40} aria-hidden="true" />}
-              {printState === 'sent' ? '인쇄 보냄' : '인쇄하기'}
-            </button>
+              <button type="button" className="fg-btn fg-btn--ghost" onClick={retake}><RotateCcw size={40} aria-hidden="true" />다시 찍기</button>
+              <button type="button" className="fg-btn fg-btn--ghost" onClick={home}><Home size={40} aria-hidden="true" />처음으로</button>
+            </div>
           </div>
         </section>
       )}

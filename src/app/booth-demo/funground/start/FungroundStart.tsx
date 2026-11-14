@@ -1,12 +1,10 @@
 'use client'
 
-// 펀그라운드 체험기 세로 시작 화면(프로그램 고르기) — 설치 기기(32인치 세로 터치스크린 1대)의 첫 화면.
-// 고른 프로그램은 이 화면 위에 띄워 연다(iframe):
-//   - 세로 프로그램(키오스크 모드 · 펀그라운드 전용 화면)은 세로 화면 칸에 꽉 차게
-//   - 가로 프로그램(지금 부스 프로그램)은 창 전체에 가로로 — 설치 때 세로로 바꾼다
+// 펀그라운드 체험기 시작 화면(프로그램 고르기) — 설치 기기(32인치 가로 터치스크린 1대, 2026-11-14 가로로 바뀜)의 첫 화면.
+// 고른 프로그램은 이 화면 위, 같은 16:9 화면 칸에 띄워 연다(iframe — 부스 프로그램 · 노트북판 진단 · 펀그라운드 전용 화면 모두 가로).
 // 위 왼쪽 「프로그램 고르기」로 돌아온다. 펀그라운드 전용 화면은 제 「처음으로」를 누르면 이 화면으로 돌아온다(postMessage 'fg:home').
 
-import { ArrowLeft, RotateCw } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { FG_H, FG_W, FgStage, useFgScale, useSearch } from '@/components/funground/FgStage'
 import { DEMO_CLEAN_KEY_PARAM, DEMO_CLEAN_VALUE } from '@/lib/demo-clean'
@@ -57,11 +55,11 @@ export function FungroundStart() {
     setOpened({ program, target, src: target.kind === 'screen' ? `${src}&from=start` : src })
   }
 
-  const landscape = opened?.program.orientation === 'landscape'
-  // 세로 프로그램은 세로 화면 칸(시작 화면과 같은 자리 · 크기)에 꽉 차게
-  const frame: CSSProperties = landscape
-    ? { inset: 0, width: '100%', height: '100%' }
-    : { width: FG_W * scale, height: FG_H * scale, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }
+  // 모든 프로그램을 시작 화면과 같은 자리 · 크기(16:9 화면 칸)에
+  const frame: CSSProperties = { width: FG_W * scale, height: FG_H * scale, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }
+  // 「프로그램 고르기」 — 화면 칸 위에 빈 띠가 있으면(16:10 노트북 등) 그 띠에, 없으면 화면 칸 왼쪽 아래 구석에(프로그램의 「처음으로」를 가리지 않게)
+  const gap = typeof window === 'undefined' ? 0 : (window.innerHeight - FG_H * scale) / 2
+  const back: CSSProperties = gap >= 44 ? { top: Math.max(2, gap / 2 - 20), left: `max(8px, calc(50% - ${(FG_W * scale) / 2}px))` } : { bottom: 8, left: 8 }
 
   return (
     <>
@@ -79,7 +77,6 @@ export function FungroundStart() {
                   <span className="fgs-tag">{p.tag}</span>
                   <b>{p.name}</b>
                   <span className="fgs-kind">{kindLine(p)}</span>
-                  {p.orientation === 'landscape' && <span className="fgs-wide"><RotateCw size={22} strokeWidth={2.6} aria-hidden="true" />지금은 가로 화면</span>}
                 </button>
               ) : (
                 <div className="fgs-tile fgs-tile--pick">
@@ -101,7 +98,7 @@ export function FungroundStart() {
       </FgStage>
 
       {opened && (
-        <div className="fgs-overlay" data-wide={landscape ? 'true' : undefined}>
+        <div className="fgs-overlay">
           <iframe
             key={opened.src}
             src={opened.src}
@@ -111,11 +108,10 @@ export function FungroundStart() {
           />
           {/* 펀그라운드 전용 화면은 제 「처음으로」가 이 화면으로 돌아온다 — 머리의 로고를 가리지 않게 단추를 따로 두지 않는다 */}
           {opened.target.kind !== 'screen' && (
-            <button type="button" className="fgs-back" onClick={close}>
+            <button type="button" className="fgs-back" style={back} onClick={close}>
               <ArrowLeft size={20} strokeWidth={2.6} aria-hidden="true" />프로그램 고르기
             </button>
           )}
-          {landscape && <span className="fgs-wide-note">가로 화면으로 열었어요 · 설치 때 세로 화면으로 바꿉니다</span>}
         </div>
       )}
     </>

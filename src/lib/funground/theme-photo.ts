@@ -88,14 +88,19 @@ export interface ComposeInput {
 /** 사람 무리의 아래 끝 — 인화 아래에서 이만큼 위 */
 export const PEOPLE_BOTTOM = 110
 
+/** 오려 낸 무리가 이보다 가로로 넓으면(가로 카메라에 3~4명이 나란히) 인화 폭 가득 앉힌다 */
+export const WIDE_GROUP = 1.8
+
 /**
  * 사람 자리 — 무리(1~4명) 전체를 아래 가운데에 앉힌다.
  * 가로는 인화 폭의 90%, 세로는 64%까지(위 1/3 은 테마 장면이 보이게). 원본보다 2.2배 넘게 키우면 흐려져 거기서 멈춘다.
+ * 가로 16:9 카메라에 나란히 선 3~4명(가로세로 WIDE_GROUP 넘게)은 폭이 먼저 차서 얼굴이 작아진다 — 그때는 폭 100%까지
+ * (양 끝 어깨는 앞 장식 옆 테두리 밑으로 들어가고, 얼굴은 테두리 안쪽에 온다).
  * 아래 끝은 인화 아래에서 PEOPLE_BOTTOM 위 — 원본 사진 테두리에서 잘린 몸(cutoutPerson 이 흐리게 처리)은 앞 장식의 아래 띠(불투명)에 가리고,
  * 사진 아래쪽에 있는 얼굴(앞줄에 앉은 사람)은 띠보다 위에 온다. 앞 장식의 아래 띠는 모두 인화 아래 150px 안쪽에서만 불투명하게 둔다.
  */
 export function placePeople(cw: number, ch: number) {
-  const maxW = PRINT.W * 0.9
+  const maxW = PRINT.W * (cw / ch > WIDE_GROUP ? 1 : 0.9)
   const maxH = PRINT.H * 0.64
   const scale = Math.min(maxW / cw, maxH / ch, 2.2)
   const width = cw * scale

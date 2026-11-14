@@ -1,82 +1,102 @@
-/* 펀그라운드 B안 미래 직업 탐색(NEXT!) — 1080×1920 세로. 공통 틀은 components/funground/funground.css, 여기는 이 화면만(fgc-).
-   누르는 곳 88px 이상 · 글자는 2m 앞에서 읽히게. 색은 키오스크 NEXT!(코발트 · 오렌지)를 따른다. */
+/* 펀그라운드 B안 미래 직업 탐색(NEXT!) — 1920×1080 가로(머리 112px 아래 968px). 공통 틀은 components/funground/funground.css, 여기는 이 화면만(fgc-).
+   가로 배치는 노트북판 /kiosk/pc/career(experience-pc.css)를 따른다 — 질문은 가로로 넓게(활동 4열 · MBTI 8열 · 답 나란히), 결과는 왼쪽 풀이 · 오른쪽 직업 셋.
+   누르는 곳 88px 이상 · 글자는 2m 앞에서 읽히게. 색은 키오스크 NEXT!(코발트 · 오렌지)를 따른다. 화면 전체는 스크롤하지 않는다. */
 .fgc { --fgc-orange: #f2702a; --fgc-soft: color-mix(in srgb, var(--fg-tone) 12%, #fff); }
-.fgc .fg-body { padding: 48px 56px 44px; gap: 28px; background: linear-gradient(180deg, #dff0fe 0%, #eef6ff 45%, var(--fg-paper) 100%); }
-.fgc-bottom { display: flex; flex-direction: column; gap: 18px; margin-top: auto; }
-.fgc--result .fg-body { padding-top: 40px; gap: 22px; }
+.fgc .fg-body { padding: 0; background: linear-gradient(180deg, #dff0fe 0%, #eef6ff 45%, var(--fg-paper) 100%); }
+.fgc-bottom { display: flex; flex-direction: column; gap: 16px; margin-top: auto; }
 .fgc-wide { width: 100%; }
 .fgc-center { text-align: center; }
 
-/* 첫 화면 */
-.fgc-intro { display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; animation: fgc-rise 0.45s ease-out backwards; }
-.fgc-word { color: var(--fg-tone); font-family: Impact, var(--font-wanted), sans-serif; font-size: 200px; font-weight: 900; line-height: 0.95; letter-spacing: -0.02em; }
-.fgc-hero { width: 720px; max-width: 100%; height: 600px; object-fit: contain; mix-blend-mode: multiply; }
-.fgc-facts { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+/* ── 첫 화면 — 왼쪽 NEXT! · 그림 / 오른쪽 소개 · 시작 ─────────── */
+.fgc-intro.fg-split { grid-template-columns: minmax(0, 1fr) 800px; gap: 72px; padding: 40px 80px 52px; }
+.fgc-visual { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 0; animation: fgc-rise 0.45s ease-out backwards; }
+.fgc-word { flex: none; color: var(--fg-tone); font-family: Impact, var(--font-wanted), sans-serif; font-size: 190px; font-weight: 900; line-height: 0.95; letter-spacing: -0.02em; }
+.fgc-hero { flex: 1 1 0; width: 100%; min-height: 0; max-height: 640px; object-fit: contain; mix-blend-mode: multiply; }
+.fgc-panel { justify-content: center; gap: 28px; animation: fgc-rise 0.45s ease-out 0.08s backwards; }
+.fgc-panel .fgc-bottom { margin-top: 20px; }
+.fgc-facts { display: flex; flex-wrap: wrap; gap: 16px; }
 .fgc-facts li { padding: 14px 30px; border-radius: 999px; background: var(--fg-white); color: var(--fg-tone); font-size: 34px; font-weight: 800; box-shadow: 0 6px 18px rgba(49, 92, 168, 0.12); }
 
-/* 질문 */
-.fgc-progress { display: flex; align-items: center; justify-content: space-between; }
-.fgc-count { color: var(--fg-tone); font-size: 36px; font-weight: 800; }
+/* ── 질문 — 위 진행 점 · 질문 한 줄 / 가운데 답(가로로 넓게) / 아래 이전 · 고른 수 · 다음 ─────────── */
+.fgc--ask .fg-body { gap: 26px; padding: 34px 72px 44px; }
+.fgc-progress { display: flex; flex: none; align-items: center; justify-content: space-between; height: 64px; }
+.fgc-count { display: flex; align-items: baseline; gap: 6px; color: var(--fg-tone); font-size: 36px; font-weight: 800; line-height: 1; }
 .fgc-count b { color: var(--fgc-orange); font-size: 56px; font-weight: 900; }
-.fgc-q { display: flex; flex-direction: column; gap: 18px; animation: fgc-rise 0.4s ease-out backwards; }
-.fgc-q .fg-lead { margin-bottom: 14px; color: var(--fg-tone); }
-.fgc-icon { display: grid; flex: none; place-items: center; width: 108px; height: 108px; border-radius: 28px; background: var(--fgc-soft); color: var(--fg-tone); }
+.fgc-q { display: flex; flex: 1; flex-direction: column; gap: 12px; min-height: 0; animation: fgc-rise 0.4s ease-out backwards; }
+.fgc-q .fg-lead { margin-bottom: 18px; color: var(--fg-tone); }
+.fgc-icon { display: grid; flex: none; place-items: center; width: 116px; height: 116px; border-radius: 30px; background: var(--fgc-soft); color: var(--fg-tone); }
+.fgc-tile:active, .fgc-option:active, .fgc-mbti button:active { transform: scale(0.97); }
 
-.fgc-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.fgc-tile { position: relative; display: flex; align-items: center; gap: 22px; min-height: 224px; padding: 22px 26px; border: 6px solid transparent; border-radius: 36px; background: var(--fg-white); text-align: left; box-shadow: 0 8px 24px rgba(49, 92, 168, 0.12); transition: transform 0.14s ease-out, border-color 0.2s ease; }
+/* 활동 여덟 — 4열 × 2줄, 그림 위 · 글 아래 */
+.fgc-tiles { display: grid; flex: 1; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 26px; min-height: 0; }
+.fgc-tile { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; min-height: 0; padding: 18px 20px; border: 6px solid transparent; border-radius: 36px; background: var(--fg-white); text-align: center; box-shadow: 0 8px 24px rgba(49, 92, 168, 0.12); transition: transform 0.14s ease-out, border-color 0.2s ease; }
 .fgc-tile[data-warm] .fgc-icon { background: #fde9dc; color: var(--fgc-orange); }
 .fgc-tile b { font-size: 40px; font-weight: 900; line-height: 1.2; letter-spacing: -0.03em; }
 .fgc-tile[data-on] { border-color: var(--fg-tone); background: color-mix(in srgb, var(--fg-tone) 6%, #fff); }
-.fgc-tile:active, .fgc-option:active, .fgc-mbti button:active { transform: scale(0.97); }
 .fgc-check { position: absolute; top: -14px; right: -10px; display: grid; place-items: center; width: 60px; height: 60px; border-radius: 50%; background: var(--fgc-orange); color: #fff; animation: fgc-pop 0.3s ease-out; }
-.fgc .fgc-picked { align-self: center; padding: 14px 40px; border-radius: 999px; background: var(--fg-white); color: var(--fg-tone); font-size: 34px; font-weight: 800; }
 
-.fgc-mbti { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+/* MBTI 열여섯 — 8열 × 2줄, 그 아래 고른 유형 풀이 한 줄 */
+.fgc-mbti { display: grid; flex: none; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 22px; }
 .fgc-mbti button { min-height: 156px; border: 6px solid transparent; border-radius: 30px; background: var(--fg-white); font-size: 48px !important; font-weight: 900; letter-spacing: 0.04em; box-shadow: 0 8px 22px rgba(49, 92, 168, 0.12); transition: transform 0.14s ease-out; }
 .fgc-mbti button[data-on] { border-color: var(--fg-tone); background: var(--fg-tone); color: #fff !important; }
-.fgc .fgc-mbti-note { margin-top: 16px; padding: 26px 30px; border-radius: 28px; background: var(--fg-white); color: var(--fg-tone); font-size: 34px; font-weight: 800; line-height: 1.4; text-align: center; animation: fgc-rise 0.3s ease-out backwards; }
+.fgc .fgc-mbti-note { margin-top: 24px; padding: 28px 30px; border-radius: 28px; background: var(--fg-white); color: var(--fg-tone); font-size: 36px; font-weight: 800; line-height: 1.4; text-align: center; animation: fgc-rise 0.3s ease-out backwards; }
 
-.fgc-options { display: flex; flex-direction: column; gap: 26px; }
-.fgc-option { display: grid; grid-template-columns: 108px 1fr 72px; align-items: center; gap: 28px; min-height: 228px; padding: 20px 32px; border: 6px solid transparent; border-radius: 36px; background: var(--fg-white); text-align: left; box-shadow: 0 8px 24px rgba(49, 92, 168, 0.12); transition: transform 0.14s ease-out, border-color 0.2s ease; animation: fgc-rise 0.4s ease-out backwards; }
-.fgc-options[data-count='4'] .fgc-option { min-height: 196px; }
+/* 상황 질문 — 보기 셋 · 넷을 나란히, 그림 위 · 글 가운데 · 고름 표시 아래 */
+.fgc-options { display: grid; flex: 1; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: 28px; min-height: 0; }
+.fgc-option { display: grid; grid-template-rows: auto 1fr auto; justify-items: center; align-items: center; gap: 18px; min-height: 0; padding: 36px 30px 30px; border: 6px solid transparent; border-radius: 36px; background: var(--fg-white); text-align: center; box-shadow: 0 8px 24px rgba(49, 92, 168, 0.12); transition: transform 0.14s ease-out, border-color 0.2s ease; animation: fgc-rise 0.4s ease-out backwards; }
 .fgc-option:nth-child(2) { animation-delay: 0.06s; }
 .fgc-option:nth-child(3) { animation-delay: 0.12s; }
 .fgc-option:nth-child(4) { animation-delay: 0.18s; }
 .fgc-option b { font-size: 46px; font-weight: 900; line-height: 1.25; letter-spacing: -0.03em; }
+.fgc-options[data-count='4'] { gap: 24px; }
+.fgc-options[data-count='4'] .fgc-option { padding-inline: 22px; }
+.fgc-options[data-count='4'] .fgc-option b { font-size: 42px; }
 .fgc-option[data-on] { border-color: var(--fg-tone); background: color-mix(in srgb, var(--fg-tone) 6%, #fff); }
 .fgc-radio { display: grid; place-items: center; width: 72px; height: 72px; border: 5px solid var(--fg-line); border-radius: 50%; color: #fff; }
 .fgc-option[data-on] .fgc-radio { border-color: var(--fg-tone); background: var(--fg-tone); }
-.fgc-back { flex: 0 0 300px !important; padding: 0 30px; }
 
-/* 결과 */
-.fgc-result { display: flex; flex-direction: column; gap: 18px; animation: fgc-rise 0.45s ease-out backwards; }
+/* 맨 아래 한 줄 */
+.fgc-bar { display: grid; flex: none; grid-template-columns: 360px minmax(0, 1fr) 640px; align-items: center; gap: 32px; }
+.fgc-bar .fgc-back { grid-column: 1; padding: 0 30px; }
+.fgc-bar .fgc-next { grid-column: 3; }
+.fgc .fgc-picked { grid-column: 2; justify-self: center; padding: 18px 44px; border-radius: 999px; background: var(--fg-white); color: var(--fg-tone); font-size: 36px; font-weight: 800; }
+
+/* ── 결과 — 왼쪽 완료 · 축 태그 · 재미로 보는 풀이 / 오른쪽 직업 셋 · 첫 도전 · 처음으로 ─────────── */
+.fgc-result.fg-split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 52px; padding: 36px 64px 40px; }
+.fgc-read { gap: 22px; animation: fgc-rise 0.45s ease-out backwards; }
+.fgc-picks { gap: 18px; animation: fgc-rise 0.45s ease-out 0.1s backwards; }
+.fgc-head { display: flex; flex: none; flex-wrap: wrap; align-items: center; gap: 14px 24px; min-height: 64px; }
 .fgc-done { display: inline-flex; align-items: center; gap: 12px; color: var(--fg-tone); font-size: 34px; font-weight: 900; }
 .fgc-done i { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--fgc-orange); color: #fff; }
 .fgc-tags { display: flex; flex-wrap: wrap; gap: 14px; }
 .fgc-tags span { padding: 10px 26px; border-radius: 999px; background: var(--fgc-soft); color: var(--fg-tone); font-size: 32px; font-weight: 800; }
 .fgc-tags span[data-clue] { background: #fde9dc; color: var(--fgc-orange); }
 
-.fgc-combo { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 30px 38px; border: 5px solid color-mix(in srgb, var(--fg-tone) 25%, #fff); border-radius: 40px; background: var(--fg-white); }
-.fgc-combo h2 { margin-top: 6px !important; color: var(--fg-ink); font-size: 56px; font-weight: 900; letter-spacing: -0.03em; }
-.fgc-combo-axes { color: var(--fg-tone); font-size: 30px; font-weight: 800; }
-.fgc-combo-body { color: #33415f; font-size: 32px; font-weight: 600; line-height: 1.5; }
+/* 풀이 칸은 왼쪽 높이를 다 쓰고 글은 가운데에 */
+.fgc-combo { display: flex; flex: 1; flex-direction: column; align-items: flex-start; justify-content: center; gap: 14px; min-height: 0; padding: 40px 48px; border: 5px solid color-mix(in srgb, var(--fg-tone) 25%, #fff); border-radius: 40px; background: var(--fg-white); }
+.fgc-combo h2 { margin-top: 8px !important; color: var(--fg-ink); font-size: 64px; font-weight: 900; line-height: 1.15; letter-spacing: -0.03em; }
+.fgc-combo-axes { color: var(--fg-tone); font-size: 32px; font-weight: 800; }
+.fgc-combo-body { margin-top: 10px; color: #33415f; font-size: 36px; font-weight: 600; line-height: 1.55; }
 
-.fgc-careers { display: flex; flex-direction: column; gap: 14px; }
-.fgc-careers li { display: flex; align-items: center; gap: 24px; padding: 14px 28px 14px 14px; border-radius: 32px; background: var(--fg-white); box-shadow: 0 6px 20px rgba(49, 92, 168, 0.1); }
-.fgc-careers img { flex: none; width: 124px; height: 124px; border-radius: 24px; background: var(--fgc-soft); object-fit: cover; }
-.fgc-careers div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.fgc-careers b { display: flex; align-items: baseline; gap: 16px; font-size: 46px; font-weight: 900; letter-spacing: -0.03em; }
+.fgc-picks .fg-title { flex: none; line-height: 64px; }
+.fgc-careers { display: flex; flex: none; flex-direction: column; gap: 14px; }
+.fgc-careers li { display: flex; align-items: center; gap: 24px; padding: 12px 28px 12px 12px; border-radius: 32px; background: var(--fg-white); box-shadow: 0 6px 20px rgba(49, 92, 168, 0.1); }
+.fgc-careers img { flex: none; width: 112px; height: 112px; border-radius: 24px; background: var(--fgc-soft); object-fit: cover; }
+.fgc-careers div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.fgc-careers b { display: flex; align-items: baseline; gap: 16px; font-size: 44px; font-weight: 900; letter-spacing: -0.03em; }
 .fgc-careers b em { color: var(--fg-tone); font-size: 32px; font-style: normal; font-weight: 900; }
 .fgc-careers li:first-child b em { color: var(--fgc-orange); }
-.fgc-careers span { color: var(--fg-soft); font-size: 31px; font-weight: 600; line-height: 1.35; }
+.fgc-careers span { color: var(--fg-soft); font-size: 30px; font-weight: 600; line-height: 1.35; }
 
-.fgc-first { display: flex; align-items: center; gap: 24px; padding: 22px 32px; border-radius: 32px; background: #fff3ea; color: var(--fgc-orange); }
-.fgc-first div { display: flex; flex-direction: column; gap: 6px; }
+.fgc-first { display: flex; flex: none; align-items: center; gap: 24px; padding: 20px 32px; border-radius: 32px; background: #fff3ea; color: var(--fgc-orange); }
+.fgc-first svg { flex: none; }
+.fgc-first div { display: flex; flex-direction: column; gap: 4px; }
 .fgc-first em { font-size: 30px; font-style: normal; font-weight: 900; }
-.fgc-first b { color: var(--fg-ink); font-size: 36px; font-weight: 800; line-height: 1.35; }
+.fgc-first b { color: var(--fg-ink); font-size: 34px; font-weight: 800; line-height: 1.35; }
+.fgc-picks .fgc-bottom { gap: 12px; }
 
 @keyframes fgc-rise { from { opacity: 0; transform: translateY(24px); } }
 @keyframes fgc-pop { from { transform: scale(0.4); } }
 @media (prefers-reduced-motion: reduce) {
-  .fgc-intro, .fgc-q, .fgc-option, .fgc-result, .fgc-mbti-note, .fgc-check { animation: none; }
+  .fgc-visual, .fgc-panel, .fgc-q, .fgc-option, .fgc-read, .fgc-picks, .fgc-mbti-note, .fgc-check { animation: none; }
 }

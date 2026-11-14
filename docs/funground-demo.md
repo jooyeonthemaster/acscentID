@@ -1,19 +1,19 @@
 # 펀그라운드 별내 견적 데모 (/booth-demo/funground)
 
 2026-11-14. 남양주 「펀그라운드 별내」(9~19세 청소년 공공시설) 상설 체험기 견적(A안 26-217 · B안 26-218)에 붙이는 전용 데모.
-고객이 링크에서 각 안의 프로그램을 직접 눌러 본다. 설치 기기는 32인치 **세로** 터치스크린 1대(카메라 · 4×6 포토 프린터 · 영수증 프린터 · PC).
+고객이 링크에서 각 안의 프로그램을 직접 눌러 본다. 설치 기기는 32인치 **가로** 터치스크린 1대(카메라 · 4×6 포토 프린터 · 영수증 프린터 · PC). 2026-11-14 처음엔 세로로 만들었다가 같은 날 사용자 지시로 **모든 화면을 가로**로 바꿨다(1920×1080 기준, 부스 프로그램은 1280×720 기준).
 
 ## 주소
 - 랜딩 `/booth-demo/funground` — A안 / B안 탭(`#a` · `#b`), 카드마다 단계(1단계 · 12월 / 2단계 · 1월)와 제작 구분(기존 프로그램 · 기존 · 고쳐 씀 · 새로 제작).
 - 워터마크 없는 판 `/booth-demo/funground/clean?k=…` — 랜딩 바닥글 「관리자 · 워터마크 없는 링크」에서 관리자 비밀번호 6자리 + 기간(7 · 30 · 90일)으로 만든다(포토부스 · 키오스크 데모와 같은 서명, `src/lib/demo-clean.ts`). 여기서 연 화면은 모두 `demo=clean&k=…`.
-- 세로 시작 화면(프로그램 고르기) `/booth-demo/funground/start?plan=a|b&demo=1` — 설치 기기의 첫 화면. 고른 프로그램을 그 위에 띄운다(iframe): 세로 프로그램은 세로 화면 칸에, 가로 프로그램은 창 전체에(「설치 때 세로로 바꿈」).
-- 전용 화면(세로 1080×1920, `src/components/funground/FgStage.tsx`): `/booth-demo/funground/saju?engine=ai|local` · `/career` · `/color` · `/theme`.
-- 부스 프로그램은 기존 주소에 `site=funground` 를 붙여 연다: `/booth?mode=<id>&demo=1&site=funground`. 키오스크 진단은 기존 데모 주소 그대로 `/kiosk?mode=ai-color|studio-career&demo=1`.
+- 시작 화면(프로그램 고르기) `/booth-demo/funground/start?plan=a|b&demo=1` — 설치 기기의 첫 화면. 고른 프로그램을 같은 16:9 화면 칸에 띄운다(iframe). 「프로그램 고르기」 단추는 화면 칸 위 빈 띠에(없으면 왼쪽 아래).
+- 전용 화면(가로 1920×1080, `src/components/funground/FgStage.tsx` · 두 칸 `.fg-split`): `/booth-demo/funground/saju?engine=ai|local` · `/career` · `/color` · `/theme`.
+- 부스 프로그램은 기존 주소에 `site=funground` 를 붙여 연다: `/booth?mode=<id>&demo=1&site=funground`. AI 진단은 키오스크 프로그램의 노트북 가로판 `/kiosk/pc/color|career?demo=1`(docs/kiosk-pc.md — 결과는 영수증 대신 휴대폰 QR; 데모 주소로 열면 DEMO 워터마크, `PcScreen`).
 - 로케일 라우팅 밖(`middleware.ts`), `robots: noindex`. 목록 · 주소 규칙은 `src/lib/funground/demo.ts`(`FUNGROUND_PROGRAMS`).
 
 ## 노트북으로 확인하기
-- 고객이 노트북 크롬 브라우저로 열어(2026-11-14 크롬으로 확인 · 사파리는 아직 확인 안 함) 노트북 카메라 · 마이크로 끝까지 해 볼 수 있다. 세로 화면은 창 높이에 맞춰 줄여 보이고, 가로 부스 프로그램은 창 가득.
-- 카메라 권한을 처음 한 번 묻는다(세로 시작 화면 안에서 연 프로그램도 같은 사이트라 한 번). 거절하면 화면마다 「주소창에서 카메라(뮤직비디오는 카메라 · 마이크) 권한을 허용」 안내와 다시 연결 단추.
+- 고객이 노트북 크롬 브라우저로 열어(2026-11-14 크롬으로 확인 · 사파리는 아직 확인 안 함) 노트북 카메라 · 마이크로 끝까지 해 볼 수 있다. 모든 화면이 16:9 가로라 노트북 창에 거의 꽉 차게 보인다(전체 화면이면 가장 크게).
+- 카메라 권한을 처음 한 번 묻는다(시작 화면 안에서 연 프로그램도 같은 사이트라 한 번). 거절하면 화면마다 「주소창에서 카메라(뮤직비디오는 카메라 · 마이크) 권한을 허용」 안내와 다시 연결 단추.
 - 펀그라운드에서 연 부스 프로그램은 웹캠만 쓴다 — DSLR 브리지(127.0.0.1:9120)를 찾지 않는다(크롬의 로컬 네트워크 권한 창 · 대기 없음, `fungroundWebcamOnly`). 설치 기기는 주소에 `camera=dslr`.
 
 ## 프로그램
@@ -25,12 +25,12 @@
 | A | 4 | 팬 포토카드 WITH! | 1 | 기존 | 가로 | `fan-card` |
 | A | 5 | 판타지 모험 QUEST! | 2 | 새로 | 가로 | `quest` (catalog `site: 'funground'`) |
 | A | 6 | 스포츠 스타 MVP! | 2 | 새로 | 가로 | `mvp` (catalog `site: 'funground'`) |
-| A | 7 | AI 진단 — 퍼스널 컬러 / 미래 직업(둘 중 하나) | 1 | 기존 | 세로 | `/kiosk?mode=ai-color` · `studio-career` |
-| A | 8 | AI 포춘 FORTUNE! | 1 | 고쳐 씀 | 세로 | `/booth-demo/funground/saju?engine=ai` |
-| B | 1 | 테마 포토 THEME! | 2 | 새로 | 세로 | `/booth-demo/funground/theme` |
-| B | 2 | 퍼스널 컬러 COLOR! | 2 | 고쳐 씀 | 세로 | `/booth-demo/funground/color` |
-| B | 3 | 사주 SAJU! | 1 | 고쳐 씀 | 세로 | `/booth-demo/funground/saju?engine=local` |
-| B | 4 | 미래 직업 탐색 NEXT! | 1 | 고쳐 씀 | 세로 | `/booth-demo/funground/career` |
+| A | 7 | AI 진단 — 퍼스널 컬러 / 미래 직업(둘 중 하나) | 1 | 기존 | 가로 | `/kiosk/pc/color` · `/kiosk/pc/career` |
+| A | 8 | AI 포춘 FORTUNE! | 1 | 고쳐 씀 | 가로 | `/booth-demo/funground/saju?engine=ai` |
+| B | 1 | 테마 포토 THEME! | 2 | 새로 | 가로 | `/booth-demo/funground/theme` |
+| B | 2 | 퍼스널 컬러 COLOR! | 2 | 고쳐 씀 | 가로 | `/booth-demo/funground/color` |
+| B | 3 | 사주 SAJU! | 1 | 고쳐 씀 | 가로 | `/booth-demo/funground/saju?engine=local` |
+| B | 4 | 미래 직업 탐색 NEXT! | 1 | 고쳐 씀 | 가로 | `/booth-demo/funground/career` |
 | B | 5 | 뮤직비디오 MV! | 1 | 기존 | 가로 | `/booth?mode=music-video` |
 
 ## A안 — AI 생성형
@@ -57,10 +57,9 @@
 외모 평가 · 점수 · 순위 없음. 퍼스널 컬러는 「어울리는 색」만. 사주 · 미래 직업은 「재미로 보는 풀이」를 화면에 늘 보인다. 연애 · 재물 같은 말은 빼거나 순화.
 
 ## 그림
-랜딩 카드 그림 `public/assets/booth-demo/funground/<key>.webp` — 세로 화면은 1080×1920 → 540×960, 가로 부스 화면은 1280×720 → 960×540(워터마크를 걷고 찍음). 기존 프로그램은 기존 데모 그림을 복사했다. 머리말 그림 `start-a.webp` · `start-b.webp` 은 세로 시작 화면.
+랜딩 카드 그림 `public/assets/booth-demo/funground/<key>.webp` — 모두 16:9 960×540(전용 화면은 1920×1080, 부스는 1280×720, 진단은 노트북판을 찍어 줄임, 워터마크를 걷고). 기존 부스 프로그램은 기존 데모 그림을 복사했다. 머리말 그림 `start-a.webp` · `start-b.webp` 은 시작 화면. 랜딩의 기기 그림(`.fl-device`)은 벽 매입 가로 화면.
 
 ## 설치 전에 남은 일
-- 가로 부스 프로그램 6종(아이돌 · ERA! · GRAD! · WITH! · QUEST! · MVP!)과 MV! 의 세로 배치.
 - DSLR 브리지(데모는 웹캠), 4×6 포토 프린터 · 영수증 프린터 연결, 실제 펀그라운드 색 · 로고.
 - 운영 펀그라운드 키(Vercel `OPENROUTER_FUNGROUND_API_KEY`), 아이 얼굴 유사도 재시험(메모 seedream-booth-test-2026-11 — 지금 시험은 가상 성인 사진).
 - MV! QR 받기: 운영 DB 마이그레이션 20261015 적용 여부(사용자 결정).

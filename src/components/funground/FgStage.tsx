@@ -1,6 +1,7 @@
 'use client'
 
-// 펀그라운드 별내 체험기 화면 틀 — 32인치 세로 터치스크린(1080×1920 기준)을 창 크기에 맞춰 키우거나 줄인다(가운데, 남는 곳은 어둡게).
+// 펀그라운드 별내 체험기 화면 틀 — 32인치 가로 터치스크린(1920×1080 기준, 2026-11-14 사용자 지시: 기기 화면은 모두 가로)을
+// 창 크기에 맞춰 키우거나 줄인다(가운데, 남는 곳은 어둡게). 노트북 창(1280×800 · 1440×900 등)에서도 같은 배치로 보인다.
 // 위: 펀그라운드 로고 자리(실제 로고는 나중에 받는다 — 임시 「FUN GROUND」 글자) · 처음으로 단추. 아래 내용은 화면마다.
 // 데모 주소(demo=1 · demo=clean&k=…)면 DEMO 워터마크(BoothWatermark — 서명이 맞으면 걷는다).
 
@@ -9,8 +10,8 @@ import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode 
 import { BoothWatermark } from '@/components/photobooth/BoothWatermark'
 import './funground.css'
 
-export const FG_W = 1080
-export const FG_H = 1920
+export const FG_W = 1920
+export const FG_H = 1080
 
 /** 창 크기에 맞춘 배율 */
 export function useFgScale() {

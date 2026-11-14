@@ -1,6 +1,8 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { useSyncExternalStore } from 'react'
+import { BoothWatermark } from '@/components/photobooth/BoothWatermark'
 import { findKioskPcProgram } from '@/lib/kiosk/pc'
 
 // 노트북 가로 화면 — 링크가 프로그램을 정한다. 퍼스널 컬러는 매장 키오스크의 기존(classic) 셸을, 캐리커처·직업 탐색은
@@ -14,8 +16,19 @@ const Experience = dynamic(() => import('../experience/ExperienceApp').then((m) 
   loading: () => <div style={{ position: 'fixed', inset: 0, background: '#f4f5f8' }} aria-busy="true" />,
 })
 
+const subscribeNever = () => () => {}
+/** 영업용 데모에서 연 주소(demo=1 · demo=clean&k=…, 펀그라운드 데모의 AI 진단)인가 — 서버에서 그릴 때는 아님 */
+const useDemoLink = () => useSyncExternalStore(subscribeNever, () => new URLSearchParams(window.location.search).has('demo'), () => false)
+
 export function PcScreen({ slug }: { slug: string }) {
   const program = findKioskPcProgram(slug)
+  const demo = useDemoLink()
   if (!program) return null
-  return program.kind === 'shell' ? <Classic pinnedMode={program.mode} pc /> : <Experience id={program.experience} pc />
+  return (
+    <>
+      {program.kind === 'shell' ? <Classic pinnedMode={program.mode} pc /> : <Experience id={program.experience} pc />}
+      {/* 행사용 노트북 링크는 워터마크가 없다. 영업용 데모로 연 것만 DEMO 워터마크(서명 링크면 걷힌다 — BoothWatermark) */}
+      {demo && <BoothWatermark />}
+    </>
+  )
 }

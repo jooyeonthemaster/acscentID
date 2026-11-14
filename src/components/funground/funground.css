@@ -1,6 +1,7 @@
-/* 펀그라운드 별내 체험기 화면(1080×1920 세로) 공통 — 임시 색(실제 펀그라운드 색 · 로고는 나중에 받아 바꾼다).
+/* 펀그라운드 별내 체험기 화면(1920×1080 가로) 공통 — 임시 색(실제 펀그라운드 색 · 로고는 나중에 받아 바꾼다).
    화면마다 쓰는 것: .fg-title · .fg-lead · .fg-btn(--primary · --ghost) · .fg-card · .fg-chip · .fg-steps · .fg-note.
-   누르는 곳은 손가락 기준 88px 이상, 글자는 2m 앞에서 읽히게 크게. */
+   누르는 곳은 손가락 기준 88px 이상, 글자는 2m 앞에서 읽히게 크게.
+   가로 배치 기본: 왼쪽 큰 그림 · 카메라 · 결과 / 오른쪽 제목 · 설명 · 단추(.fg-split) — 부스 프로그램(1280×720) 화면과 같은 짜임. */
 .fg-viewport {
   --fg-orange: #ff6b2c;
   --fg-green: #18a874;
@@ -38,31 +39,32 @@
 }
 .fg-stage h1, .fg-stage h2, .fg-stage h3, .fg-stage p, .fg-stage ul, .fg-stage ol { margin: 0; padding: 0; }
 .fg-stage ul, .fg-stage ol { list-style: none; }
-.fg-stage button { font: inherit; color: inherit; cursor: pointer; }
+/* :where — 이 초기화가 .fg-btn · .fg-chip 의 굵기보다 앞서지 않게(같은 우선순위, 뒤에 쓴 규칙이 이긴다) */
+.fg-stage :where(button) { font: inherit; color: inherit; cursor: pointer; }
 
 /* 머리 — 로고 자리 + 처음으로 */
-.fg-head { position: relative; z-index: 3; display: flex; flex: none; align-items: center; justify-content: space-between; height: 150px; padding: 0 56px; background: var(--fg-white); border-bottom: 8px solid var(--fg-tone); }
+.fg-head { position: relative; z-index: 3; display: flex; flex: none; align-items: center; justify-content: space-between; height: 112px; padding: 0 48px; background: var(--fg-white); border-bottom: 8px solid var(--fg-tone); }
 .fg-logo { display: inline-flex; align-items: baseline; gap: 10px; line-height: 1; }
-.fg-logo b { color: var(--fg-orange); font-size: 64px; font-weight: 900; letter-spacing: -0.02em; }
-.fg-logo i { color: var(--fg-green); font-size: 64px; font-style: normal; font-weight: 900; letter-spacing: -0.02em; }
+.fg-logo b { color: var(--fg-orange); font-size: 52px; font-weight: 900; letter-spacing: -0.02em; }
+.fg-logo i { color: var(--fg-green); font-size: 52px; font-style: normal; font-weight: 900; letter-spacing: -0.02em; }
 .fg-logo em { margin-left: 6px; padding: 6px 14px; border: 3px dashed #c9bfae; border-radius: 12px; color: var(--fg-soft); font-size: 26px; font-style: normal; font-weight: 800; }
 .fg-logo--sm b, .fg-logo--sm i { font-size: 30px; }
 .fg-logo--sm em { padding: 2px 8px; border-width: 2px; font-size: 15px; }
-.fg-home { display: inline-flex; align-items: center; gap: 12px; min-height: 92px; padding: 0 34px; border: 4px solid var(--fg-ink); border-radius: 999px; background: var(--fg-white); font-size: 34px !important; font-weight: 800; }
+.fg-home { display: inline-flex; align-items: center; gap: 12px; min-height: 88px; padding: 0 32px; border: 4px solid var(--fg-ink); border-radius: 999px; background: var(--fg-white); font-size: 32px !important; font-weight: 800; }
 .fg-home:active { background: var(--fg-ink); color: #fff !important; }
 
 .fg-body { position: relative; display: flex; flex: 1; flex-direction: column; min-height: 0; }
 
 /* 글자 */
 .fg-kicker { color: var(--fg-tone); font-size: 34px; font-weight: 900; letter-spacing: 0.08em; }
-.fg-title { font-size: 82px; font-weight: 900; line-height: 1.12; letter-spacing: -0.04em; white-space: pre-line; }
-.fg-title--md { font-size: 64px; }
-.fg-lead { color: var(--fg-soft); font-size: 38px; font-weight: 600; line-height: 1.45; white-space: pre-line; }
+.fg-title { font-size: 76px; font-weight: 900; line-height: 1.12; letter-spacing: -0.04em; white-space: pre-line; }
+.fg-title--md { font-size: 58px; }
+.fg-lead { color: var(--fg-soft); font-size: 34px; font-weight: 600; line-height: 1.45; white-space: pre-line; }
 .fg-note { color: var(--fg-soft); font-size: 28px; font-weight: 600; line-height: 1.45; }
 .fg-fun { display: inline-block; padding: 8px 22px; border-radius: 999px; background: var(--fg-yellow); color: var(--fg-ink); font-size: 30px; font-weight: 800; }
 
 /* 단추 */
-.fg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 16px; min-height: 128px; padding: 0 64px; border: 0; border-radius: 999px; background: var(--fg-white); color: var(--fg-ink); font-size: 46px !important; font-weight: 900; box-shadow: 0 8px 0 rgba(23, 33, 58, 0.16); transition: transform 0.12s ease; }
+.fg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 16px; min-height: 112px; padding: 0 56px; border: 0; border-radius: 999px; background: var(--fg-white); color: var(--fg-ink); font-size: 42px !important; font-weight: 900; box-shadow: 0 8px 0 rgba(23, 33, 58, 0.16); transition: transform 0.12s ease; }
 .fg-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 rgba(23, 33, 58, 0.16); }
 .fg-btn--primary { background: var(--fg-tone); color: #fff !important; box-shadow: 0 10px 0 color-mix(in srgb, var(--fg-tone) 60%, #000); }
 .fg-btn--ghost { border: 5px solid var(--fg-ink); background: transparent; box-shadow: none; }
@@ -86,3 +88,8 @@
 .fg-spin { width: 140px; height: 140px; border: 16px solid color-mix(in srgb, var(--fg-tone) 20%, #fff); border-top-color: var(--fg-tone); border-radius: 50%; animation: fg-spin 0.9s linear infinite; }
 @keyframes fg-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .fg-spin { animation-duration: 3s; } .fg-btn { transition: none; } }
+
+/* 가로 두 칸 — 왼쪽 그림(카메라 · 사진 · 결과) / 오른쪽 글 · 단추 */
+.fg-split { display: grid; flex: 1; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 48px; min-height: 0; padding: 44px 56px 48px; }
+.fg-split > * { min-width: 0; min-height: 0; }
+.fg-panel { display: flex; flex-direction: column; gap: 24px; min-height: 0; }
