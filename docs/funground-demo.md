@@ -28,6 +28,15 @@
 | B | NEXT! 미래 직업 탐색(질문 8 + 결과 카드용 사진) | 1 | 고쳐 씀 | `/booth-demo/funground/career` |
 | B | FORTUNE! 포춘(만세력 + 미리 쓴 문장) | 1 | 고쳐 씀 | `/booth-demo/funground/saju?engine=local` |
 
+**새 프로그램(2026-11-14, LATER! 보다 싼 대안 — 사용자 지시로 데모에 더해 비교)**
+| 안 | 프로그램 | 단계 | 구분 | 여는 곳 | 1회 비용 |
+|---|---|---|---|---|---|
+| A | FUTURE NEWS! 2046 별내 신문 — 사진(기기 안 오리기) + 질문 3 → AI 기자가 1면 기사 | 2 | 새로 | `/booth-demo/funground/news?engine=ai` | 글 1회 약 $0.002 |
+| A | DREAM! 꿈의 직업 포토 — 6직업 × 2장면, 옷 · 일터만 바꿈(1~4명) | 2 | 새로 | `/booth?mode=dream&site=funground` (Seedream) | $0.018 |
+| B | FUTURE NEWS! — 기사는 미리 쓴 틀(`news-template.ts`) | 2 | 새로 | `/booth-demo/funground/news?engine=local` | $0 |
+
+DREAM! 가상 어린이 시험(5건, 2026-11-14): 얼굴 유사도 0.80~0.95, 1~4명 모두 유지, 나이 그대로. 우주복에 국기 · 패치가 그려져 프롬프트에 「깃발 · 패치 · 이름표 없음」을 더했다.
+
 뺀 프로그램(IDOL! · ERA! · GRAD! · WITH! · QUEST! · MVP! · THEME! · MV!)의 코드는 남아 있고 주소로만 열린다. B안 LATER! 는 THEME! 합성 코드를 쓴다.
 
 ## 1회 비용 (2026-11-14 실측, usage.cost)

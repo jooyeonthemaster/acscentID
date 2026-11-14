@@ -134,7 +134,7 @@ export function FungroundLanding({ cleanKey, cleanRejected = false }: { cleanKey
         <section className="fl-plan-section" aria-labelledby="fl-plan-title">
           <div className="fl-group-head">
             <h2 id="fl-plan-title">{PLAN_INFO[plan].title}<span>{PLAN_INFO[plan].quote}</span></h2>
-            <p>{PLAN_INFO[plan].line}{plan === 'b' ? ' 같은 네 프로그램(LATER! · COLOR! · NEXT! · FORTUNE!)을 기기 안에서 — 타임캡슐 · 퍼스널 컬러만 AI 인식(기기 안)을 쓰고, 미래 직업 · 포춘은 체험 프로그램입니다.' : ' LATER! · COLOR! · NEXT! · FORTUNE! 네 프로그램을 AI로 — 미래의 나를 그리고, 어울리는 색 · 직업 · 운세를 AI가 풀어 줍니다.'}</p>
+            <p>{PLAN_INFO[plan].line}{plan === 'b' ? ' LATER! · COLOR! · NEXT! · FORTUNE! 을 기기 안에서 — 타임캡슐 · 퍼스널 컬러 · 미래 신문은 AI 인식(기기 안)을 쓰고, 미래 직업 · 포춘은 체험 프로그램입니다. 새로 만든 FUTURE NEWS! 는 비교용으로 함께 넣었습니다.' : ' LATER! · COLOR! · NEXT! · FORTUNE! 을 AI로 — 미래의 나를 그리고, 어울리는 색 · 직업 · 운세를 AI가 풀어 줍니다. 새로 만든 FUTURE NEWS! · DREAM! 은 비교용으로 함께 넣었습니다(1회 비용이 LATER! 보다 낮습니다).'}</p>
           </div>
           {[{ phase: 1 as const, list: phase1 }, { phase: 2 as const, list: phase2 }].filter((g) => g.list.length).map((g) => (
             <div key={g.phase} className="fl-phase">

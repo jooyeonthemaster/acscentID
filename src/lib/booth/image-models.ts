@@ -43,6 +43,8 @@ export const FUNGROUND_PRIMARY: Partial<Record<ProgramId, ImageModelKey>> = {
   // A안 LATER! 타임캡슐 — 2026-11-14 사용자 결정: Gemini 3 Pro Image($0.138) → GPT Image 2.6 Sunburst(약 $0.045).
   // 같은 날 가상 어린이 비교에서 얼굴 유사도 · 나이 반영 모두 Gemini 3 Pro 보다 나았다. Seedream 은 나이를 거의 안 바꾸고 남매 중 한 명을 뺐다
   timecapsule: 'gpt-image-2.6-sunburst',
+  // A안 DREAM! 꿈의 직업 포토 — 옷 · 배경만 바꾸는 사진형(Seedream 이 얼굴을 가장 잘 지킨다)
+  dream: 'seedream-5-flash',
   // 아래는 데모 목록에서 뺀 프로그램(주소로만 열린다)
   'idol-makeup': 'seedream-5-flash',
   'fashion-time': 'seedream-5-flash',

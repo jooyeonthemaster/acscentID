@@ -223,6 +223,38 @@ const DESIGNS: Record<string, [Design, Design]> = {
       text(ctx, `FUN GROUND 별내 · ${today()}`, PRINT_W / 2, 1745, `28px ${A()}`, '#6b4a2b', 'center', (c) => { c.letterSpacing = '6px' })
     },
   ],
+  dream: [
+    // 꿈의 직업 포스터 — 사진을 꽉 채우고 위에 DREAM!, 아래 직업 띠
+    (ctx, { result, labels }) => {
+      cover(ctx, result, 0, 0, PRINT_W, PRINT_H, 0.25)
+      const top = ctx.createLinearGradient(0, 0, 0, 420)
+      top.addColorStop(0, 'rgba(8,30,60,0.78)'); top.addColorStop(1, 'rgba(8,30,60,0)')
+      ctx.fillStyle = top; ctx.fillRect(0, 0, PRINT_W, 420)
+      fitText(ctx, 'DREAM!', PRINT_W / 2, 240, 1000, 230, B(), '#ffffff', '', 'center', (c) => { c.shadowColor = 'rgba(31,143,208,0.7)'; c.shadowBlur = 30 })
+      text(ctx, 'Dream it, wear it', PRINT_W / 2, 320, `58px ${S()}`, '#bfe7ff')
+      const bottom = ctx.createLinearGradient(0, PRINT_H - 400, 0, PRINT_H)
+      bottom.addColorStop(0, 'rgba(8,30,60,0)'); bottom.addColorStop(1, 'rgba(8,30,60,0.9)')
+      ctx.fillStyle = bottom; ctx.fillRect(0, PRINT_H - 400, PRINT_W, 400)
+      rect(ctx, PRINT_W / 2 - 330, PRINT_H - 250, 660, 110, '#1f8fd0', 55)
+      fitText(ctx, `꿈의 직업 · ${labels.job ?? ''}`, PRINT_W / 2, PRINT_H - 175, 600, 60, G(), '#ffffff', '700')
+      text(ctx, `FUN GROUND 별내 · ${today()}`, PRINT_W / 2, PRINT_H - 70, `32px ${A()}`, '#bfe7ff', 'center', (c) => { c.letterSpacing = '6px' })
+    },
+    // 꿈의 명함 — 하늘색 바탕에 사진 카드 + 명함 칸(이름 자리는 비워 손글씨로)
+    (ctx, { result, labels }) => {
+      const bg = ctx.createLinearGradient(0, 0, PRINT_W, PRINT_H)
+      bg.addColorStop(0, '#e6f5ff'); bg.addColorStop(1, '#c9e6fb')
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, PRINT_W, PRINT_H)
+      for (let i = 0; i < 26; i++) star(ctx, (i * 211) % PRINT_W, 40 + ((i * 137) % 260), 6 + (i % 4) * 3, 'rgba(31,143,208,0.35)')
+      ctx.save(); shadow(ctx, 36, 'rgba(10,50,90,0.3)'); rect(ctx, 110, 150, 980, 1100, '#ffffff', 36); ctx.restore()
+      photoClip(ctx, result, 140, 180, 920, 1040, 22, 0.25)
+      ctx.save(); shadow(ctx, 30, 'rgba(10,50,90,0.25)'); rect(ctx, 110, 1300, 980, 380, '#ffffff', 30); ctx.restore()
+      text(ctx, 'DREAM CARD', 160, 1375, `40px ${A()}`, '#1f8fd0', 'left', (c) => { c.letterSpacing = '8px' })
+      fitText(ctx, labels.job ?? '', 160, 1490, 860, 96, G(), '#0f2a44', '700', 'left')
+      rect(ctx, 160, 1530, 880, 4, '#cfe6f6')
+      text(ctx, '이름 · ____________________', 160, 1600, `700 40px ${G()}`, '#5a7690', 'left')
+      text(ctx, `FUN GROUND 별내 · ${today()}`, 1040, 1650, `26px ${A()}`, '#1f8fd0', 'right', (c) => { c.letterSpacing = '4px' })
+    },
+  ],
   mvp: [
     // 우승 포스터 — 사진 위에 굵은 MVP!, 아래 종목 · 날짜 띠
     (ctx, { result, labels }) => {

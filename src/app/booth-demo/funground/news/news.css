@@ -1,0 +1,121 @@
+/* 펀그라운드 「FUTURE NEWS! 2046 별내 신문」 — 화면 틀 · 공통 단추는 components/funground/funground.css(.fg-*), 여기는 이 화면만(.fnw-*).
+   가로 1920×1080 — 본문 칸 1920×968(머리 112 아래), .fg-split 안쪽 1808×876. 누르는 곳은 88px 이상.
+   카메라 · 확인 · 만드는 중 · 결과는 LATER!(../later/later.css)과 같은 짜임 — 그쪽 파일을 고쳐도 여기는 그대로 돌게 따로 둔다. */
+
+.fnw-panel { justify-content: flex-start; }
+.fnw-steps { flex: none; }
+.fnw-cta { width: 100%; margin-top: auto; }
+.fnw-sub { color: var(--fg-soft); font-size: 34px; font-weight: 700; line-height: 1.4; white-space: pre-line; }
+.fnw-error { padding: 22px 30px; border-radius: 24px; background: #ffe6e6; color: #b42323; font-size: 32px; font-weight: 800; line-height: 1.4; }
+.fnw-spin { animation: fg-spin 0.9s linear infinite; }
+.fnw-back { flex: 0 0 auto !important; padding: 0 44px !important; }
+.fnw-fun { display: inline-flex; align-self: flex-start; align-items: center; gap: 10px; }
+
+/* 개인정보 두 줄 */
+.fnw-privacy { display: flex; flex-direction: column; gap: 8px; }
+.fnw-privacy p { display: flex; align-items: flex-start; gap: 12px; color: var(--fg-soft); font-size: 26px; font-weight: 700; line-height: 1.4; }
+.fnw-privacy svg { flex: none; margin-top: 2px; color: var(--fg-tone); }
+.fnw-privacy--sm p { font-size: 23px; }
+
+/* ── 시작 — 왼쪽 견본 신문 두 장 / 오른쪽 제목 · 시작하기 ── */
+.fnw-intro { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.fnw-papers { position: relative; }
+.fnw-paper {
+  position: absolute; left: 50%; top: 50%; display: grid; height: 96%; aspect-ratio: 2 / 3; place-items: center; overflow: hidden;
+  border-radius: 6px; background: #f6f1e4; box-shadow: 0 22px 50px rgba(23, 33, 58, 0.28);
+}
+.fnw-paper--back { transform: translate(-44%, -50%) rotate(5deg); background: repeating-linear-gradient(#efe8d6 0 22px, #e6dcc5 22px 24px); opacity: 0.85; }
+.fnw-paper--front { transform: translate(-56%, -50%) rotate(-3deg); }
+.fnw-paper img { display: block; width: 100%; height: 100%; }
+.fnw-paper .fnw-spin { color: var(--fg-tone); }
+.fnw-intro-panel { justify-content: center; gap: 24px; }
+.fnw-hero { display: flex; flex-direction: column; color: var(--fg-ink); font-size: 128px; font-weight: 900; line-height: 0.95; letter-spacing: -0.05em; }
+.fnw-hero span { margin-top: 18px; color: var(--fg-tone); font-family: var(--font-noto-serif-kr), 'Noto Serif KR', serif; font-size: 76px; letter-spacing: -0.04em; }
+.fnw-badges { display: flex; flex-wrap: wrap; gap: 14px; }
+.fnw-badges li { display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 999px; background: #fff; box-shadow: 0 4px 14px rgba(23, 33, 58, 0.08); font-size: 29px; font-weight: 800; }
+.fnw-badges li:first-child { background: var(--fg-ink); color: #fff; }
+.fnw-intro .fnw-cta { margin-top: 6px; }
+
+/* ── 질문 — 왼쪽 카드(8개 4×2 · 6개 3×2) / 오른쪽 수첩 · 이전 · 다음 ── */
+.fnw-ask { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+.fnw-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.fnw-options[data-count='8'] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.fnw-options li { min-height: 0; }
+.fnw-option {
+  position: relative; display: flex; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  padding: 24px 18px; border: 6px solid transparent; border-radius: 36px; background: #fff; box-shadow: 0 8px 24px rgba(23, 33, 58, 0.08); text-align: center;
+}
+.fnw-option-icon { display: grid; width: 116px; height: 116px; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--fg-tone) 11%, #fff); color: var(--fg-tone); }
+.fnw-option b { font-size: 42px; font-weight: 900; line-height: 1.2; letter-spacing: -0.03em; }
+.fnw-options[data-count='8'] .fnw-option b { font-size: 38px; }
+.fnw-option small { color: var(--fg-soft); font-size: 26px; font-weight: 700; line-height: 1.35; }
+.fnw-option[data-on='true'] { border-color: var(--fg-tone); background: color-mix(in srgb, var(--fg-tone) 6%, #fff); box-shadow: 0 0 0 6px color-mix(in srgb, var(--fg-tone) 22%, transparent), 0 12px 30px rgba(23, 33, 58, 0.14); }
+.fnw-option[data-on='true'] .fnw-option-icon { background: var(--fg-tone); color: #fff; }
+.fnw-check { position: absolute; top: 16px; right: 16px; padding: 6px; border-radius: 50%; background: var(--fg-tone); color: #fff; }
+.fnw-qno { color: var(--fg-tone); font-size: 34px; font-weight: 900; letter-spacing: 0.04em; }
+
+/* 취재 수첩 — 줄 공책 */
+.fnw-memo { display: flex; flex-direction: column; gap: 14px; padding: 22px 28px 26px 44px; border-radius: 28px; background: linear-gradient(90deg, transparent 0 22px, #f2b8ae 22px 25px, transparent 25px), #fffdf6; box-shadow: 0 6px 20px rgba(23, 33, 58, 0.08); }
+.fnw-memo-head { display: flex; align-items: center; gap: 10px; color: var(--fg-ink); font-size: 28px; font-weight: 900; }
+.fnw-memo-head svg { color: var(--fg-tone); }
+.fnw-memo-body { display: flex; align-items: center; gap: 24px; }
+.fnw-memo-body img { width: 220px; flex: none; aspect-ratio: 16 / 9; border: 5px solid #fff; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 12px rgba(23, 33, 58, 0.15); transform: rotate(-2deg); }
+.fnw-memo dl { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 8px; margin: 0; }
+.fnw-memo dl > div { display: flex; align-items: baseline; gap: 14px; }
+.fnw-memo dt { flex: none; width: 196px; color: var(--fg-soft); font-size: 25px; font-weight: 700; }
+.fnw-memo dd { min-width: 0; margin: 0; color: var(--fg-ink); font-size: 29px; font-weight: 900; line-height: 1.3; }
+.fnw-memo [data-now] dd { color: var(--fg-tone); }
+.fnw-memo [data-empty] dd { color: #b9b0a0; }
+
+/* ── 카메라 · 확인 · 만드는 중 — 왼쪽 16:9 화면 / 오른쪽 글 · 단추 ── */
+.fnw-shot { grid-template-columns: minmax(0, 1.62fr) minmax(0, 1fr); }
+.fnw-left { display: flex; flex-direction: column; justify-content: center; gap: 24px; }
+.fnw-view { position: relative; width: 100%; aspect-ratio: 16 / 9; flex: none; overflow: hidden; border-radius: 36px; background: #10131f; box-shadow: 0 14px 40px rgba(23, 33, 58, 0.2); }
+.fnw-feed { display: block; width: 100%; height: 100%; object-fit: cover; }
+.fnw-feed--mirror { transform: scaleX(-1); }
+.fnw-guide { position: absolute; inset: 9% 4% 5%; border: 6px dashed rgba(255, 255, 255, 0.85); border-radius: 40px; pointer-events: none; }
+.fnw-guide span { position: absolute; top: -26px; left: 50%; padding: 6px 22px; border-radius: 999px; background: rgba(23, 33, 58, 0.78); color: #fff; font-size: 30px; font-weight: 800; white-space: nowrap; transform: translateX(-50%); }
+.fnw-view-msg { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 40px; background: rgba(16, 19, 31, 0.86); color: #fff; font-size: 36px; font-weight: 800; line-height: 1.4; text-align: center; }
+.fnw-view--busy .fnw-view-msg { background: rgba(16, 19, 31, 0.5); }
+.fnw-btn-light { border-color: #fff !important; color: #fff !important; }
+.fnw-count { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 380px; font-weight: 900; text-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); animation: fnw-pop 1s ease-out both; }
+@keyframes fnw-pop { from { opacity: 0; transform: scale(1.4); } 20% { opacity: 1; transform: scale(1); } to { opacity: 0.85; } }
+.fnw-flash { position: absolute; inset: 0; background: #fff; animation: fnw-flash 0.26s ease-out both; }
+@keyframes fnw-flash { from { opacity: 1; } to { opacity: 0; } }
+.fnw-tips { display: flex; justify-content: center; gap: 16px; }
+.fnw-tips li { display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 999px; background: color-mix(in srgb, var(--fg-tone) 10%, #fff); color: var(--fg-ink); font-size: 30px; font-weight: 800; }
+
+/* 만드는 중 — 할 일 셋 */
+.fnw-making { justify-content: center; gap: 32px; }
+.fnw-jobs { display: flex; flex-direction: column; gap: 18px; }
+.fnw-jobs li { display: flex; align-items: center; gap: 20px; padding: 20px 26px; border-radius: 26px; background: #fff; box-shadow: 0 4px 14px rgba(23, 33, 58, 0.07); color: var(--fg-tone); }
+.fnw-jobs li svg { flex: none; }
+.fnw-jobs li[data-done] svg { padding: 4px; border-radius: 50%; background: var(--fg-green); color: #fff; }
+.fnw-jobs span { display: flex; flex-direction: column; gap: 4px; color: var(--fg-ink); font-size: 32px; font-weight: 900; }
+.fnw-jobs small { color: var(--fg-soft); font-size: 24px; font-weight: 700; }
+
+/* ── 결과 — 왼쪽 세로 4×6(높이 가득) / 오른쪽 제목 · 인쇄 ── */
+.fnw-result { grid-template-columns: auto minmax(0, 1fr); }
+.fnw-result .fnw-panel { gap: 22px; }
+.fnw-result .fnw-panel > * { flex-shrink: 0; }
+.fnw-print { height: 100%; aspect-ratio: 2 / 3; overflow: hidden; border-radius: 6px; background: #f6f1e4; box-shadow: 0 24px 60px rgba(23, 33, 58, 0.32); }
+.fnw-print img { display: block; width: 100%; height: 100%; }
+.fnw-result-title { font-size: 72px; font-weight: 900; line-height: 1.1; letter-spacing: -0.04em; }
+.fnw-result-title span { color: var(--fg-tone); }
+.fnw-headline {
+  display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 22px 30px; border-left: 10px solid var(--fg-tone); border-radius: 0 24px 24px 0; background: #fff;
+  font-family: var(--font-noto-serif-kr), 'Noto Serif KR', serif; font-size: 44px; font-weight: 900; line-height: 1.25; letter-spacing: -0.03em; box-shadow: 0 6px 20px rgba(23, 33, 58, 0.07);
+}
+.fnw-headline small { color: var(--fg-tone); font-family: inherit; font-size: 26px; font-weight: 600; letter-spacing: 0; }
+.fnw-headline span { color: var(--fg-soft); font-family: var(--font-wanted), sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+/* 화면의 기사는 앞 네 줄만(전체는 신문에) — 알림이 있으면 세 줄 */
+.fg-stage p.fnw-article {
+  display: -webkit-box; min-height: 0; overflow: hidden; padding: 0 6px; color: #3a352d; -webkit-box-orient: vertical; -webkit-line-clamp: 4;
+  font-family: var(--font-noto-serif-kr), 'Noto Serif KR', serif; font-size: 27px; font-weight: 400; line-height: 1.55;
+}
+.fg-stage p.fnw-article[data-short] { -webkit-line-clamp: 3; }
+.fg-stage p.fnw-notice { padding: 16px 24px; border-radius: 20px; background: #fff4d6; color: #7a5a00; font-size: 26px; font-weight: 800; line-height: 1.4; }
+.fnw-result-actions { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 22px; }
+.fnw-result-actions .fg-btn { padding: 0 26px; }
+
+@media (prefers-reduced-motion: reduce) { .fnw-count, .fnw-flash, .fnw-spin { animation: none; } }

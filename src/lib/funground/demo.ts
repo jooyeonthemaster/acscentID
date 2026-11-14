@@ -81,6 +81,17 @@ export const FUNGROUND_PROGRAMS: FungroundProgram[] = [
     targets: [{ kind: 'screen', id: 'saju', query: { engine: 'ai' } }],
     note: '사주(SAJU!)에서 향 처방을 빼고 공부 · 친구 · 진로 · 꿈 이야기로',
   },
+  // ───── 2026-11-14 새 프로그램(사용자 지시: FUTURE NEWS! · DREAM! 을 데모에 더해 비교) — LATER! 보다 1회 비용이 낮다 ─────
+  {
+    key: 'a-news', plan: 'a', no: 5, tag: 'FUTURE NEWS!', name: '2046 별내 신문', desc: '사진 한 장과 질문 세 개로, AI 기자가 2046년 신문 1면에 나의 미래 이야기를 써 줘요. 얼굴은 진짜 나 그대로예요.', phase: 2, build: 'new', badges: ['AI 생성(글)', '4×6 인화', '재미로 보는 상상'], color: '#2b2f3a', screen: shot('a-news'),
+    targets: [{ kind: 'screen', id: 'news', query: { engine: 'ai' } }],
+    note: '사진은 기기 안에서 오려 신문에 · AI는 기사 글만(약 $0.002)',
+  },
+  {
+    key: 'a-dream', plan: 'a', no: 6, tag: 'DREAM!', name: '꿈의 직업 포토', desc: '우주비행사 · 셰프 · 수의사 · 과학자 · 소방관 · 게임 개발자 — 얼굴은 그대로, 꿈의 직업 옷과 일터로 바꿔 4×6 사진으로 줘요.', phase: 2, build: 'new', badges: ['AI 생성', '1~4명', '4×6 인화'], color: '#1f8fd0', screen: shot('a-dream'),
+    targets: [{ kind: 'booth', id: 'dream' }],
+    note: 'Seedream — 옷 · 배경만 바꿔 얼굴이 잘 남는다(1장 $0.018)',
+  },
   // ───────── B안 — 기기 안 처리형(견적 26-218 · 외부 AI API 0) ─────────
   {
     key: 'b-later', plan: 'b', no: 1, tag: 'LATER!', name: '타임캡슐 포토', desc: '오늘의 나를 찍어 미래 배경에 합성하고, 미래의 나에게 한마디와 열어 볼 날을 적은 4×6 사진으로 줘요. 얼굴은 바꾸지 않아요.', phase: 2, build: 'new', badges: ['AI 인물 인식', '1~4명', '4×6 인화'], color: '#5b55d6', screen: shot('b-later'),
@@ -101,6 +112,11 @@ export const FUNGROUND_PROGRAMS: FungroundProgram[] = [
     key: 'b-fortune', plan: 'b', no: 4, tag: 'FORTUNE!', name: '포춘', desc: '사진 한 장과 생년월일로 만세력을 계산하고, 미리 써 둔 풀이 문장에서 골라 내 사진이 든 카드로 보여 줘요. 재미로 보는 풀이예요.', phase: 1, build: 'adapted', badges: ['체험 프로그램', '기기 안 계산', '4×6 인화'], color: '#1f5a45', screen: shot('b-fortune'),
     targets: [{ kind: 'screen', id: 'saju', query: { engine: 'local' } }],
     note: '만세력 그대로 · 풀이는 미리 쓴 문장에서',
+  },
+  {
+    key: 'b-news', plan: 'b', no: 5, tag: 'FUTURE NEWS!', name: '2046 별내 신문', desc: '사진 한 장과 질문 세 개로, 2046년 신문 1면에 나의 미래 이야기가 실려요. 기사는 미리 써 둔 틀에서 골라요.', phase: 2, build: 'new', badges: ['AI 인물 인식', '4×6 인화', '재미로 보는 상상'], color: '#2b2f3a', screen: shot('b-news'),
+    targets: [{ kind: 'screen', id: 'news', query: { engine: 'local' } }],
+    note: '사진은 기기 안에서 오려 신문에 · 기사는 미리 쓴 틀',
   },
 ]
 

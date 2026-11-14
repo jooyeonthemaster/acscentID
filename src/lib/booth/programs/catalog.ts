@@ -14,6 +14,8 @@ export const PROGRAM_IDS = [
   'ansan-2026',
   // 펀그라운드 별내(9~19세 공공시설) 상설 체험기 견적 A안의 새 프로그램(2026-11-14) — 펀그라운드 데모(/booth-demo/funground)에서만 연다(site)
   'quest', 'mvp',
+  // 펀그라운드 A안 DREAM! 꿈의 직업 포토(2026-11-14) — 옷 · 배경만 바꾸는 사진형이라 Seedream($0.018)
+  'dream',
 ] as const
 export type ProgramId = (typeof PROGRAM_IDS)[number]
 
@@ -645,6 +647,35 @@ export const PROGRAMS: ProgramDef[] = [
     creative: '상상 속 우승 장면이에요 — AI가 만든 창작 이미지예요',
     intro: intro('mvp'), script: 'Champion of the day', designs: ['우승 포스터', '선수 카드'],
     card: { tag: 'MVP!', desc: '축구 · 농구 · 야구 경기장의 우승 장면. 유니폼에 글자 · 번호 · 로고는 넣지 않아요.', color: '#d9681f', badges: ['AI 생성', '1~4인', '4×6 인화'] },
+  },
+  {
+    id: 'dream', kind: 'photo', site: 'funground', name: '꿈의 직업 포토', wordmark: 'DREAM!',
+    headline: '내 꿈의 직업,\n오늘 미리 입어 봐요', lead: '얼굴은 그대로, 그 직업의 옷과 일터만 바뀌어요',
+    steps: ['촬영', '꿈의 직업', '꿈 사진'], startCta: '꿈의 일터로 가기',
+    capture: { title: '꿈꾸는 얼굴을\n보여 주세요', hint: '혼자도, 친구와 함께도 좋아요(최대 4명). 모든 얼굴이 화면에 들어오게 서 주세요', people: 1, shots: 1, group: true },
+    options: {
+      title: '어떤 직업을 입어 볼까요?', sub: '꿈의 직업과 장면을 골라 주세요', cta: '이 꿈으로 만들기',
+      groups: [
+        { id: 'job', label: '꿈의 직업', look: 'tiles', options: [
+          { id: 'astronaut', label: '우주비행사', sub: '우주 정거장', swatch: 'radial-gradient(circle at 70% 30%,#9fd3ff 0 8%,transparent 9%),linear-gradient(170deg,#1b2a6b,#070b24 70%)', prompt: 'as astronauts inside a bright space station with Earth in the round window behind them, wearing plain white space suits with NO flags, NO patches, NO mission badges and NO name tags, the helmet off (held under the arm or floating nearby)' },
+          { id: 'chef', label: '셰프', sub: '레스토랑 주방', swatch: 'linear-gradient(170deg,#ffe9c9,#f2a65a 60%,#b4562a)', prompt: 'as chefs in a warm, busy restaurant kitchen, wearing white double-breasted chef jackets and tall white chef hats, proudly presenting a beautiful plate of food' },
+          { id: 'vet', label: '수의사', sub: '동물 병원', swatch: 'linear-gradient(170deg,#d8f3e6,#6cc7a0 60%,#2f8a68)', prompt: 'as veterinarians in a bright, friendly animal clinic, wearing light blue scrubs with a stethoscope, gently holding a happy puppy or a kitten' },
+          { id: 'scientist', label: '과학자', sub: '연구실', swatch: 'radial-gradient(circle at 30% 30%,#a6f0ff 0 7%,transparent 8%),linear-gradient(170deg,#e9f4ff,#7fb2e8 60%,#2b5ea8)', prompt: 'as scientists in a modern laboratory with glowing experiment equipment, wearing white lab coats and clear safety goggles pushed up on the head' },
+          { id: 'firefighter', label: '소방관', sub: '소방서', swatch: 'linear-gradient(170deg,#ffd6c2,#e2512f 60%,#8a2412)', prompt: 'as firefighters standing proudly in front of a shiny red fire truck at a fire station, wearing plain tan firefighter turnout gear with reflective stripes and helmets (no text or emblems)' },
+          { id: 'game-dev', label: '게임 개발자', sub: '게임 스튜디오', swatch: 'linear-gradient(170deg,#e4d8ff,#8a6af0 60%,#3a2580)', prompt: 'as game developers in a colorful game studio with big monitors showing a bright original fantasy game world (no recognizable games or logos), wearing casual hoodies with headsets around the neck' },
+        ] },
+        { id: 'moment', label: '어떤 순간을 찍을까요?', look: 'chips', options: [
+          { id: 'work', label: '일하는 순간', prompt: 'captured in the middle of doing the job, focused and happy' },
+          { id: 'proud', label: '자랑스러운 순간', prompt: 'smiling proudly at the camera like a magazine portrait of the year’s rising star' },
+        ] },
+      ],
+    },
+    generating: { title: '꿈의 일터로\n출근하는 중이에요', sub: '얼굴은 그대로, 그 직업의 옷과 일터를 만들고 있어요', stages: ['사진 확인', '꿈의 일터 만드는 중', '사진 완성'] },
+    result: { title: '꿈의 직업,\n미리 해 봤어요', sub: '인화할 디자인을 골라 주세요' },
+    save: { title: '꿈의 순간을 가져가세요', sub: '4×6 사진으로 인화해요' },
+    creative: '꿈을 미리 그려 보는 상상 사진이에요 — AI가 만든 창작 이미지예요',
+    intro: intro('dream'), script: 'Dream it, wear it', designs: ['꿈의 직업 포스터', '꿈의 명함'],
+    card: { tag: 'DREAM!', desc: '우주비행사 · 셰프 · 수의사 · 과학자 · 소방관 · 게임 개발자 — 얼굴은 그대로, 꿈의 직업 옷과 일터로.', color: '#1f8fd0', badges: ['AI 생성', '1~4인', '4×6 인화'] },
   },
 ]
 

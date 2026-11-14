@@ -724,3 +724,14 @@ canvas.pg-cam-video { transform: none; }
 .pg-fg-sheet-qr b { display: inline-flex; align-items: center; gap: 6px; color: #1d1d22; font-size: 17px; }
 .pg-fg-sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .pg-fg-sheet-actions .pg-btn { justify-content: center; text-decoration: none; }
+
+/* DREAM! 꿈의 직업 포토 — 맑은 하늘색 · 흰 카드 · 별 */
+.pg[data-program='dream'] {
+  --pg-bg: #eaf6ff; --pg-outer: #d8eefc; --pg-ink: #0f2a44; --pg-muted: #4f6b85; --pg-accent: #1f8fd0; --pg-on-accent: #fff;
+  --pg-surface: #ffffff; --pg-line: #c7e2f5; --pg-radius: 18px; --pg-display: var(--pg-f-bagel), Impact, sans-serif;
+  --pg-bg-image: radial-gradient(circle at 10% 15%, rgba(31, 143, 208, 0.18) 0 3px, transparent 4px), radial-gradient(circle at 85% 20%, rgba(31, 143, 208, 0.18) 0 3px, transparent 4px), radial-gradient(ellipse 60% 50% at 50% 110%, rgba(31, 143, 208, 0.22), transparent 70%);
+  --pg-photo-border: 8px solid #ffffff; --pg-photo-shadow: 0 16px 36px rgba(15, 42, 68, 0.18);
+}
+.pg[data-program='dream'] .pg-wordmark { color: #1f8fd0; text-shadow: 0 5px 0 #bfe1f6; }
+.pg[data-program='dream'] .pg-script { color: #1f8fd0; }
+.pg[data-program='dream'] .pg-flow-steps i { background: #1f8fd0; color: #fff; }

@@ -201,6 +201,14 @@ export function buildProgramPrompt(program: ProgramDef, choices: Record<string, 
         `UNIFORM: ${c('kit')}, completely plain — no letters, no numbers, no names, no badges, no team crests and no sponsor or brand logos anywhere on clothes, caps, trophy, balls, banners or scoreboards.`,
         photo('framed from the knees or waist up so every face is clearly visible, joyful winning expressions, bright sports photography'), NO_TEXT,
       ].join('\n')
+    // 펀그라운드 DREAM! — 꿈의 직업 옷과 일터만(얼굴 · 나이 그대로, 1~4명). 옷에 글자 · 이름표 · 로고 없이
+    case 'dream':
+      return [
+        `EDIT IMAGE 1 into a joyful career-day photo of the SAME real people ${c('job')}, ${c('moment')}.`,
+        identityGroup(false), '',
+        'UNIFORM RULES: real job clothing sized for each person as they are now (children stay children in kid-sized outfits) — no name tags, no letters, no numbers, no badges, no logos or emblems anywhere.',
+        photo('framed from the knees or waist up so every face is clearly visible, bright and hopeful lighting'), NO_TEXT,
+      ].join('\n')
     default:
       throw new Error(`no prompt for ${program.id}`)
   }
