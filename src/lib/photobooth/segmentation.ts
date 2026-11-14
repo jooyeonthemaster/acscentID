@@ -67,7 +67,7 @@ async function createSegmenter(modelAssetPath: string): Promise<ImageSegmenter> 
   }
 }
 
-function getSegmenter(): Promise<ImageSegmenter> {
+export function getSegmenter(): Promise<ImageSegmenter> {
   if (!segmenterPromise) {
     segmenterPromise = (async () => {
       let lastError: unknown
@@ -90,15 +90,15 @@ function getSegmenter(): Promise<ImageSegmenter> {
 }
 
 /** onnxruntime-web 에서 쓰는 부분만 좁게 선언 (번들러를 거치지 않고 public 에서 직접 불러온다) */
-interface OrtTensor {
+export interface OrtTensor {
   data: Float32Array
 }
-interface OrtSession {
+export interface OrtSession {
   inputNames: readonly string[]
   outputNames: readonly string[]
   run(feeds: Record<string, unknown>): Promise<Record<string, OrtTensor>>
 }
-interface OrtModule {
+export interface OrtModule {
   env: { wasm: { wasmPaths: string; numThreads: number; proxy: boolean } }
   Tensor: new (type: 'float32', data: Float32Array, dims: number[]) => unknown
   InferenceSession: { create(url: string, options?: object): Promise<OrtSession> }
@@ -152,20 +152,20 @@ export async function warmupSegmentation(): Promise<void> {
 
 // ───────────────────────── 보조 계산 ─────────────────────────
 
-function smoothstep(edge0: number, edge1: number, x: number): number {
+export function smoothstep(edge0: number, edge1: number, x: number): number {
   if (edge1 <= edge0) return x >= edge1 ? 1 : 0
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)))
   return t * t * (3 - 2 * t)
 }
 
-interface Mask {
+export interface Mask {
   w: number
   h: number
   data: Float32Array
 }
 
 /** 저해상 마스크 → W×H (쌍선형) */
-function upsample(m: Mask, W: number, H: number): Float32Array {
+export function upsample(m: Mask, W: number, H: number): Float32Array {
   const out = new Float32Array(W * H)
   for (let y = 0; y < H; y++) {
     const fy = ((y + 0.5) / H) * m.h - 0.5
@@ -186,7 +186,7 @@ function upsample(m: Mask, W: number, H: number): Float32Array {
 }
 
 /** 박스 평균 (적분 영상, O(N)) */
-function boxMean(src: Float32Array, W: number, H: number, r: number): Float32Array {
+export function boxMean(src: Float32Array, W: number, H: number, r: number): Float32Array {
   const I = new Float64Array((W + 1) * (H + 1))
   for (let y = 0; y < H; y++) {
     let row = 0
@@ -211,7 +211,7 @@ function boxMean(src: Float32Array, W: number, H: number, r: number): Float32Arr
 }
 
 /** 가이드 필터 — 거친 마스크 경계를 원본 사진의 밝기 윤곽에 붙인다 (He et al.) */
-function guidedFilter(guide: Float32Array, p: Float32Array, W: number, H: number, r: number, eps: number) {
+export function guidedFilter(guide: Float32Array, p: Float32Array, W: number, H: number, r: number, eps: number) {
   const n = W * H
   const Ip = new Float32Array(n)
   const II = new Float32Array(n)
@@ -722,7 +722,7 @@ export async function cutoutPerson(
 }
 
 /** 투명 여백을 잘라내 인물에 딱 맞춘다 (약간의 여유는 남긴다) */
-function cropToContent(canvas: HTMLCanvasElement): HTMLCanvasElement {
+export function cropToContent(canvas: HTMLCanvasElement): HTMLCanvasElement {
   const ctx = canvas.getContext('2d')
   if (!ctx) return canvas
 

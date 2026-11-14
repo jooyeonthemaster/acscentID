@@ -4,7 +4,7 @@
 // 펀그라운드 B안 1. 테마 포토 「THEME!」 — 가로 1920×1080 화면(32인치 가로 터치스크린 · 가로 카메라, 2026-11-14 바뀜).
 // 화면마다 왼쪽 큰 그림(견본 · 카메라 · 찍은 사진 · 세로 4×6 결과) / 오른쪽 제목 · 고르기 · 단추 — 부스 프로그램 화면과 같은 짜임. 인화만 세로 4×6.
 // 시작 → 테마 고르기(6) → 카메라(1~4명, 3-2-1, 다시 찍기) → 기기 안 합성(사람만 분리 → 테마 배경 + 사람 + 앞 장식) → 4×6 결과 → 인쇄 / 처음으로.
-// 외부 AI · 이미지 서비스는 부르지 않는다. 사람 분리는 부스 「같이 찍기」와 같은 cutoutPerson(MediaPipe 다중 클래스 + u2netp, 모델 · WASM 은 우리 public/).
+// 외부 AI · 이미지 서비스는 부르지 않는다. 사람 분리는 웹캠 사진용 cutoutWebcamPerson(MediaPipe 다중 클래스 + MODNet, src/lib/funground/cutout.ts — 모델 · WASM 은 우리 public/).
 // 사진은 이 화면 메모리에만 있다. 예외: 브라우저 데모에서 「인쇄하기」를 누르면 그 4×6 한 장만 QR 받기용으로 우리 서버에 올린다(FgPrintButton, 24시간).
 //
 // 카메라: 데모는 웹캠. 설치 기기는 DSLR 브리지(src/lib/photobooth/dslr-bridge.ts, 127.0.0.1:9120)를 쓴다 —
@@ -18,7 +18,7 @@ import { FgPrintButton, type FgPrintable } from '@/components/funground/FgResult
 import { FgStage, useFgHome } from '@/components/funground/FgStage'
 import { useCamera } from '@/app/booth/programs/use-camera'
 import { getBoothShell } from '@/lib/photobooth/booth-shell'
-import { cutoutPerson, warmupSegmentation } from '@/lib/photobooth/segmentation'
+import { cutoutWebcamPerson, warmupWebcamCutout } from '@/lib/funground/cutout'
 import {
   THEMES, THEME_BY_ID, composeThemePhoto, loadThemeArt, loadThemeFont, renderThemeThumb,
   type ThemeId,
@@ -52,20 +52,6 @@ function cropToAspect(src: HTMLCanvasElement, aspect: number): HTMLCanvasElement
   out.height = ch
   out.getContext('2d')!.drawImage(src, (w - cw) / 2, (h - ch) / 2, cw, ch, 0, 0, cw, ch)
   return out
-}
-
-/** cutoutPerson 은 그림(img)을 받는다 — 캔버스를 같은 기기 안 blob 주소로 바꿔 넘긴다(밖으로 나가지 않음) */
-async function canvasToImage(canvas: HTMLCanvasElement): Promise<HTMLImageElement> {
-  const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('사진을 읽지 못했어요.'))), 'image/jpeg', 0.95))
-  const url = URL.createObjectURL(blob)
-  try {
-    const img = new Image()
-    img.src = url
-    await img.decode()
-    return img
-  } finally {
-    URL.revokeObjectURL(url)
-  }
 }
 
 export function ThemePhoto({ artReady }: { artReady: ThemeId[] }) {
@@ -123,7 +109,7 @@ export function ThemePhoto({ artReady }: { artReady: ThemeId[] }) {
 
   // 고르기 화면부터 사람 분리 모델을 미리 올린다(찍은 뒤 기다림을 줄인다)
   useEffect(() => {
-    if (step === 'pick') warmupSegmentation().catch(() => undefined)
+    if (step === 'pick') warmupWebcamCutout().catch(() => undefined)
   }, [step])
 
   // 무입력이면 처음으로 — 찍는 중 · 합성 중에는 세지 않는다
@@ -173,8 +159,7 @@ export function ThemePhoto({ artReady }: { artReady: ThemeId[] }) {
     if (!shot || !themeId) return
     setStep('making'); setError(null)
     try {
-      const img = await canvasToImage(shot.canvas)
-      const { canvas, coverage } = await cutoutPerson(img)
+      const { canvas, coverage } = await cutoutWebcamPerson(shot.canvas)
       if (coverage < MIN_COVERAGE) throw new Error('no-person')
       setCutout(canvas)
       compose(themeId, canvas)

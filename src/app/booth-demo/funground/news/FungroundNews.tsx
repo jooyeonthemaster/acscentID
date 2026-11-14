@@ -4,7 +4,7 @@
 // 펀그라운드 별내 「FUTURE NEWS! 2046 별내 신문」 — 가로 1920×1080 화면(32인치 가로 터치스크린 · 가로 카메라). 인화만 세로 4×6.
 // 시작 → 사진 찍기(1~4명, 3-2-1, 다시 찍기) → 질문 셋(꿈 8 · 좋아하는 것 6 · 해 보고 싶은 일 6 — 눌러 고르기만, 글자 입력 없음)
 //   → 만드는 중 → 결과(20년 뒤 신문 1면) → 신문 인쇄하기(미리보기 + QR) · 다시 찍기 · 처음으로.
-// 사람 분리는 LATER! · THEME! 과 같은 cutoutPerson(기기 안 MediaPipe) — 사진을 확인하는 순간 시작해 질문에 답하는 동안 끝낸다.
+// 사람 분리는 LATER! · THEME! 과 같은 cutoutWebcamPerson(기기 안 MediaPipe + MODNet, src/lib/funground/cutout.ts) — 사진을 확인하는 순간 시작해 질문에 답하는 동안 끝낸다.
 // 얼굴은 바꾸지 않고, 신문 사진 칸 위에는 아무것도 얹지 않는다(news-print.ts).
 // engine=local(B안): 기사도 이 기기에서 미리 쓴 틀로(news-template.ts) — 외부 AI 서비스를 부르지 않는다.
 // engine=ai(A안): 대답 셋(목록 id)만 /api/funground/news 로 보내 AI 기자가 쓴 기사를 받는다. 사진은 보내지 않는다.
@@ -22,7 +22,7 @@ import { FgPrintButton, type FgPrintable } from '@/components/funground/FgResult
 import { FgStage, useFgHome } from '@/components/funground/FgStage'
 import { useCamera } from '@/app/booth/programs/use-camera'
 import { getBoothShell } from '@/lib/photobooth/booth-shell'
-import { cutoutPerson, warmupSegmentation } from '@/lib/photobooth/segmentation'
+import { cutoutWebcamPerson, warmupWebcamCutout } from '@/lib/funground/cutout'
 import { loadArtImage } from '@/lib/funground/theme-photo'
 import {
   NEWS_DISCLAIMER, NEWS_DREAMS, NEWS_DREAM_BY_ID, NEWS_LIKES, NEWS_LIKE_BY_ID, NEWS_SCENE_ART, NEWS_WISHES, NEWS_WISH_BY_ID,
@@ -81,23 +81,9 @@ function cropToAspect(src: HTMLCanvasElement, aspect: number): HTMLCanvasElement
   return out
 }
 
-/** cutoutPerson 은 그림(img)을 받는다 — 캔버스를 같은 기기 안 blob 주소로 바꿔 넘긴다(밖으로 나가지 않음) */
-async function canvasToImage(canvas: HTMLCanvasElement): Promise<HTMLImageElement> {
-  const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('사진을 읽지 못했어요.'))), 'image/jpeg', 0.95))
-  const url = URL.createObjectURL(blob)
-  try {
-    const img = new Image()
-    img.src = url
-    await img.decode()
-    return img
-  } finally {
-    URL.revokeObjectURL(url)
-  }
-}
-
 /** 사람만 오려 내기 — 못 찾으면 'no-person' 을 던진다 */
 async function cutoutShot(canvas: HTMLCanvasElement): Promise<HTMLCanvasElement> {
-  const { canvas: person, coverage } = await cutoutPerson(await canvasToImage(canvas))
+  const { canvas: person, coverage } = await cutoutWebcamPerson(canvas)
   if (coverage < MIN_COVERAGE) throw new Error('no-person')
   return person
 }
@@ -270,7 +256,7 @@ export function FungroundNews() {
 
   // 카메라 화면부터 사람 분리 모델을 미리 올린다
   useEffect(() => {
-    if (step === 'camera') warmupSegmentation().catch(() => undefined)
+    if (step === 'camera') warmupWebcamCutout().catch(() => undefined)
   }, [step])
 
   // 무입력이면 처음으로 — 찍는 중 · 만드는 중에는 세지 않는다

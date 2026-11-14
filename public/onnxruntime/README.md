@@ -5,4 +5,5 @@
 
 - 출처: npm `onnxruntime-web@1.30.0` 의 `dist/` (MIT)
 - 모델: U²-Net (xuebinqin/U-2-Net, Apache-2.0) 의 u2netp, rembg 배포본 ONNX 변환
+- 모델: MODNet (ZHKKKe/MODNet, Apache-2.0) — `/models/modnet.onnx`, huggingface.co/Xenova/modnet `onnx/model.onnx`(Apache-2.0). 펀그라운드 웹캠 사진 오려내기(`src/lib/funground/cutout.ts`)
 - 버전을 올릴 때는 세 파일(ort.wasm.min.mjs, ort-wasm-simd-threaded.mjs, .wasm)을 함께 바꿀 것

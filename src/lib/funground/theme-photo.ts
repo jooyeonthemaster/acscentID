@@ -82,7 +82,7 @@ export function renderThemeThumb(theme: ThemeInfo, width: number, font: string, 
 
 export interface ComposeInput {
   theme: ThemeInfo
-  /** cutoutPerson 결과(사람만 남은 투명 캔버스, 내용에 맞춰 잘림) */
+  /** cutoutWebcamPerson 결과(사람만 남은 투명 캔버스, 내용에 맞춰 잘림) */
   cutout: HTMLCanvasElement
   /** 미리 만든 배경 그림(없으면 코드 그림) */
   art: HTMLImageElement | null
@@ -101,7 +101,7 @@ export const WIDE_GROUP = 1.8
  * 가로는 인화 폭의 90%, 세로는 64%까지(위 1/3 은 테마 장면이 보이게). 원본보다 2.2배 넘게 키우면 흐려져 거기서 멈춘다.
  * 가로 16:9 카메라에 나란히 선 3~4명(가로세로 WIDE_GROUP 넘게)은 폭이 먼저 차서 얼굴이 작아진다 — 그때는 폭 100%까지
  * (양 끝 어깨는 앞 장식 옆 테두리 밑으로 들어가고, 얼굴은 테두리 안쪽에 온다).
- * 아래 끝은 인화 아래에서 PEOPLE_BOTTOM 위 — 원본 사진 테두리에서 잘린 몸(cutoutPerson 이 흐리게 처리)은 앞 장식의 아래 띠(불투명)에 가리고,
+ * 아래 끝은 인화 아래에서 PEOPLE_BOTTOM 위 — 원본 사진 테두리에서 잘린 몸(cutoutWebcamPerson 이 흐리게 처리)은 앞 장식의 아래 띠(불투명)에 가리고,
  * 사진 아래쪽에 있는 얼굴(앞줄에 앉은 사람)은 띠보다 위에 온다. 앞 장식의 아래 띠는 모두 인화 아래 150px 안쪽에서만 불투명하게 둔다.
  */
 export function placePeople(cw: number, ch: number, { bottom = PRINT.H - PEOPLE_BOTTOM, maxH = PRINT.H * 0.64 }: PeopleSlot = {}) {
@@ -126,12 +126,20 @@ export type PeoplePlace = ReturnType<typeof placePeople>
  */
 export function drawPeople(ctx: CanvasRenderingContext2D, cutout: HTMLCanvasElement, p: PeoplePlace, glowColor: string) {
   drawBackGlow(ctx, cutout, p, glowColor)
+  // 바닥 그림자 — 아래 260px 띠 안에서 타원으로 0 까지 흐려진다. (예전엔 원형이 띠 위 끝에서 잘려 사람 사이 틈으로
+  // 네모난 어두운 띠가 보였다 — 오려내기가 깨끗해져 틈이 드러나면서 보임, 2026-11-15)
   ctx.save()
-  const floor = ctx.createRadialGradient(p.cx, p.bottom - 40, 10, p.cx, p.bottom - 40, p.width * 0.62)
+  ctx.beginPath()
+  ctx.rect(0, p.bottom - 260, PRINT.W, 260)
+  ctx.clip()
+  const rx = p.width * 0.62
+  ctx.translate(p.cx, p.bottom - 40)
+  ctx.scale(1, 220 / rx)
+  const floor = ctx.createRadialGradient(0, 0, 10, 0, 0, rx)
   floor.addColorStop(0, 'rgba(0,0,0,0.42)')
   floor.addColorStop(1, 'rgba(0,0,0,0)')
   ctx.fillStyle = floor
-  ctx.fillRect(0, p.bottom - 260, PRINT.W, 260)
+  ctx.fillRect(-rx, -rx, rx * 2, rx * 2)
   ctx.restore()
   drawCutoutPerson(ctx, cutout, p.cx, p.cy, p.width, 0, { shadow: true })
 }

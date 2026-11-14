@@ -76,6 +76,15 @@ QR 받기 업로드는 우리 서버 저장소라 AI 비용이 없다. COLOR! ·
 - AI 표기: LATER!(AI 인물 인식) · COLOR!(AI 인식 기반)만 「AI」, NEXT! · FORTUNE! 은 「체험 프로그램」.
 - 외부 호출(Playwright 기록): OpenRouter · AI API 요청 0. 「인쇄하기」 창을 열 때만 `/api/kiosk/share` 업로드 1회. 나머지는 사이트 공통(로그인 세션 · 우편번호 스크립트 · Supabase 방문 통계)과 우리 서버의 그림 · 모델 파일.
 
+## 사람 분리(웹캠 사진) — FUTURE NEWS! · LATER! · THEME! (2026-11-15)
+- 세 화면은 `cutoutWebcamPerson`(`src/lib/funground/cutout.ts`)을 쓴다. 부스 「같이 찍기」의 `cutoutPerson`(`src/lib/photobooth/segmentation.ts`, 손에 든 소품 · U²-Net 덧붙이기)은 그대로 — 부스 · 관리자 포카 등록은 바뀌지 않는다.
+- 방법: MediaPipe 다중 클래스로 사람 자리 · 얼굴 · 머리카락을 찾고(사람 자리에 한 번 더 돌려 촘촘하게) → 그 자리만 잘라 **MODNet**(인물 매팅, 짧은 변 512)으로 경계 → MediaPipe 를 불린 범위 안에서만 쓰고(머리카락 4.5% · 몸 1.2%) → 반투명 경계 알파를 주변 사람색 · 배경색으로 다시 재고 → 사람에 이어진 덩어리만 남기고 섬 · 가는 띠(노트북 윗변) 지우기 → 경계에 섞인 배경색을 사람색으로.
+- 모델: `public/models/modnet.onnx` 25.9MB — MODNet(github.com/ZHKKKe/MODNet, 코드 · 모델 **Apache-2.0**)의 ONNX 변환본 huggingface.co/Xenova/modnet `onnx/model.onnx`(Apache-2.0, sha256 `07c308cf…584df9`). 런타임은 기존 `public/onnxruntime`(MIT). 8비트 양자화본(6.6MB)은 어두운 사진에서 얼굴에 구멍이 나 쓰지 않는다.
+- 실패하면: MODNet 을 못 받으면 MediaPipe 만(컬러 가이드 필터)으로, MediaPipe 도 실패하면 `cutoutPerson` 으로 넘어간다.
+- 시간(Playwright Chromium, 1920×1080 사진): GPU 켠 Chromium 1.2~1.9초(MODNet wasm 1스레드 0.7~1.3초 · MediaPipe 0.05~0.1초), 소프트웨어 GL(헤드리스 기본) 2.3~2.9초. 예전 `cutoutPerson` 은 1.0~1.6초. 카메라 화면에서 미리 받아 둔다(`warmupWebcamCutout`).
+- 비교(가상 웹캠 사진 7장 + 아이 사진 3장): `cutoutPerson` 은 창문 · 프린터 · 책 · 노트북 · 아이 둘 사이 놀이매트를 사람에 붙였고, MediaPipe 만은 머리가 헬멧처럼 뭉개지고 든 손과 머리 사이 배경이 채워졌다. 남은 것: 어두운 방 검은 옷의 어깨선은 MODNet 도 조금 들쭉날쭉하다(어두운 벽과 색이 같다).
+- 같이 고침: `drawPeople`(`theme-photo.ts`)의 바닥 그림자가 띠 위 끝에서 잘려 사람 사이 틈으로 네모난 어두운 띠가 보이던 것 — 타원으로 띠 안에서 0 까지 흐려지게.
+
 ## 문구 원칙
 외모 평가 · 점수 · 순위 없음. 퍼스널 컬러는 「어울리는 색」만. 사주 · 미래 직업은 「재미로 보는 풀이」를 화면에 늘 보인다. 연애 · 재물 같은 말은 빼거나 순화.
 
