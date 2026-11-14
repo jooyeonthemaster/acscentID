@@ -76,7 +76,7 @@ export const FUNGROUND_PROGRAMS: FungroundProgram[] = [
   {
     key: 'a-fortune', plan: 'a', no: 8, tag: 'FORTUNE!', name: 'AI 포춘', desc: '생년월일로 사주를 계산하고, AI가 공부 · 친구 · 진로 · 꿈 이야기로 풀어 줘요. 재미로 보는 풀이예요.', phase: 1, build: 'adapted', badges: ['AI 생성', '재미로 보는 풀이'], color: '#1f5a45', screen: shot('a-fortune'),
     targets: [{ kind: 'screen', id: 'saju', query: { engine: 'ai' } }],
-    note: '사주(SAJU!)에서 향 처방을 빼고 청소년 이야기로',
+    note: '사주(SAJU!)에서 향 처방을 빼고 공부 · 친구 · 진로 · 꿈 이야기로',
   },
   // ───────── B안 — 기기 안 처리형(견적 26-218 · 외부 AI API 0) ─────────
   {
@@ -86,7 +86,7 @@ export const FUNGROUND_PROGRAMS: FungroundProgram[] = [
   {
     key: 'b-color', plan: 'b', no: 2, tag: 'COLOR!', name: '퍼스널 컬러', desc: '기기 안에서 피부 · 머리카락 색을 재어 8유형 중 어울리는 색을 알려 줘요. 사진은 기기 밖으로 나가지 않아요.', phase: 2, build: 'adapted', badges: ['AI 인식 기반', '기기 안 판정'], color: '#26307a', screen: shot('b-color'),
     targets: [{ kind: 'screen', id: 'color' }],
-    note: '판정을 기기 안 숫자 규칙으로 · 결과 문장은 청소년용으로 미리 씀',
+    note: '판정을 기기 안 숫자 규칙으로 · 결과 문장은 미리 써 둠',
   },
   {
     key: 'b-saju', plan: 'b', no: 3, tag: 'SAJU!', name: '사주', desc: '생년월일로 만세력을 계산하고, 미리 써 둔 풀이 문장에서 골라 보여 줘요. 재미로 보는 풀이예요.', phase: 1, build: 'adapted', badges: ['체험 프로그램', '기기 안 계산'], color: '#1f5a45', screen: shot('b-saju'),

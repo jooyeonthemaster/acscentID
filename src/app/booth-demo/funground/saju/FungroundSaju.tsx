@@ -378,7 +378,7 @@ export function FungroundSaju() {
           <section className="fg-panel fgsj-loading">
             <div className="fg-spin" aria-hidden="true" />
             <h1 className="fg-title fg-title--md">{ai ? 'AI가 풀이를 쓰고 있어요' : '만세력을 계산하고 있어요'}</h1>
-            <p className="fg-lead">{ai ? '사주 여덟 글자를 계산하고\n청소년 이야기로 풀어 쓰는 중이에요' : '태어난 해 · 달 · 날 · 시의\n하늘 글자와 땅 글자를 찾는 중이에요'}</p>
+            <p className="fg-lead">{ai ? '사주 여덟 글자를 계산하고\n공부 · 친구 · 진로 · 꿈 이야기로 풀어 쓰는 중이에요' : '태어난 해 · 달 · 날 · 시의\n하늘 글자와 땅 글자를 찾는 중이에요'}</p>
             <BirthSummary rows={birthRows} />
           </section>
         </div>

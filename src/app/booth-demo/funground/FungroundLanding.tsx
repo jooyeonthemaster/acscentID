@@ -104,7 +104,7 @@ export function FungroundLanding({ cleanKey, cleanRejected = false }: { cleanKey
           <div className="fl-hero-copy">
             <p className="fl-eyebrow">32인치 가로 터치스크린 1대 · 카메라 · 4×6 포토 프린터 · 영수증 프린터</p>
             <h1>펀그라운드 별내<br />체험 부스 데모</h1>
-            <p className="fl-lead">9~19세 청소년이 혼자, 친구와 함께 즐기는 상설 체험기입니다. 견적 두 안의 프로그램을 아래에서 직접 눌러 보세요. 기기 한 대에 프로그램을 모두 담고, 시작 화면에서 고릅니다. 노트북 카메라 · 마이크로 직접 해 볼 수 있어요.</p>
+            <p className="fl-lead">혼자, 친구 · 가족과 함께 즐기는 상설 체험기입니다. 견적 두 안의 프로그램을 아래에서 직접 눌러 보세요. 기기 한 대에 프로그램을 모두 담고, 시작 화면에서 고릅니다. 노트북 카메라 · 마이크로 직접 해 볼 수 있어요.</p>
             <div className="fl-compare" role="tablist" aria-label="견적안">
               {(['a', 'b'] as const).map((id) => (
                 <button key={id} type="button" role="tab" aria-selected={plan === id} className="fl-plan" data-plan={id} onClick={() => choose(id)}>
