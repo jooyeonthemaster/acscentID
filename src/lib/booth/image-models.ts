@@ -38,6 +38,9 @@ export const FALLBACK_IMAGE_MODEL: ImageModelKey = 'gemini-2.5-flash-image'
  * 옷 · 배경만 바꾸는 사진형 6종(A안 AI 포토). 나이 들기 · 캐리커처는 넣지 않는다(시험에서 약했다)
  */
 export const FUNGROUND_PRIMARY: Partial<Record<ProgramId, ImageModelKey>> = {
+  // A안 LATER! 타임캡슐(2026-11-14 데모 프로그램을 LATER! · COLOR! · NEXT! · FORTUNE! 넷으로) — 나이 들기는 Seedream 이 약해(반영률 0.35) Gemini 3 Pro Image 먼저
+  timecapsule: 'gemini-3-pro-image',
+  // 아래는 데모 목록에서 뺀 프로그램(주소로만 열린다)
   'idol-makeup': 'seedream-5-flash',
   'fashion-time': 'seedream-5-flash',
   graduation: 'seedream-5-flash',
@@ -91,7 +94,8 @@ async function requestChatImage(model: string, prompt: string, refs: string[], a
     body: JSON.stringify({
       model,
       modalities: ['image', 'text'],
-      image_config: { aspect_ratio: aspect },
+      // Gemini 3 Pro Image 는 2K(1696×2528)를 같은 값에 준다 — 인화 원판(1200×1800)보다 크게(idol-generate.ts 와 같은 규칙)
+      image_config: model.includes('gemini-3') ? { aspect_ratio: aspect, image_size: '2K' } : { aspect_ratio: aspect },
       usage: { include: true },
       messages: [{ role: 'user', content: [{ type: 'text', text: prompt }, ...refs.map((url) => ({ type: 'image_url', image_url: { url } }))] }],
     }),

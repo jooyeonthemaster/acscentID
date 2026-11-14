@@ -5,15 +5,16 @@
 // 화면마다 왼쪽 큰 그림(견본 · 카메라 · 찍은 사진 · 세로 4×6 결과) / 오른쪽 제목 · 고르기 · 단추 — 부스 프로그램 화면과 같은 짜임. 인화만 세로 4×6.
 // 시작 → 테마 고르기(6) → 카메라(1~4명, 3-2-1, 다시 찍기) → 기기 안 합성(사람만 분리 → 테마 배경 + 사람 + 앞 장식) → 4×6 결과 → 인쇄 / 처음으로.
 // 외부 AI · 이미지 서비스는 부르지 않는다. 사람 분리는 부스 「같이 찍기」와 같은 cutoutPerson(MediaPipe 다중 클래스 + u2netp, 모델 · WASM 은 우리 public/).
-// 사진은 이 화면 메모리에만 있다 — 서버로 올리지 않는다(휴대폰 QR 저장은 이 데모에 없다).
+// 사진은 이 화면 메모리에만 있다. 예외: 브라우저 데모에서 「인쇄하기」를 누르면 그 4×6 한 장만 QR 받기용으로 우리 서버에 올린다(FgPrintButton, 24시간).
 //
 // 카메라: 데모는 웹캠. 설치 기기는 DSLR 브리지(src/lib/photobooth/dslr-bridge.ts, 127.0.0.1:9120)를 쓴다 —
 // 주소에 camera=dslr 를 붙이면 useCamera 가 브리지를 먼저 찾고(라이브뷰 · 원본 촬영), 없으면 웹캠으로 돌아간다.
-// 인쇄: 부스 앱(tools/booth-app)이면 boothShell.print 로 프린터에 바로, 브라우저면 인쇄 창(4×6 한 장만 보이게 theme.css @media print).
+// 인쇄: 부스 앱(tools/booth-app · 설치 기기)이면 boothShell.print 로 4×6 프린터에 바로.
+// 브라우저(노트북 · 폰 데모)는 프린터가 없으니 FgPrintButton — 4×6 미리보기 창 + 휴대폰으로 받는 QR(2026-11-14 바뀜, 예전엔 인쇄 창).
 
 import { Camera, CameraOff, Check, Home, Loader2, Printer, RefreshCw, RotateCcw, ScanFace, ShieldCheck, Sparkles, Timer, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { createPortal } from 'react-dom'
+import { FgPrintButton, type FgPrintable } from '@/components/funground/FgResultSheet'
 import { FgStage, useFgHome } from '@/components/funground/FgStage'
 import { useCamera } from '@/app/booth/programs/use-camera'
 import { getBoothShell } from '@/lib/photobooth/booth-shell'
@@ -81,9 +82,20 @@ export function ThemePhoto({ artReady }: { artReady: ThemeId[] }) {
   const [flash, setFlash] = useState(false)
   const [printState, setPrintState] = useState<PrintState>('idle')
   const [allowDslr, setAllowDslr] = useState(false)
+  /** 부스 앱(설치 기기)이면 프린터로 바로 — 브라우저면 미리보기 · QR 창 */
+  const [hasShell, setHasShell] = useState(false)
   const theme = themeId ? THEME_BY_ID[themeId] : null
 
-  useEffect(() => { setAllowDslr(new URLSearchParams(window.location.search).get('camera') === 'dslr') }, [])
+  useEffect(() => {
+    setAllowDslr(new URLSearchParams(window.location.search).get('camera') === 'dslr')
+    setHasShell(getBoothShell() !== null)
+  }, [])
+
+  /** 미리보기 · QR 창에 넘길 4×6 — 테마를 바꾸면 새 그림(다음에 창을 열 때 새로 올린다) */
+  const printable = useMemo<FgPrintable | null>(
+    () => (result ? { image: result, label: 'THEME! 테마 포토', fileName: 'funground-theme', printer: 'photo' } : null),
+    [result],
+  )
 
   const cam = useCamera({ enabled: step === 'camera' || step === 'review', allowDslr })
 
@@ -186,15 +198,11 @@ export function ThemePhoto({ artReady }: { artReady: ThemeId[] }) {
     setStep('camera')
   }
 
+  /** 설치 기기(부스 앱)만 — 브라우저는 FgPrintButton 창이 맡는다 */
   const print = async () => {
-    if (!result || printState === 'sending' || printState === 'sent') return
-    setPrintState('sending')
     const shell = getBoothShell()
-    if (!shell) {
-      // 브라우저(데모) — 인쇄 창. 실제로 뽑혔는지는 알 수 없다
-      window.setTimeout(() => { window.print(); setPrintState('sent') }, 50)
-      return
-    }
+    if (!result || !shell || printState === 'sending' || printState === 'sent') return
+    setPrintState('sending')
     try {
       const res = await shell.print(result)
       setPrintState(res.ok ? 'sent' : 'failed')
@@ -243,7 +251,7 @@ export function ThemePhoto({ artReady }: { artReady: ThemeId[] }) {
             <ul className="fgt-badges">
               <li><Sparkles size={30} aria-hidden="true" />AI 인물 인식</li>
               <li><Printer size={30} aria-hidden="true" />4×6 인화</li>
-              <li><ShieldCheck size={30} aria-hidden="true" />사진은 기기 밖으로 나가지 않아요</li>
+              <li><ShieldCheck size={30} aria-hidden="true" />외부 AI 서비스로 보내지 않아요</li>
             </ul>
             <button type="button" className="fg-btn fg-btn--primary fgt-cta" onClick={() => setStep('pick')}>시작하기</button>
           </div>
@@ -357,7 +365,7 @@ export function ThemePhoto({ artReady }: { artReady: ThemeId[] }) {
           <div className="fg-panel fgt-panel fgt-making">
             {stepDots}
             <h2 className="fg-title fg-title--md">사람만{'\n'}오려 내는 중</h2>
-            <p className="fg-lead">AI 인물 인식이 이 기기 안에서 사람을 찾아 테마 배경에 앉혀요.{'\n'}사진은 밖으로 나가지 않아요.</p>
+            <p className="fg-lead">AI 인물 인식이 이 기기 안에서 사람을 찾아 테마 배경에 앉혀요.{'\n'}외부 AI 서비스로 보내지 않아요.</p>
           </div>
         </section>
       )}
@@ -379,29 +387,23 @@ export function ThemePhoto({ artReady }: { artReady: ThemeId[] }) {
                 </button>
               ))}
             </div>
-            {printState === 'sent' && <p className="fgt-sub fgt-sub--left" role="status">{getBoothShell() ? '프린터로 보냈어요. 1분쯤 뒤 출구에서 나와요.' : '인쇄 창을 열었어요. 설치 기기에서는 프린터로 바로 나와요.'}</p>}
+            {printState === 'sent' && <p className="fgt-sub fgt-sub--left" role="status">프린터로 보냈어요. 1분쯤 뒤 출구에서 나와요.</p>}
             {printState === 'failed' && <p className="fgt-error" role="alert">지금은 인쇄할 수 없어요. 직원에게 프린터 확인을 요청해 주세요.</p>}
             <div className="fgt-result-actions fgt-cta">
-              <button type="button" className="fg-btn fg-btn--primary" onClick={() => void print()} disabled={printState === 'sending' || printState === 'sent'}>
-                {printState === 'sending' ? <Loader2 className="fgt-spin" size={44} /> : <Printer size={44} aria-hidden="true" />}
-                {printState === 'sent' ? '인쇄 보냄' : '인쇄하기'}
-              </button>
+              {hasShell ? (
+                <button type="button" className="fg-btn fg-btn--primary" onClick={() => void print()} disabled={printState === 'sending' || printState === 'sent'}>
+                  {printState === 'sending' ? <Loader2 className="fgt-spin" size={44} /> : <Printer size={44} aria-hidden="true" />}
+                  {printState === 'sent' ? '인쇄 보냄' : '인쇄하기'}
+                </button>
+              ) : (
+                <FgPrintButton printable={printable} />
+              )}
               <button type="button" className="fg-btn fg-btn--ghost" onClick={retake}><RotateCcw size={40} aria-hidden="true" />다시 찍기</button>
               <button type="button" className="fg-btn fg-btn--ghost" onClick={home}><Home size={40} aria-hidden="true" />처음으로</button>
             </div>
           </div>
         </section>
       )}
-
-      {step === 'result' && result && <PrintArea image={result} />}
     </FgStage>
-  )
-}
-
-/** 인쇄 창에 보이는 4×6 한 장 — 화면 배율(transform) 밖, body 바로 아래에 둔다(결과 단계는 브라우저에서만 그려진다) */
-function PrintArea({ image }: { image: string }) {
-  return createPortal(
-    <div className="fgt-print-area" aria-hidden="true"><img src={image} alt="" /></div>,
-    document.body,
   )
 }

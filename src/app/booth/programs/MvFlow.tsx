@@ -3,7 +3,7 @@
 // 뮤직비디오 — 15초 촬영(카메라+마이크) → 미리보기·다시 촬영 → 음악·스타일 → 편집 영상 만들기(브라우저) → 재생 → QR 저장.
 // AI 영상이 아니라 촬영 영상 편집이다(화면에 늘 안내). 인쇄 버튼은 없다.
 
-import { AlertTriangle, Camera, CameraOff, Minus, Music2, Play, Plus, RefreshCw, RotateCcw, Smartphone, Sparkles, Square } from 'lucide-react'
+import { AlertTriangle, Camera, CameraOff, Minus, Music2, Play, Plus, RefreshCw, RotateCcw, Smartphone, Sparkles, Square, Download } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { defaultChoices, optionOf } from '@/lib/booth/programs/catalog'
 import { useCamera } from './use-camera'
@@ -288,6 +288,14 @@ export function VideoSave({ ctx, blob, visual, onReplay }: { ctx: FlowCtx; blob:
   // 펀그라운드 데모(B안 · 주소 site=funground) — 영상을 기기 밖으로 보내지 않는다(외부 전송 0). QR 받기는 설치 때 연결한다
   // (운영 영상 보관 저장소 photobooth-media 가 아직 없다 — supabase/migrations/20261015_photobooth_programs.sql 미적용)
   const [offline] = useState(isFungroundSite)
+  // 노트북 · 폰 데모에서 만든 영상을 그 기기에 바로 저장(서버에 올리지 않는다)
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
+  useEffect(() => {
+    if (!offline) return
+    const url = URL.createObjectURL(blob)
+    setDownloadUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [offline, blob])
   const saved = useSavedLink(make, !offline)
   const { markShot, setDirty } = ctx
   useEffect(() => { if (saved.link) { markShot({ downloaded: true }); setDirty(false) } }, [saved.link, markShot, setDirty])
@@ -300,6 +308,7 @@ export function VideoSave({ ctx, blob, visual, onReplay }: { ctx: FlowCtx; blob:
           <div className="pg-qr-text">
             <b><Smartphone size={20} aria-hidden="true" />휴대폰으로 영상 받기</b>
             <p>QR로 받기는 설치 때 연결해요. 데모에서는 영상을 기기 밖으로 보내지 않아요.</p>
+            {downloadUrl && <a className="pg-btn pg-btn--line" href={downloadUrl} download={`funground-mv.${blob.type.includes('mp4') ? 'mp4' : 'webm'}`}><Download size={18} />이 기기에 저장</a>}
           </div>
         </section>
       ) : (

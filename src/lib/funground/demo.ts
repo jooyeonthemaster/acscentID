@@ -54,54 +54,53 @@ export const PHASE_LABEL: Record<FungroundPhase, string> = { 1: '1단계 · 12�
 export const BUILD_LABEL: Record<FungroundBuild, string> = { existing: '기존 프로그램', adapted: '기존 · 고쳐 씀', new: '새로 제작' }
 export const PLAN_INFO: Record<FungroundPlan, { title: string; quote: string; short: string; line: string }> = {
   a: { title: 'A안 · AI 생성형', quote: '견적 26-217', short: 'A안', line: '사진을 AI가 테마 속 모습으로 바꿔 줍니다. 사진은 처리하는 동안만 AI 서비스로 갑니다.' },
-  b: { title: 'B안 · 기기 안 처리형', quote: '견적 26-218', short: 'B안', line: '외부 AI 서비스를 쓰지 않습니다. 사진이 기기 밖으로 나가지 않습니다.' },
+  b: { title: 'B안 · 기기 안 처리형', quote: '견적 26-218', short: 'B안', line: '외부 AI 서비스를 쓰지 않습니다. 사진은 기기 안에서 처리하고, QR로 받기를 누른 결과만 24시간 보관합니다.' },
 }
 
 const shot = (key: string) => `/assets/booth-demo/funground/${key}.webp`
 
 export const FUNGROUND_PROGRAMS: FungroundProgram[] = [
-  // ───────── A안 — AI 생성형(견적 26-217): AI 포토 6종 + AI 진단 1종(둘 중 고름) + AI 포춘 ─────────
-  { key: 'a-idol', plan: 'a', no: 1, tag: 'IDOL!', name: '아이돌 메이크업', desc: '엔딩요정 · 앨범 재킷 · 직캠 · 뮤비 — 얼굴은 그대로, 무대 메이크업과 의상으로 4×6 인화.', phase: 1, build: 'existing', badges: ['AI 생성', '4×6 인화'], color: '#d63fa8', screen: shot('a-idol'), targets: [{ kind: 'booth', id: 'idol-makeup' }] },
-  { key: 'a-era', plan: 'a', no: 2, tag: 'ERA!', name: '패션 타임머신', desc: '1970 · 1990 · 2000년대 — 같은 얼굴로 그 시절 옷과 배경을 입어 봐요.', phase: 1, build: 'existing', badges: ['AI 생성', '4×6 인화'], color: '#1e4fbf', screen: shot('a-era'), targets: [{ kind: 'booth', id: 'fashion-time' }] },
-  { key: 'a-grad', plan: 'a', no: 3, tag: 'GRAD!', name: '졸업 포토부스', desc: '가운 색 · 학사모 · 배경을 골라 졸업 앨범 같은 한 장을 만들어요.', phase: 1, build: 'existing', badges: ['AI 생성', '4×6 인화'], color: '#1f5a3d', screen: shot('a-grad'), targets: [{ kind: 'booth', id: 'graduation' }] },
-  { key: 'a-card', plan: 'a', no: 4, tag: 'WITH!', name: '팬 포토카드 메이커', desc: '내 사진을 포토카드 화보처럼 다듬고 프레임 · 스티커 · 문구로 꾸며요.', phase: 1, build: 'existing', badges: ['AI 보정', '4×6 인화'], color: '#3f5bd8', screen: shot('a-card'), targets: [{ kind: 'booth', id: 'fan-card' }] },
-  { key: 'a-quest', plan: 'a', no: 5, tag: 'QUEST!', name: '판타지 모험', desc: '마법 학교 · 용의 계곡 · 숲 속 모험 — 얼굴은 그대로, 모험가 옷과 배경만 바꿔요. 망토 색도 골라요.', phase: 2, build: 'new', badges: ['AI 생성', '4×6 인화'], color: '#5b3fc4', screen: shot('a-quest'), targets: [{ kind: 'booth', id: 'quest' }] },
-  { key: 'a-mvp', plan: 'a', no: 6, tag: 'MVP!', name: '스포츠 스타', desc: '축구 · 농구 · 야구 경기장의 우승 장면. 유니폼에 글자 · 번호 · 로고는 넣지 않아요.', phase: 2, build: 'new', badges: ['AI 생성', '4×6 인화'], color: '#d9681f', screen: shot('a-mvp'), targets: [{ kind: 'booth', id: 'mvp' }] },
+  // 2026-11-14 사용자 지시: A안 · B안 모두 같은 네 프로그램(LATER! · COLOR! · NEXT! · FORTUNE!)만 — 나머지(IDOL! · ERA! · GRAD! · WITH! · QUEST! · MVP! · THEME! · MV!)는 이 데모에서 뺐다.
+  // 모든 프로그램은 사진을 찍고, 마지막에 「인쇄하기」(노트북 · 폰: 인쇄 미리보기 + QR)로 결과물을 받는다.
+  // ───────── A안 — AI 생성형(견적 26-217) ─────────
   {
-    key: 'a-diagnosis', plan: 'a', no: 7, tag: 'COLOR! · NEXT!', name: 'AI 진단', desc: '퍼스널 컬러(사진 한 장으로 어울리는 색) 또는 미래 직업 탐색(질문 여덟 개) — 둘 중 하나를 고르세요.', phase: 1, build: 'existing', badges: ['AI 분석', '결과 QR'], color: '#26307a', screen: shot('a-diagnosis'),
-    // 설치 기기 화면이 가로라(2026-11-14) 키오스크 세로 화면 대신 같은 프로그램의 가로판(/kiosk/pc)을 연다 — 결과는 휴대폰 QR
-    targets: [{ kind: 'pc', id: 'color', label: '퍼스널 컬러' }, { kind: 'pc', id: 'career', label: '미래 직업 탐색' }],
-    note: '둘 중 하나를 고르세요',
+    key: 'a-later', plan: 'a', no: 1, tag: 'LATER!', name: '타임캡슐 포토', desc: '오늘의 나를 찍으면 AI가 10년 · 20년 뒤의 나를 상상해 그려 4×6 사진으로 줘요. 재미로 보는 상상 사진이에요.', phase: 1, build: 'existing', badges: ['AI 생성', '4×6 인화'], color: '#5b55d6', screen: shot('a-later'),
+    targets: [{ kind: 'booth', id: 'timecapsule' }],
   },
   {
-    key: 'a-fortune', plan: 'a', no: 8, tag: 'FORTUNE!', name: 'AI 포춘', desc: '생년월일로 사주를 계산하고, AI가 공부 · 친구 · 진로 · 꿈 이야기로 풀어 줘요. 재미로 보는 풀이예요.', phase: 1, build: 'adapted', badges: ['AI 생성', '재미로 보는 풀이'], color: '#1f5a45', screen: shot('a-fortune'),
+    key: 'a-color', plan: 'a', no: 2, tag: 'COLOR!', name: 'AI 퍼스널 컬러', desc: '사진 한 장으로 AI가 8유형 중 어울리는 색을 찾아 주고, 옷 색을 바꿔 대어 봐요.', phase: 1, build: 'existing', badges: ['AI 분석', '결과 카드'], color: '#26307a', screen: shot('a-color'),
+    // 설치 기기 화면이 가로라 키오스크 세로 화면 대신 같은 프로그램의 노트북 가로판(/kiosk/pc)을 연다
+    targets: [{ kind: 'pc', id: 'color' }],
+  },
+  {
+    key: 'a-next', plan: 'a', no: 3, tag: 'NEXT!', name: 'AI 미래 직업 탐색', desc: '질문 여덟 개와 사진 한 장을 AI가 함께 보고 탐색해 볼 직업과 가이드를 만들어 줘요.', phase: 1, build: 'existing', badges: ['AI 분석', '결과 카드'], color: '#315ca8', screen: shot('a-next'),
+    targets: [{ kind: 'pc', id: 'career' }],
+  },
+  {
+    key: 'a-fortune', plan: 'a', no: 4, tag: 'FORTUNE!', name: 'AI 포춘', desc: '사진 한 장과 생년월일로 사주를 계산하고, AI가 공부 · 친구 · 진로 · 꿈 이야기로 풀어 내 사진이 든 카드로 줘요. 재미로 보는 풀이예요.', phase: 1, build: 'adapted', badges: ['AI 생성', '4×6 인화', '재미로 보는 풀이'], color: '#1f5a45', screen: shot('a-fortune'),
     targets: [{ kind: 'screen', id: 'saju', query: { engine: 'ai' } }],
     note: '사주(SAJU!)에서 향 처방을 빼고 공부 · 친구 · 진로 · 꿈 이야기로',
   },
   // ───────── B안 — 기기 안 처리형(견적 26-218 · 외부 AI API 0) ─────────
   {
-    key: 'b-theme', plan: 'b', no: 1, tag: 'THEME!', name: '테마 포토', desc: '기기 안에서 사람만 오려 아이돌 무대 · 경기장 · 마법 학교 · 우주 정거장 · 놀이공원 · 펀그라운드 배경에 합성해요. 옷과 얼굴은 그대로, 1~4명.', phase: 2, build: 'new', badges: ['AI 인물 인식', '1~4명', '4×6 인화'], color: '#e0466f', screen: shot('b-theme'),
-    targets: [{ kind: 'screen', id: 'theme' }],
+    key: 'b-later', plan: 'b', no: 1, tag: 'LATER!', name: '타임캡슐 포토', desc: '오늘의 나를 찍어 미래 배경에 합성하고, 미래의 나에게 한마디와 열어 볼 날을 적은 4×6 사진으로 줘요. 얼굴은 바꾸지 않아요.', phase: 2, build: 'new', badges: ['AI 인물 인식', '1~4명', '4×6 인화'], color: '#5b55d6', screen: shot('b-later'),
+    targets: [{ kind: 'screen', id: 'later' }],
+    note: 'AI로 나이를 바꾸는 대신 기기 안 사람 분리 합성 · 미래의 나에게 한마디',
   },
   {
-    key: 'b-color', plan: 'b', no: 2, tag: 'COLOR!', name: '퍼스널 컬러', desc: '기기 안에서 피부 · 머리카락 색을 재어 8유형 중 어울리는 색을 알려 줘요. 사진은 기기 밖으로 나가지 않아요.', phase: 2, build: 'adapted', badges: ['AI 인식 기반', '기기 안 판정'], color: '#26307a', screen: shot('b-color'),
+    key: 'b-color', plan: 'b', no: 2, tag: 'COLOR!', name: '퍼스널 컬러', desc: '기기 안에서 피부 · 머리카락 색을 재어 8유형 중 어울리는 색을 알려 줘요. 판정은 기기 안에서 해요.', phase: 2, build: 'adapted', badges: ['AI 인식 기반', '기기 안 판정', '4×6 인화'], color: '#26307a', screen: shot('b-color'),
     targets: [{ kind: 'screen', id: 'color' }],
     note: '판정을 기기 안 숫자 규칙으로 · 결과 문장은 미리 써 둠',
   },
   {
-    key: 'b-saju', plan: 'b', no: 3, tag: 'SAJU!', name: '사주', desc: '생년월일로 만세력을 계산하고, 미리 써 둔 풀이 문장에서 골라 보여 줘요. 재미로 보는 풀이예요.', phase: 1, build: 'adapted', badges: ['체험 프로그램', '기기 안 계산'], color: '#1f5a45', screen: shot('b-saju'),
+    key: 'b-next', plan: 'b', no: 3, tag: 'NEXT!', name: '미래 직업 탐색', desc: '사진 한 장을 찍고 질문 여덟 개로 관심 축을 찾아, 탐색해 볼 직업 세 가지를 내 사진이 든 카드로 보여 줘요.', phase: 1, build: 'adapted', badges: ['체험 프로그램', '질문 8개', '4×6 인화'], color: '#315ca8', screen: shot('b-next'),
+    targets: [{ kind: 'screen', id: 'career' }],
+    note: '관상 분석 대신 결과 카드용 사진 · AI 풀이 대신 미리 쓴 축 조합 풀이',
+  },
+  {
+    key: 'b-fortune', plan: 'b', no: 4, tag: 'FORTUNE!', name: '포춘', desc: '사진 한 장과 생년월일로 만세력을 계산하고, 미리 써 둔 풀이 문장에서 골라 내 사진이 든 카드로 보여 줘요. 재미로 보는 풀이예요.', phase: 1, build: 'adapted', badges: ['체험 프로그램', '기기 안 계산', '4×6 인화'], color: '#1f5a45', screen: shot('b-fortune'),
     targets: [{ kind: 'screen', id: 'saju', query: { engine: 'local' } }],
     note: '만세력 그대로 · 풀이는 미리 쓴 문장에서',
-  },
-  {
-    key: 'b-career', plan: 'b', no: 4, tag: 'NEXT!', name: '미래 직업 탐색', desc: '질문 여덟 개로 관심 축을 찾아 탐색해 볼 직업 세 가지를 보여 줘요. 사진은 찍지 않아요.', phase: 1, build: 'adapted', badges: ['체험 프로그램', '질문 8개'], color: '#315ca8', screen: shot('b-career'),
-    targets: [{ kind: 'screen', id: 'career' }],
-    note: '관상 사진을 빼고 · AI 풀이 대신 미리 쓴 축 조합 풀이',
-  },
-  {
-    key: 'b-mv', plan: 'b', no: 5, tag: 'MV!', name: '뮤직비디오 메이커', desc: '15초 동안 춤추고 노래하면 음악 · 네온 · 필름 효과를 입힌 영상이 돼요. 기기 안에서 편집해요.', phase: 1, build: 'existing', badges: ['체험 프로그램', '영상 15초'], color: '#6a3fe0', screen: shot('b-mv'),
-    targets: [{ kind: 'booth', id: 'music-video' }],
-    note: 'QR 받기는 설치 때 연결',
   },
 ]
 

@@ -1128,3 +1128,7 @@ export function drawThemeFront(a: ArtContext) {
   ART[a.theme.id].front(a)
   a.ctx.restore()
 }
+
+/** 다른 기기 안 합성 화면(LATER! 타임캡슐)이 같이 쓰는 그리기 보조 */
+export { rng, linear, glow, sparkle, starPath, cloud }
+export type { Stop }

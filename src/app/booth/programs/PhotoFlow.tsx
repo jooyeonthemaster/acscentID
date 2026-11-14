@@ -3,7 +3,7 @@
 // 사진 프로그램 12종 흐름 — 촬영(또는 휴대폰 사진) → 옵션 → AI 생성(/api/photobooth/program) → 결과(인화 디자인 2종) → 저장(QR·인쇄).
 // 생성 실패 때는 찍은 사진·고른 옵션을 그대로 두고 다시 만들기 / 스타일 바꾸기를 준다.
 
-import { AlertTriangle, Camera, CameraOff, Check, ImagePlus, RefreshCw, RotateCcw, Sparkles, Timer, UserRound } from 'lucide-react'
+import { AlertTriangle, Camera, CameraOff, Check, Download, ImagePlus, Loader2, Printer, RefreshCw, RotateCcw, Smartphone, Sparkles, Timer, UserRound, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { defaultChoices, optionOf } from '@/lib/booth/programs/catalog'
 import { countFaces } from '@/lib/booth/face-detect'
@@ -416,14 +416,53 @@ function SaveStep({ ctx, image }: { ctx: FlowCtx; image: string }) {
   const printer = usePrint(image, () => ctx.markShot({ printed: true }))
   const { markShot, setDirty } = ctx
   useEffect(() => { if (saved.link) { markShot({ downloaded: true }); setDirty(false) } }, [saved.link, markShot, setDirty])
+  // 펀그라운드 데모를 노트북 · 폰 브라우저로 열면(프린터 없음) 인쇄하기 = 인쇄 미리보기 창 + 같은 QR(인쇄 창 대신, 2026-11-14 사용자 지시)
+  const [previewOnly] = useState(() => isFungroundSite() && printer.browser)
+  const [preview, setPreview] = useState(false)
   return (
     <Split className="pg-save" visual={<PrintPreview src={image} />}>
       <PanelHead title={program.save.title} sub={program.save.sub} />
       <div className="pg-save-cards">
         <QrCard state={saved} />
-        <PrintCard printer={printer} />
+        {previewOnly ? (
+          <section className="pg-card pg-print" aria-label="사진 1장 인쇄">
+            <Printer size={44} aria-hidden="true" />
+            <b>사진 1장 인쇄</b>
+            <p>4×6 사진 한 장 · 화면과 같은 디자인</p>
+            <button type="button" className="pg-btn pg-btn--line" onClick={() => { setPreview(true); markShot({ printed: true }) }}>인쇄하기</button>
+          </section>
+        ) : (
+          <PrintCard printer={printer} />
+        )}
       </div>
       <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={ctx.requestHome}>완료 · 처음으로</button>
+      {preview && (
+        <Modal label="인쇄 미리보기" onClose={() => setPreview(false)}>
+          <div className="pg-fg-sheet">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="pg-fg-sheet-print" src={image} alt="인쇄할 4×6 사진 미리보기" />
+            <div className="pg-fg-sheet-side">
+              <h3>인쇄 미리보기</h3>
+              <p className="pg-muted">설치 기기에서는 「인쇄하기」를 누르면 4×6 사진이 바로 인쇄돼요. 지금은 미리보기로 보여 드려요.</p>
+              <div className="pg-fg-sheet-qr">
+                {saved.link ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={saved.link.qr} alt="휴대폰 저장 QR" width={180} height={180} />
+                ) : saved.error ? (
+                  <button type="button" className="pg-btn pg-btn--line" onClick={() => void saved.retry()}><RotateCcw size={18} />다시</button>
+                ) : (
+                  <Loader2 className="pg-spin" size={40} aria-hidden="true" />
+                )}
+                <p><b><Smartphone size={18} aria-hidden="true" />휴대폰으로 받기</b>{saved.error ? saved.error : saved.link ? '휴대폰 카메라로 QR을 찍으면 저장할 수 있어요.' : 'QR을 만드는 중이에요…'}</p>
+              </div>
+              <div className="pg-fg-sheet-actions">
+                <a className="pg-btn pg-btn--line" href={image} download={`funground-${program.id}.jpg`}><Download size={18} />이 기기에 저장</a>
+                <button type="button" className="pg-btn pg-btn--accent" onClick={() => setPreview(false)}><X size={18} />닫기</button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
       <div className="pg-print-area" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={image} alt="" />

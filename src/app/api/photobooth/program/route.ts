@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { findProgram, validChoices } from '@/lib/booth/programs/catalog'
-import { buildProgramPrompt, programImageOptions, FUNGROUND_RULES } from '@/lib/booth/programs/prompts'
+import { buildProgramPrompt, programImageOptions, fungroundRules } from '@/lib/booth/programs/prompts'
 import { FUNGROUND_PRIMARY, generateFungroundImage } from '@/lib/booth/image-models'
 import { generateBoothImage, IdolError, spendIdolTicket } from '@/lib/booth/idol-generate'
 import { DEMO_TICKET_OWNER, takeDemoGeneration } from '@/lib/booth/demo-server'
@@ -22,7 +22,7 @@ export const maxDuration = 120
  *
  * 펀그라운드 별내 데모(2026-11-14): 부스 화면 주소에 site=funground 가 있으면 body.site='funground' 가 온다. 그 데모 표이고 펀그라운드 모델 표
  * (src/lib/booth/image-models.ts FUNGROUND_PRIMARY)에 있는 프로그램이면 Seedream 5.0 Flash → Gemini 2.5 Flash Image 로, 펀그라운드 키로 만들고
- * 9~19세 나이 규칙(FUNGROUND_RULES)을 붙인다. 펀그라운드 전용 프로그램(QUEST! · MVP!, catalog 의 site)은 데모 표로만 만든다.
+ * 나이 · 안경 규칙(fungroundRules — 타임캡슐은 나이 들기용)을 붙인다. 펀그라운드 전용 프로그램(QUEST! · MVP!, catalog 의 site)은 데모 표로만 만든다.
  * 그 밖의 요청은 예전 그대로다.
  */
 export async function POST(request: NextRequest) {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     if (demo) await takeDemoGeneration()
     const funground = demo && (program.site === 'funground' || body?.site === 'funground') && Boolean(FUNGROUND_PRIMARY[program.id])
     if (funground) {
-      const prompt = `${buildProgramPrompt(program, choices, photos.length, people)}\n\n${FUNGROUND_RULES}`
+      const prompt = `${buildProgramPrompt(program, choices, photos.length, people)}\n\n${fungroundRules(program.id)}`
       const made = await generateFungroundImage(program.id, prompt, photos, `${program.id} ${Object.values(choices).join('/')} 얼굴${people ?? '-'}`)
       return NextResponse.json({ image: made.image }, { headers: { 'Cache-Control': 'no-store' } })
     }

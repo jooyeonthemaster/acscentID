@@ -88,14 +88,4 @@
 .fgt-result-actions { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 24px; }
 .fgt-result-actions .fg-btn { padding: 0 28px; }
 
-/* 인쇄 창 — 4×6 한 장만 */
-.fgt-print-area { display: none; }
-@media print {
-  @page { size: 4in 6in; margin: 0; }
-  html, body { background: #fff !important; }
-  body > *:not(.fgt-print-area) { display: none !important; }
-  .fgt-print-area { display: block !important; width: 4in; height: 6in; }
-  .fgt-print-area img { display: block; width: 100%; height: 100%; object-fit: cover; }
-}
-
 @media (prefers-reduced-motion: reduce) { .fgt-count, .fgt-flash, .fgt-spin { animation: none; } }

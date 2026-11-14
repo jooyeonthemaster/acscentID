@@ -1,30 +1,35 @@
 'use client'
 
 // 펀그라운드 별내 사주 — 1920×1080 가로 화면(FgStage · 32인치 가로 터치스크린, 노트북 창에서도 같은 배치). 주소의 engine 으로 두 안을 같은 화면에서 보여 준다.
-//   engine=local(B안 SAJU! · 체험 프로그램): 만세력(src/lib/saju)과 풀이 고르기(src/lib/funground/saju-reading.ts)를 모두 이 기기에서 한다 — /api 를 부르지 않는다.
+//   engine=local(B안 FORTUNE! 포춘 · 체험 프로그램): 만세력(src/lib/saju)과 풀이 고르기(src/lib/funground/saju-reading.ts)를 모두 이 기기에서 한다 — /api 를 부르지 않는다.
 //     'AI'라고 쓰지 않는다.
 //   engine=ai(A안 FORTUNE! AI 포춘): /api/funground/fortune 에 생일을 보내 AI 풀이를 받는다. 실패 · 하루 상한(429) · 연결 끊김이면 이 기기에서 미리 쓴 풀이로 대신한다.
-// 흐름: 시작 → 태어난 해 → 달 · 날(양력 · 음력 · 윤달) → 태어난 시(모르면 건너뛰기) → 결과. 성별은 묻지 않는다(원국 · 풀이에 쓰이지 않는다).
+// 흐름: 시작 → 사진(3-2-1 · 다시 찍기) → 태어난 해 → 달 · 날(양력 · 음력 · 윤달) → 태어난 시(모르면 건너뛰기) → 결과 → 사진 인쇄하기.
+//   성별은 묻지 않는다(원국 · 풀이에 쓰이지 않는다).
+// 사진(2026-11-14 사용자 결정: 모든 프로그램에 촬영): 노트북 웹캠(useCamera, DSLR 안 씀)으로 찍어 이 기기 안에서만 결과 화면 · 4×6 사주 카드에 쓴다.
+//   AI 에는 보내지 않는다(engine=ai 요청은 생일만). 카메라가 안 될 때만 「사진 없이 계속」(카드는 일간 한자로 채운다).
+// 인쇄: 결과가 나오면 4×6 컬러 카드(src/lib/funground/saju-card.ts)를 그려 FgPrintButton(미리보기 · QR 창)에 넘긴다.
 // 키오스크 사주 입력(src/app/kiosk/SajuInput.tsx — 숫자 패드 · 12지시 격자)은 매장 화면 CSS 와 묶여 있어 가져오지 않고,
 // 9~19세가 누르기 쉬운 연도 · 월 · 날짜 고르기로 따로 만들었다(12지시 표는 같은 대표 시각).
 // 결과는 「재미로 보는 풀이」 — 외모 · 점수 · 순위 · 연애 · 돈 · 향 이야기는 없다.
 
-import { ArrowLeft, ArrowRight, BookOpen, ChevronLeft, ChevronRight, Clock3, Compass, Smile, Sparkles, Star, Users } from 'lucide-react'
-import { useCallback, useEffect, useState, useSyncExternalStore, type CSSProperties, type ComponentType } from 'react'
+import {
+  ArrowLeft, ArrowRight, BookOpen, Camera, CameraOff, Check, ChevronLeft, ChevronRight, Clock3, Compass, Loader2, RefreshCw, RotateCcw, Smile, Sparkles, Star, Users,
+} from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type CSSProperties, type ComponentType } from 'react'
+import { useCamera } from '@/app/booth/programs/use-camera'
+import { FgPrintButton, type FgPrintable } from '@/components/funground/FgResultSheet'
 import { FgStage, useFgHome } from '@/components/funground/FgStage'
-import type { Element } from '@/lib/saju'
 import {
   FG_ELEMENT_HANJA, FG_ELEMENT_WORD, FG_ELEMENTS, FG_HOURS, FG_TOPICS, FG_YEAR, FG_YEAR_GANJI,
   fgLocalSaju, fgSajuChart, type FgBirth, type FgSajuResult, type FgTopic,
 } from '@/lib/funground/saju-reading'
+import { FG_ELEMENT_COLOR as ELEMENT_COLOR, FG_SAJU_TONE as TONE, SAJU_PHOTO_ASPECT, renderSajuCard } from '@/lib/funground/saju-card'
 import './fg-saju.css'
 
 type Engine = 'local' | 'ai'
-type Step = 'intro' | 'year' | 'date' | 'hour' | 'loading' | 'result'
+type Step = 'intro' | 'photo' | 'year' | 'date' | 'hour' | 'loading' | 'result'
 
-const TONE = '#1f5a45'
-/** 오행 색 — 만세력 글자 · 막대 */
-const ELEMENT_COLOR: Record<Element, string> = { 목: '#2f9e5b', 화: '#e5533d', 토: '#d39a1c', 금: '#8a93a6', 수: '#2f6fd6' }
 /** 아무도 누르지 않으면 처음으로 — 입력 중 2분 · 결과 1분 30초 */
 const IDLE_ASK_MS = 120_000
 const IDLE_RESULT_MS = 90_000
@@ -36,6 +41,9 @@ const AI_TIMEOUT_MS = 55_000
 const YEAR_PAGE = 12
 const YEAR_FIRST_PAGE = 2006
 const YEAR_MIN = 1930
+/** 찍은 사진 크기(가로 4 : 세로 5 — 카드 사진 칸과 같다) */
+const PHOTO_W = 800
+const PHOTO_H = Math.round(PHOTO_W / SAJU_PHOTO_ASPECT)
 
 const TOPIC_ICON: Record<FgTopic, ComponentType<{ size?: number; strokeWidth?: number; 'aria-hidden'?: boolean | 'true' }>> = {
   study: BookOpen, friend: Users, career: Compass, dream: Sparkles, mind: Smile,
@@ -66,11 +74,26 @@ function todayParts() {
   return { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate() }
 }
 
-/** 단계 점 — 해 · 날 · 시 */
-function Steps({ now }: { now: 0 | 1 | 2 }) {
+/** 거울 방향 카메라 장면 → 가운데 4:5 사진(미리보기 object-fit: cover 와 같은 범위) */
+function cropPortrait(still: HTMLCanvasElement): string {
+  const sw = still.width
+  const sh = still.height
+  const cw = Math.min(sw, sh * SAJU_PHOTO_ASPECT)
+  const ch = cw / SAJU_PHOTO_ASPECT
+  const canvas = document.createElement('canvas')
+  canvas.width = PHOTO_W
+  canvas.height = PHOTO_H
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('사진을 만들지 못했어요.')
+  ctx.drawImage(still, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, PHOTO_W, PHOTO_H)
+  return canvas.toDataURL('image/jpeg', 0.9)
+}
+
+/** 단계 점 — 사진 · 해 · 날 · 시 */
+function Steps({ now }: { now: 0 | 1 | 2 | 3 }) {
   return (
-    <ol className="fg-steps fgsj-steps" aria-label={`3단계 중 ${now + 1}단계`}>
-      {[0, 1, 2].map((i) => <li key={i} data-state={i < now ? 'done' : i === now ? 'now' : undefined} />)}
+    <ol className="fg-steps fgsj-steps" aria-label={`4단계 중 ${now + 1}단계`}>
+      {[0, 1, 2, 3].map((i) => <li key={i} data-state={i < now ? 'done' : i === now ? 'now' : undefined} />)}
     </ol>
   )
 }
@@ -124,6 +147,15 @@ export function FungroundSaju() {
   const [result, setResult] = useState<FgSajuResult | null>(null)
   /** AI 풀이 대신 미리 쓴 풀이를 보여 줄 때 한 줄 */
   const [notice, setNotice] = useState<string | null>(null)
+  /** 이 기기에서 찍은 사진(4:5 data URL) — AI 에 보내지 않는다. null 이면 아직 · 사진 없이 */
+  const [photo, setPhoto] = useState<string | null>(null)
+  /** 사진 단계에서 방금 찍어 확인 중인 사진 */
+  const [shot, setShot] = useState<string | null>(null)
+  const [count, setCount] = useState<number | null>(null)
+  const [flash, setFlash] = useState(false)
+  const [shotError, setShotError] = useState<string | null>(null)
+  /** 결과마다 그린 4×6 카드 — 다른 결과의 카드는 쓰지 않는다 */
+  const [card, setCard] = useState<{ of: FgSajuResult; image: string } | null>(null)
 
   const reset = useCallback(() => {
     setStep('intro')
@@ -137,9 +169,49 @@ export function FungroundSaju() {
     setDateError(null)
     setResult(null)
     setNotice(null)
+    setPhoto(null)
+    setShot(null)
+    setCount(null)
+    setShotError(null)
+    setCard(null)
   }, [])
   const home = useFgHome(reset)
-  useIdle(step !== 'intro' && step !== 'loading', step === 'result' ? IDLE_RESULT_MS : IDLE_ASK_MS, home)
+  useIdle(step !== 'intro' && step !== 'loading' && count === null, step === 'result' ? IDLE_RESULT_MS : IDLE_ASK_MS, home)
+
+  // 사진 — 사진 단계에서만 카메라를 켠다(넘어가면 끈다). 노트북 웹캠 · DSLR 은 찾지 않는다
+  const { state: camState, error: camError, retry: camRetry, videoRef: camVideoRef, still: takeStill } = useCamera({ enabled: step === 'photo', allowDslr: false })
+  const capture = useCallback(async () => {
+    try {
+      setShot(cropPortrait(await takeStill()))
+    } catch (cause) {
+      setShotError(cause instanceof Error ? cause.message : '사진을 찍지 못했어요.')
+    }
+  }, [takeStill])
+  // 3-2-1 → 찰칵(1초마다 한 칸, 1 다음에 찍는다)
+  useEffect(() => {
+    if (count === null) return
+    const t = window.setTimeout(() => {
+      if (count > 1) { setCount(count - 1); return }
+      setCount(null)
+      setFlash(true)
+      window.setTimeout(() => setFlash(false), 260)
+      void capture()
+    }, 1000)
+    return () => window.clearTimeout(t)
+  }, [count, capture])
+
+  // 결과가 나오면 4×6 사주 카드를 그려 둔다(인쇄하기 단추는 그동안 잠깐 꺼져 있다)
+  useEffect(() => {
+    if (!result) return
+    let alive = true
+    renderSajuCard({ result, photo, calendar })
+      .then((image) => { if (alive) setCard({ of: result, image }) })
+      .catch((cause) => console.warn('[funground-saju] 카드를 그리지 못했어요:', cause))
+    return () => { alive = false }
+  }, [result, photo, calendar])
+  const printable = useMemo<FgPrintable | null>(() => (card && card.of === result
+    ? { image: card.image, label: engine === 'ai' ? 'AI 포춘 카드' : '포춘 카드', fileName: engine === 'ai' ? 'funground-fortune' : 'funground-saju', printer: 'photo' }
+    : null), [card, result, engine])
 
   // 설치 기기는 며칠씩 켜 둔다 — 그릴 때마다 오늘을 다시 본다
   const today = todayParts()
@@ -215,8 +287,8 @@ export function FungroundSaju() {
 
   if (!engine) return null
   const ai = engine === 'ai'
-  const word = ai ? 'FORTUNE!' : 'SAJU!'
-  const kicker = ai ? 'AI 포춘 · 재미로 보는 풀이' : '사주 · 체험 프로그램'
+  const word = 'FORTUNE!' // 두 안 모두 FORTUNE!(2026-11-14 데모 프로그램 넷) — A안은 AI 포춘, B안은 포춘(체험 프로그램)
+  const kicker = ai ? 'AI 포춘 · 재미로 보는 풀이' : '포춘 · 체험 프로그램'
 
   /** 고른 생일 — 입력 단계 왼쪽 · 계산 화면에 보여 준다 */
   const birthRows: BirthRow[] = [
@@ -236,14 +308,74 @@ export function FungroundSaju() {
             <h1 className="fg-title">{ai ? 'AI가 풀어 주는\n나의 사주 이야기' : '생일로 알아보는\n나의 사주'}</h1>
             <p className="fg-lead">{'태어난 해 · 달 · 날 · 시의 글자 여덟 개로\n나의 기운과 2027년 흐름을 알아봐요'}</p>
             <span className="fg-fun">재미로 보는 풀이예요</span>
-            <button type="button" className="fg-btn fg-btn--primary fgsj-start" onClick={() => setStep('year')}>
+            <button type="button" className="fg-btn fg-btn--primary fgsj-start" onClick={() => setStep('photo')}>
               시작하기<ArrowRight size={44} strokeWidth={2.8} aria-hidden="true" />
             </button>
             <p className="fg-note fgsj-privacy">
               {ai
-                ? '생일은 풀이를 쓰는 동안에만 쓰고 저장하지 않아요. 이름 · 사진은 받지 않아요.'
-                : '생일은 이 기기 안에서만 계산하고 저장하지 않아요. 이름 · 사진은 받지 않아요.'}
+                ? '생일은 풀이를 쓰는 동안에만 쓰고 저장하지 않아요. 사진은 AI에 보내지 않고 이 기기에서 카드에만 써요.'
+                : '생일은 이 기기 안에서만 계산하고 저장하지 않아요. 사진은 이 기기에서 카드에만 써요.'}
             </p>
+          </section>
+        </div>
+      </FgStage>
+    )
+  }
+
+  // ───────── 사진 ─────────
+  // 왼쪽: 4:5 카메라(카드 사진 칸과 같은 범위) / 오른쪽: 안내 · 찍기 — 찍으면 같은 자리에서 확인(다시 찍기 · 이 사진으로)
+  if (step === 'photo') {
+    const counting = count !== null
+    return (
+      <FgStage className="fgsj" tone={TONE} onHome={home}>
+        <div className="fg-split fgsj-shot">
+          <div className="fgsj-view">
+            {shot ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={shot} alt="방금 찍은 사진" className="fgsj-feed" />
+            ) : (
+              <video ref={camVideoRef} className="fgsj-feed fgsj-feed--mirror" muted playsInline autoPlay />
+            )}
+            {!shot && camState === 'ready' && <div className="fgsj-guide" aria-hidden="true"><span>얼굴이 동그라미 안에</span></div>}
+            {!shot && camState === 'starting' && <div className="fgsj-view-msg"><Loader2 className="fgsj-spin" size={64} aria-hidden="true" />카메라를 켜는 중…</div>}
+            {!shot && camState === 'error' && (
+              <div className="fgsj-view-msg">
+                <CameraOff size={72} aria-hidden="true" />
+                <p>{camError}</p>
+                <button type="button" className="fg-btn fg-btn--ghost fgsj-btn-light" onClick={camRetry}><RefreshCw size={36} aria-hidden="true" />다시 시도</button>
+              </div>
+            )}
+            {count !== null && count > 0 && <div className="fgsj-count" key={count}>{count}</div>}
+            {flash && <div className="fgsj-flash" />}
+          </div>
+          <section className="fg-panel fgsj-side fgsj-shot-side">
+            <Steps now={0} />
+            <h1 className="fg-title">{shot ? '이 사진으로\n할까요?' : '오늘의 나를\n찍어요'}</h1>
+            <p className="fg-lead">{shot ? '얼굴이 잘 보이면\n「이 사진으로」를 눌러 주세요' : '사주 카드에 들어갈 사진이에요\n3초 뒤에 찰칵!'}</p>
+            <p className="fg-note fgsj-shot-note">
+              {ai ? '사진은 AI에 보내지 않아요. 이 기기에서 결과 화면과 카드에만 써요.' : '사진은 이 기기에서 결과 화면과 카드에만 써요.'}
+            </p>
+            {shotError && <p className="fgsj-error fgsj-shot-error" role="alert">{shotError}</p>}
+            {shot ? (
+              <div className="fg-actions fg-actions--row fgsj-nav">
+                <button type="button" className="fg-btn fg-btn--ghost" onClick={() => { setShot(null); setShotError(null) }}><RotateCcw size={40} strokeWidth={2.6} aria-hidden="true" />다시 찍기</button>
+                <button type="button" className="fg-btn fg-btn--primary" onClick={() => { setPhoto(shot); setShot(null); setStep('year') }}><Check size={40} strokeWidth={2.8} aria-hidden="true" />이 사진으로</button>
+              </div>
+            ) : (
+              <div className="fgsj-nav fgsj-shot-actions">
+                {camState === 'error' && (
+                  <button type="button" className="fg-btn fg-btn--ghost fgsj-nophoto" onClick={() => { setPhoto(null); setStep('year') }}>
+                    사진 없이 계속<ArrowRight size={40} strokeWidth={2.8} aria-hidden="true" />
+                  </button>
+                )}
+                <div className="fg-actions fg-actions--row">
+                  <button type="button" className="fg-btn fg-btn--ghost" disabled={counting} onClick={() => setStep('intro')}><ArrowLeft size={40} strokeWidth={2.8} aria-hidden="true" />이전</button>
+                  <button type="button" className="fg-btn fg-btn--primary" disabled={camState !== 'ready' || counting} onClick={() => { setShotError(null); setCount(3) }}>
+                    <Camera size={44} strokeWidth={2.6} aria-hidden="true" />{counting ? '곧 찍어요!' : '찍기'}
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
         </div>
       </FgStage>
@@ -257,7 +389,7 @@ export function FungroundSaju() {
       <FgStage className="fgsj" tone={TONE} onHome={home}>
         <div className="fg-split fgsj-ask">
           <section className="fg-panel fgsj-side">
-            <Steps now={0} />
+            <Steps now={1} />
             <h1 className="fg-title">{'몇 년에\n태어났어요?'}</h1>
             <p className="fg-lead">{'옆 화살표로\n다른 해도 고를 수 있어요'}</p>
             <BirthSummary rows={birthRows} now="year" />
@@ -281,7 +413,7 @@ export function FungroundSaju() {
               ))}
             </div>
             <div className="fg-actions fg-actions--row fgsj-nav">
-              <button type="button" className="fg-btn fg-btn--ghost" onClick={() => setStep('intro')}><ArrowLeft size={40} strokeWidth={2.8} aria-hidden="true" />이전</button>
+              <button type="button" className="fg-btn fg-btn--ghost" onClick={() => { setShot(photo); setStep('photo') }}><ArrowLeft size={40} strokeWidth={2.8} aria-hidden="true" />이전</button>
               <button type="button" className="fg-btn fg-btn--primary" disabled={!year} onClick={() => setStep('date')}>다음<ArrowRight size={40} strokeWidth={2.8} aria-hidden="true" /></button>
             </div>
           </section>
@@ -297,7 +429,7 @@ export function FungroundSaju() {
       <FgStage className="fgsj" tone={TONE} onHome={home}>
         <div className="fg-split fgsj-ask">
           <section className="fg-panel fgsj-side">
-            <Steps now={1} />
+            <Steps now={2} />
             <h1 className="fg-title">{`${year}년\n몇 월 며칠?`}</h1>
             <div className="fgsj-cal">
               <button type="button" className="fg-chip" data-on={calendar === 'solar'} onClick={() => { setCalendar('solar'); setLeap(false); if (month) pickMonth(month, 'solar'); setDateError(null) }}>양력</button>
@@ -341,7 +473,7 @@ export function FungroundSaju() {
       <FgStage className="fgsj" tone={TONE} onHome={home}>
         <div className="fg-split fgsj-ask">
           <section className="fg-panel fgsj-side">
-            <Steps now={2} />
+            <Steps now={3} />
             <h1 className="fg-title">{'몇 시쯤\n태어났어요?'}</h1>
             <p className="fg-lead">모르면 건너뛰어도 괜찮아요</p>
             <button type="button" className="fg-btn fg-btn--ghost fgsj-skip" onClick={() => run(null)}>
@@ -398,7 +530,15 @@ export function FungroundSaju() {
             {/* 나의 일간 */}
             <section className="fgsj-hero" style={{ '--el': dmColor } as CSSProperties}>
               <p className="fgsj-hero-kicker">나의 일간</p>
-              <span className="fgsj-hero-glyph" aria-hidden="true">{reading.dayMaster.hanja}</span>
+              {photo ? (
+                <span className="fgsj-hero-photo">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photo} alt="오늘 찍은 나" />
+                  <b aria-hidden="true">{reading.dayMaster.hanja}</b>
+                </span>
+              ) : (
+                <span className="fgsj-hero-glyph" aria-hidden="true">{reading.dayMaster.hanja}</span>
+              )}
               <p className="fgsj-hero-gan">{reading.dayMaster.gan}{reading.dayMaster.element}({reading.dayMaster.hanja}{FG_ELEMENT_HANJA[reading.dayMaster.element]})</p>
               <h1 className="fgsj-hero-title">{reading.dayMaster.title}</h1>
             </section>
@@ -513,7 +653,8 @@ export function FungroundSaju() {
           </div>
 
           <div className="fgsj-bottom">
-            <button type="button" className="fg-btn fg-btn--primary" onClick={home}>처음으로</button>
+            <FgPrintButton printable={printable} className="fg-btn fg-btn--primary fgsj-print" label="사진 인쇄하기" />
+            <button type="button" className="fg-btn fg-btn--ghost" onClick={home}>처음으로</button>
           </div>
         </div>
       </div>

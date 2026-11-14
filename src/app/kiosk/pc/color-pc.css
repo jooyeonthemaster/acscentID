@@ -107,6 +107,18 @@
 .ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-result > .ksk-actions { flex: none; margin: 10px 0 0; padding: 12px 0 0; }
 .ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-result > .ksk-actions .ksk-btn { min-height: 64px; }
 .ksk-root[data-layout='pc'] .pc-share-btn { gap: 10px; }
+/* 영업용 데모(…?demo=, PcScreen 이 html 에 data-kiosk-demo 를 단다)만 — [휴대폰으로 받기]를 [인쇄하기](프린터 그림)로 보인다.
+   버튼은 셸(KioskClassic) 안에 있어 글자를 CSS 로 바꾼다. 누르면 인쇄 미리보기 창(ColorShareSheet → PrintPreview). 글자는 PrintPreview 의 print 와 같게 */
+html[data-kiosk-demo] .ksk-root[data-layout='pc'] .pc-share-btn > :is(svg, span) { display: none; }
+html[data-kiosk-demo] .ksk-root[data-layout='pc'] .pc-share-btn::before {
+  content: ''; flex: none; width: 22px; height: 22px; background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2'/%3E%3Cpath d='M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6'/%3E%3Crect x='6' y='14' width='12' height='8' rx='1'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+html[data-kiosk-demo] .ksk-root[data-layout='pc'] .pc-share-btn::after { content: '인쇄하기'; }
+html[data-kiosk-demo][lang='en'] .ksk-root[data-layout='pc'] .pc-share-btn::after { content: 'Print'; }
+html[data-kiosk-demo][lang='ja'] .ksk-root[data-layout='pc'] .pc-share-btn::after { content: '印刷する'; }
+html[data-kiosk-demo][lang='zh-Hans'] .ksk-root[data-layout='pc'] .pc-share-btn::after { content: '打印'; }
+html[data-kiosk-demo][lang='zh-Hant'] .ksk-root[data-layout='pc'] .pc-share-btn::after { content: '列印'; }
 
 /* ── 휴대폰으로 받기(QR) 창 ─────────── */
 .ksk-root[data-layout='pc'] .pcs-sheet {

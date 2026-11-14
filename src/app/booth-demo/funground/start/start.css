@@ -1,7 +1,9 @@
-/* 펀그라운드 시작 화면(1920×1080 가로) — 왼쪽 인사 · 견적안 / 오른쪽 프로그램 타일. A안 8개(4×2) · B안 5개(THEME! 를 크게, 3열) */
+/* 펀그라운드 시작 화면(1920×1080 가로) — 왼쪽 인사 · 견적안 / 오른쪽 프로그램 타일. 두 안 모두 4개(LATER! · COLOR! · NEXT! · FORTUNE!, 2×2) */
 .fgs .fg-body { display: grid; grid-template-columns: 520px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; grid-template-areas: 'hero grid' 'foot grid'; gap: 32px 48px; padding: 48px 56px; background: radial-gradient(circle at 4% 96%, color-mix(in srgb, var(--fg-yellow) 45%, transparent) 0 200px, transparent 201px), radial-gradient(circle at 30% 8%, color-mix(in srgb, var(--fg-sky) 18%, transparent) 0 110px, transparent 111px), var(--fg-paper); }
 .fgs-hero { grid-area: hero; display: flex; flex-direction: column; justify-content: center; gap: 22px; }
 .fgs-grid { grid-area: grid; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 28px; min-height: 0; }
+.fgs-grid[data-count='4'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.fgs-grid[data-count='4'] .fgs-tile b { font-size: 60px; }
 .fgs-grid[data-count='5'] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .fgs-grid[data-count='5'] > li:first-child { grid-row: 1 / 3; }
 .fgs-grid > li { display: flex; min-height: 0; }

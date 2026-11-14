@@ -76,6 +76,27 @@
 .fgsj-hour small { color: var(--fg-soft); font-size: 28px; font-weight: 700; }
 .fgsj .fgsj-skip { width: 100%; padding: 0 36px; font-size: 36px !important; }
 
+/* ───────── 사진 — 왼쪽 4:5 카메라(카드 사진 칸과 같은 범위, 높이 가득) / 오른쪽 안내 · 찍기 ───────── */
+.fgsj .fgsj-shot { grid-template-columns: auto minmax(0, 1fr); gap: 56px; }
+.fgsj-view { position: relative; height: 100%; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 40px; background: #10131f; box-shadow: 0 14px 40px rgba(23, 33, 58, 0.2); }
+.fgsj-feed { display: block; width: 100%; height: 100%; object-fit: cover; }
+.fgsj-feed--mirror { transform: scaleX(-1); }
+.fgsj-guide { position: absolute; inset: 9% 17% 24%; border: 6px dashed rgba(255, 255, 255, 0.85); border-radius: 50%; pointer-events: none; }
+.fgsj-guide span { position: absolute; bottom: -78px; left: 50%; padding: 6px 22px; border-radius: 999px; background: rgba(23, 33, 58, 0.78); color: #fff; font-size: 30px; font-weight: 800; white-space: nowrap; transform: translateX(-50%); }
+.fgsj-view-msg { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 40px; background: rgba(16, 19, 31, 0.86); color: #fff; font-size: 34px; font-weight: 800; line-height: 1.4; text-align: center; }
+.fgsj .fgsj-btn-light { border-color: #fff; color: #fff; }
+.fgsj-spin { animation: fg-spin 0.9s linear infinite; }
+.fgsj-count { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 340px; font-weight: 900; text-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); animation: fgsj-pop 1s ease-out both; }
+@keyframes fgsj-pop { from { opacity: 0; transform: scale(1.4); } 20% { opacity: 1; transform: scale(1); } to { opacity: 0.85; } }
+.fgsj-flash { position: absolute; inset: 0; background: #fff; animation: fgsj-flash 0.26s ease-out both; }
+@keyframes fgsj-flash { from { opacity: 1; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .fgsj-count, .fgsj-flash, .fgsj-spin { animation: none; } }
+.fgsj .fgsj-shot-side { gap: 30px; }
+.fgsj-shot-note { padding: 22px 28px; border-radius: 28px; background: color-mix(in srgb, var(--fg-tone) 8%, #fff); color: var(--fg-ink); font-weight: 700; }
+.fgsj .fgsj-shot-error { text-align: left; }
+.fgsj-shot-actions { display: flex; flex-direction: column; gap: 24px; }
+.fgsj-nophoto { width: 100%; }
+
 /* ───────── 계산 중 오른쪽 ───────── */
 .fgsj .fgsj-loading { align-items: flex-start; justify-content: center; gap: 34px; }
 .fgsj-loading .fgsj-sum { align-self: stretch; margin-top: 10px; }
@@ -89,6 +110,10 @@
 .fgsj-hero-kicker { color: color-mix(in srgb, var(--el) 70%, #000); font-size: 30px; font-weight: 900; }
 .fgsj-hero-glyph { display: flex; align-items: center; justify-content: center; width: 168px; height: 168px; border-radius: 50%; background: var(--el); color: #fff; font-family: 'Noto Serif KR', serif; font-size: 108px; font-weight: 900; line-height: 1; }
 .fgsj-hero-gan { color: color-mix(in srgb, var(--el) 70%, #000); font-size: 30px; font-weight: 800; }
+/* 찍은 사진 + 귀퉁이 일간 도장(사진이 없으면 .fgsj-hero-glyph) */
+.fgsj-hero-photo { position: relative; flex: none; width: 168px; aspect-ratio: 4 / 5; }
+.fgsj-hero-photo img { display: block; width: 100%; height: 100%; border: 6px solid #fff; border-radius: 28px; object-fit: cover; box-shadow: 0 8px 20px rgba(23, 33, 58, 0.16); }
+.fgsj-hero-photo b { position: absolute; right: -24px; bottom: -14px; display: flex; align-items: center; justify-content: center; width: 80px; height: 80px; border: 5px solid #fff; border-radius: 50%; background: var(--el); color: #fff; font-family: 'Noto Serif KR', serif; font-size: 46px; font-weight: 900; line-height: 1; }
 .fgsj-hero-title { font-size: 40px; font-weight: 900; line-height: 1.2; letter-spacing: -0.03em; }
 
 .fgsj-card { padding: 30px 34px; }
@@ -129,8 +154,9 @@
 .fgsj-scroll { display: flex; flex: 1; flex-direction: column; gap: 22px; min-height: 0; margin: 0 -10px; padding: 4px 10px 52px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent); }
 .fgsj-scroll::-webkit-scrollbar { display: none; }
 .fgsj-scroll > * { flex: none; }
-.fgsj-bottom { flex: none; }
-.fgsj-bottom .fg-btn { width: 100%; }
+/* 사진 인쇄하기(크게) · 처음으로 */
+.fgsj-bottom { display: grid; flex: none; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; }
+.fgsj-bottom .fg-btn { width: 100%; padding: 0 24px; white-space: nowrap; }
 
 .fgsj-me { background: color-mix(in srgb, var(--el) 12%, #fff); }
 .fgsj-me .fgsj-h2 small { color: color-mix(in srgb, var(--el) 70%, #000); font-weight: 800; }

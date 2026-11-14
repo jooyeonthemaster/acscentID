@@ -16,14 +16,14 @@ import './funground-landing.css'
 // /booth-demo/funground/clean?k=… 은 같은 랜딩의 워터마크 없는 판(서명이 맞을 때만, src/lib/demo-clean.ts).
 
 const NOTES = [
-  '노트북으로 열어 노트북 카메라 · 마이크로 해 볼 수 있습니다. 브라우저가 카메라(뮤직비디오는 마이크도) 권한을 물으면 허용해 주세요. 크롬을 권합니다.',
+  '노트북으로 열어 노트북 카메라로 해 볼 수 있습니다. 브라우저가 카메라 권한을 물으면 허용해 주세요. 크롬을 권합니다.',
   '설치 기기는 32인치 가로 터치스크린입니다. 노트북에서는 같은 가로 화면을 창 크기에 맞춰 보여 드려요 — 전체 화면(F11 · ⌃⌘F)으로 보면 가장 크게 보입니다.',
   'A안의 AI 사진은 찍은 뒤 15~40초쯤 걸립니다. 데모의 AI 생성은 하루 이용 횟수가 정해져 있어, 넘으면 안내가 나옵니다.',
   'A안: 사진은 AI 사진을 만드는 동안만 AI 서비스로 보내고, 결과 사진과 원본을 데모 서버에 남기지 않습니다.',
-  'B안: 외부 AI 서비스를 부르지 않습니다. 사진은 브라우저(설치 때는 기기) 안에서만 처리합니다.',
-  '사주 · 미래 직업은 재미로 보는 풀이입니다. 퍼스널 컬러는 점수 없이 「어울리는 색」만 알려 드립니다.',
-  '인쇄는 프린터가 달린 실제 기기에서 바로 나옵니다. 브라우저에서는 미리보기로 보여 드립니다. 뮤직비디오 QR 받기는 설치 때 연결합니다.',
-  '펀그라운드 색 · 로고 자리는 임시입니다. 실제 로고를 받으면 바꿉니다.',
+  'B안: 외부 AI 서비스를 부르지 않습니다. 사진은 브라우저(설치 때는 기기) 안에서 처리합니다.',
+  '모든 프로그램은 사진을 찍고, 마지막에 「인쇄하기」로 결과물을 받습니다. 노트북 · 폰에서는 인쇄 미리보기와 QR이 뜨고, QR로 받기를 누른 결과만 24시간 보관한 뒤 지웁니다(설치 기기에서는 프린터로 바로 나옵니다).',
+  '타임캡슐 · 포춘 · 미래 직업은 재미로 보는 상상 · 풀이입니다. 퍼스널 컬러는 점수 없이 「어울리는 색」만 알려 드립니다.',
+    '펀그라운드 색 · 로고 자리는 임시입니다. 실제 로고를 받으면 바꿉니다.',
   '데모 화면에는 DEMO 워터마크가 표시됩니다. 실제 기기와 인화물에는 표시되지 않습니다.',
 ]
 
@@ -104,7 +104,7 @@ export function FungroundLanding({ cleanKey, cleanRejected = false }: { cleanKey
           <div className="fl-hero-copy">
             <p className="fl-eyebrow">32인치 가로 터치스크린 1대 · 카메라 · 4×6 포토 프린터 · 영수증 프린터</p>
             <h1>펀그라운드 별내<br />체험 부스 데모</h1>
-            <p className="fl-lead">혼자, 친구 · 가족과 함께 즐기는 상설 체험기입니다. 견적 두 안의 프로그램을 아래에서 직접 눌러 보세요. 기기 한 대에 프로그램을 모두 담고, 시작 화면에서 고릅니다. 노트북 카메라 · 마이크로 직접 해 볼 수 있어요.</p>
+            <p className="fl-lead">혼자, 친구 · 가족과 함께 즐기는 상설 체험기입니다. 견적 두 안의 프로그램을 아래에서 직접 눌러 보세요. 기기 한 대에 프로그램을 모두 담고, 시작 화면에서 고릅니다. 노트북 카메라로 직접 해 볼 수 있어요.</p>
             <div className="fl-compare" role="tablist" aria-label="견적안">
               {(['a', 'b'] as const).map((id) => (
                 <button key={id} type="button" role="tab" aria-selected={plan === id} className="fl-plan" data-plan={id} onClick={() => choose(id)}>
@@ -134,7 +134,7 @@ export function FungroundLanding({ cleanKey, cleanRejected = false }: { cleanKey
         <section className="fl-plan-section" aria-labelledby="fl-plan-title">
           <div className="fl-group-head">
             <h2 id="fl-plan-title">{PLAN_INFO[plan].title}<span>{PLAN_INFO[plan].quote}</span></h2>
-            <p>{PLAN_INFO[plan].line}{plan === 'b' ? ' 테마 포토 · 퍼스널 컬러만 AI 인식을 쓰고(기기 안), 사주 · 미래 직업 · 뮤직비디오는 체험 프로그램입니다.' : ' AI 포토 6종 + AI 진단 1종(둘 중 고름) + AI 포춘.'}</p>
+            <p>{PLAN_INFO[plan].line}{plan === 'b' ? ' 같은 네 프로그램(LATER! · COLOR! · NEXT! · FORTUNE!)을 기기 안에서 — 타임캡슐 · 퍼스널 컬러만 AI 인식(기기 안)을 쓰고, 미래 직업 · 포춘은 체험 프로그램입니다.' : ' LATER! · COLOR! · NEXT! · FORTUNE! 네 프로그램을 AI로 — 미래의 나를 그리고, 어울리는 색 · 직업 · 운세를 AI가 풀어 줍니다.'}</p>
           </div>
           {[{ phase: 1 as const, list: phase1 }, { phase: 2 as const, list: phase2 }].filter((g) => g.list.length).map((g) => (
             <div key={g.phase} className="fl-phase">

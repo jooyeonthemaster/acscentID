@@ -13,6 +13,7 @@ import { OnScreenKeyboard } from '../classic/OnScreenKeyboard'
 import type { KxCommonText } from './kx-i18n'
 import { renderKxReceipt, type KxReceipt } from './kx-receipt'
 import type { KxShare, KxShareFile } from './kx-share'
+import { PRINT_PREVIEW_TEXT, PrintPreviewCard, useBlobUrl } from '../pc/PrintPreview'
 
 export type { KxShareFile } from './kx-share'
 
@@ -333,7 +334,7 @@ export function KxCamView({ cam, photo, children, badge, flash }: {
  * 휴대폰으로 받기 창 — 열리면 결과 파일을 만들어 올리고 QR 을 보여 준다.
  * 손님이 받기를 눌렀을 때만 서버에 올라간다(24시간 보관).
  */
-export function KxSaveSheet({ open, cacheKey, build, onClose, title, desc }: {
+export function KxSaveSheet({ open, cacheKey, build, onClose, title, desc, preview = false }: {
   open: boolean
   /** 결과가 바뀌면 달라지는 값 — 같으면 다시 올리지 않는다 */
   cacheKey: string
@@ -341,26 +342,49 @@ export function KxSaveSheet({ open, cacheKey, build, onClose, title, desc }: {
   onClose: () => void
   title?: string
   desc?: string
+  /** 영업용 데모(노트북 …?demo=) — '인쇄 미리보기' 창: 올리는 결과 그림을 QR 옆에 보이고 이 기기에 저장도 된다(pc/PrintPreview) */
+  preview?: boolean
 }) {
-  const { c, t, share } = useKx()
+  const { c, t, share, lang } = useKx()
   // 결과는 '어느 요청의 것인지'와 함께 둔다 — 요청이 바뀌면(다른 결과·다시 시도) 그 순간부터 준비 중으로 보인다
   const [done, setDone] = useState<{ run: string; qr: string | null } | null>(null)
   const [attempt, setAttempt] = useState(0)
   const builder = useRef(build)
   useEffect(() => { builder.current = build }, [build])
   const run = `${cacheKey}#${attempt}`
+  /** 미리보기 — 올리는 것과 같은 파일. 같은 결과는 다시 그리지 않는다 */
+  const [drawn, setDrawn] = useState<{ key: string; file: KxShareFile; files: KxShareFile[] } | null>(null)
+  const drawnRef = useRef(drawn)
+  const image = useBlobUrl(preview && drawn?.key === cacheKey ? drawn.file.blob : null)
 
   useEffect(() => {
     if (!open) return
     let alive = true
-    share(cacheKey, () => builder.current())
+    const files = async () => {
+      if (!preview) return builder.current()
+      const ready = drawnRef.current?.key === cacheKey ? drawnRef.current.files : await builder.current()
+      const file = ready.find((f) => f.type.startsWith('image/'))
+      if (drawnRef.current?.key !== cacheKey && file) drawnRef.current = { key: cacheKey, file, files: ready }
+      if (alive && drawnRef.current?.key === cacheKey) setDrawn(drawnRef.current)
+      return ready
+    }
+    // 미리보기는 올리기(QR)를 기다리지 않는다 — 그림을 먼저 그려 보이고, 이미 올린 결과면 그 파일로 올리지 않고 QR 만
+    const made = preview ? files().then((ready) => share(cacheKey, async () => ready)) : share(cacheKey, files)
+    made
       .then((made) => { if (alive) setDone({ run, qr: made.qr }) })
       .catch((error) => { console.error('[kiosk] 결과를 올리지 못했습니다:', error); if (alive) setDone({ run, qr: null }) })
     return () => { alive = false }
-  }, [open, cacheKey, run, share])
+  }, [open, cacheKey, run, share, preview])
 
   if (!open) return null
   const state: { phase: 'preparing' } | { phase: 'ready'; qr: string } | { phase: 'failed' } = done?.run !== run ? { phase: 'preparing' } : done.qr ? { phase: 'ready', qr: done.qr } : { phase: 'failed' }
+  if (preview) {
+    return (
+      <div className="kx-sheet pp-sheet" role="dialog" aria-modal="true" aria-label={PRINT_PREVIEW_TEXT[lang].title}>
+        <PrintPreviewCard look="kx" lang={lang} c={c} closeLabel={t.close} image={image} fileName={drawn?.file.name ?? 'result.jpg'} phase={state.phase} qr={state.phase === 'ready' ? state.qr : null} onRetry={() => setAttempt((n) => n + 1)} onClose={onClose} />
+      </div>
+    )
+  }
   return (
     <div className="kx-sheet" role="dialog" aria-modal="true" aria-label={title ?? c.saveTitle}>
       <div className="kx-sheet-card">

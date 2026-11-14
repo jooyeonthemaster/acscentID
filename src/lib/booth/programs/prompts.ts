@@ -56,7 +56,12 @@ function identityGroup(keepClothes = true): string {
  * 펀그라운드 별내(9~19세 공공시설) 데모 — 아이 · 청소년을 어른처럼 만들지 않게, 안경을 벗기지 않게(2026-11-14 Seedream 아이돌 메이크업 시험에서 안경이 빠졌다).
  * 생성 서버가 펀그라운드 생성(site=funground)일 때만 프롬프트 끝에 붙인다. 위 photo() 의 'realistic adult body proportions' 보다 우선한다고 밝힌다.
  */
-export const FUNGROUND_RULES = 'AGE RULE (overrides anything above): many guests are children or teenagers aged 9 to 19. Keep every person exactly their real age with the natural body proportions of that age — never make anyone look older, taller or more mature. Keep any makeup light and youthful for children and teenagers. Clothing is modest and age-appropriate.\nGLASSES: anyone wearing glasses in IMAGE 1 keeps the very same glasses on (same frame shape and color) — never remove or add glasses.'
+const GLASSES_RULE = 'GLASSES: anyone wearing glasses in IMAGE 1 keeps the very same glasses on (same frame shape and color) — never remove or add glasses.'
+export const FUNGROUND_RULES = `AGE RULE (overrides anything above): many guests are children or teenagers aged 9 to 19. Keep every person exactly their real age with the natural body proportions of that age — never make anyone look older, taller or more mature. Keep any makeup light and youthful for children and teenagers. Clothing is modest and age-appropriate.\n${GLASSES_RULE}`
+/** 나이 들기 프로그램(타임캡슐) — 위 나이 규칙 대신: 요청한 햇수만큼만 자연스럽게, 그 밖의 얼굴 특징 · 안경은 그대로 */
+const FUNGROUND_AGING_RULES = `AGE RULE (overrides anything above): many guests are children or teenagers. Age each person by exactly the requested number of years from their real current age (a 12-year-old in 10 years looks about 22), naturally and kindly, keeping them clearly recognizable. Clothing is modest and appropriate.\n${GLASSES_RULE}`
+/** 펀그라운드 생성에 붙이는 규칙 — 프로그램에 맞게 */
+export const fungroundRules = (programId: string) => (programId === 'timecapsule' ? FUNGROUND_AGING_RULES : FUNGROUND_RULES)
 
 const photo = (framing: string) =>
   `PHOTOGRAPHY: professional quality, sharp focus on the eyes, light natural retouching that keeps skin texture, realistic adult body proportions, vertical 2:3 image that fills the entire frame edge to edge (no borders, frames, split panels or collage), ${framing}.`

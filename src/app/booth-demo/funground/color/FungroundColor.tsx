@@ -7,11 +7,14 @@
 //     → measureColors(얼굴 피부 · 머리카락 Lab). 같은 분리 결과로 사진 속 옷 색을 바꿔 보여 준다(옷이 안 잡히면 얼굴 아래 천 드레이프).
 //   - 판정: src/lib/kiosk/color-rules.ts diagnoseFromMeasure(키오스크와 같은 숫자 규칙) — 유형까지 못 정하면 결과를 지어내지 않고 다시 찍는다.
 //   - 결과 문장: src/lib/funground/color-texts.ts(청소년용으로 미리 쓴 8유형 표). AI 가 쓴 글이 아니다.
-// 외부 AI 서비스 · /api 를 부르지 않는다. 사진은 이 화면의 메모리에만 있다가 처음으로 · 다시 찍기 · 무입력이면 지운다(올리지 · 저장하지 않는다).
+// 외부 AI 서비스를 부르지 않는다. 사진은 이 화면의 메모리에만 있다가 처음으로 · 다시 찍기 · 무입력이면 지운다.
+// 결과의 「사진 인쇄하기」(FgPrintButton): 4×6 퍼스널 컬러 카드(color-print.ts — 사진 포함)를 미리보기로 띄우고, 그 창을 연 때만
+//   카드 그림 한 장을 우리 서버(/api/kiosk/share, 24시간)에 올려 QR 로 휴대폰에 받게 한다(2026-11-14 사용자 결정 — B안 결과도 QR 로 받기).
 // 9~19세 체험 — 점수 · 순위 · 외모 평가 없이 「어울리는 색」만 보여 준다.
 
 import { ArrowLeft, Camera, CameraOff, Check, Lock, Palette, RotateCcw, ScanFace, Shirt, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
+import { FgPrintButton, type FgPrintable } from '@/components/funground/FgResultSheet'
 import { FgStage, useFgHome } from '@/components/funground/FgStage'
 import { FG_COLOR_DISCLAIMER, FG_COLOR_TEXTS, UNDERTONE_LABEL } from '@/lib/funground/color-texts'
 import { FG_RETAKE_STAFF, FG_RETAKE_TEXTS, judgeColor, type FgRetakeReason } from '@/lib/funground/color-judge'
@@ -20,6 +23,7 @@ import {
   preloadGarmentModel, prepareGarment, releaseGarment, setGarmentDownloadFast, warmGarmentEngine, type GarmentPrep,
 } from '@/lib/kiosk/garment-recolor'
 import type { PersonalColorTypeId } from '@/types/analysis'
+import { drawColorPrint } from './color-print'
 import './fg-color.css'
 
 const TONE = '#4b3fd6'
@@ -108,6 +112,8 @@ export function FungroundColor() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const timerRef = useRef<number | undefined>(undefined)
   const prepRef = useRef<GarmentPrep | null>(null)
+  /** 4×6 인쇄 카드 — 고른 색(옷 · 천)마다 한 번만 그린다(사진이 바뀌면 비운다) */
+  const [cards, setCards] = useState<Record<string, FgPrintable>>({})
 
   // 사람 분리 엔진 · 모델 파일을 첫 화면에서 미리 받는다(같은 기기에서 키오스크 컬러가 받아 둔 보관함이 있으면 망을 쓰지 않는다)
   useEffect(() => {
@@ -126,6 +132,7 @@ export function FungroundColor() {
     clearTimer()
     releaseGarment()
     prepRef.current = null
+    setCards({})
     setPhoto(null)
     setOverlay(null)
     setGarmentReady(false)
@@ -249,6 +256,26 @@ export function FungroundColor() {
     return () => { alive = false }
   }, [phase, garmentReady, typeId])
 
+  // ── 인쇄 카드 — 지금 고른 색으로 칠한 사진으로 그린다(옷 그림은 위와 같은 캐시라 다시 계산하지 않는다). 그리는 동안은 단추를 잠근다 ──
+  const cardKey = `${selected}${garmentReady ? ':clothes' : ':cape'}`
+  const cardDone = Boolean(cards[cardKey])
+  useEffect(() => {
+    if (phase !== 'result' || !typeId || !photo || !selected || cardDone) return
+    let alive = true
+    const text = FG_COLOR_TEXTS[typeId]
+    const picked = text.colors.find((c) => c.hex === selected) ?? text.colors[0]
+    void (async () => {
+      const prep = prepRef.current
+      const overlayUrl = garmentReady && prep ? await prep.render(selected).catch(() => null) : null
+      if (!alive) return
+      const image = await drawColorPrint({ text, photo, overlay: overlayUrl, picked, tone: TONE, date: new Date() })
+      if (!alive) return
+      const card: FgPrintable = { image, label: '퍼스널 컬러 카드', fileName: 'funground-color', printer: 'photo' }
+      setCards((prev) => ({ ...prev, [cardKey]: card }))
+    })().catch((cause) => { if (process.env.NODE_ENV !== 'production') console.error('[fg-color] 인쇄 카드', cause) })
+    return () => { alive = false }
+  }, [phase, typeId, photo, selected, garmentReady, cardKey, cardDone])
+
   // ───────────────────────── 화면 ─────────────────────────
 
   if (phase === 'intro') {
@@ -271,7 +298,7 @@ export function FungroundColor() {
             <p className="fg-kicker">퍼스널 컬러 · AI 인식 기반</p>
             <h1 className="fg-title">{'나한테 어울리는\n색은 뭘까?'}</h1>
             <p className="fg-lead">{'사진 한 장으로 피부 · 머리카락 색을 재서\n8가지 유형 중 어울리는 색 12개를 알려 줘요'}</p>
-            <p className="fcl-privacy"><Lock size={34} strokeWidth={2.2} aria-hidden="true" /><span>사진은 이 기기 밖으로 나가지 않아요. 끝나면 바로 지워져요.</span></p>
+            <p className="fcl-privacy"><Lock size={34} strokeWidth={2.2} aria-hidden="true" /><span>판정은 이 기기 안에서 해요. 인쇄 · QR 받기를 누를 때만 결과 카드를 올려 24시간 보관해요.</span></p>
             <button type="button" className="fg-btn fg-btn--primary fcl-go" onClick={toCamera}>
               <Camera size={48} strokeWidth={2.4} aria-hidden="true" />시작하기
             </button>
@@ -360,7 +387,7 @@ export function FungroundColor() {
                 </li>
               ))}
             </ol>
-            <p className="fcl-privacy fcl-privacy--sm"><Lock size={30} strokeWidth={2.2} aria-hidden="true" /><span>사진은 어디에도 보내지 않아요</span></p>
+            <p className="fcl-privacy fcl-privacy--sm"><Lock size={30} strokeWidth={2.2} aria-hidden="true" /><span>외부 AI 서비스로 보내지 않아요</span></p>
           </section>
         </div>
       </FgStage>
@@ -472,9 +499,13 @@ export function FungroundColor() {
 
             <p className="fcl-fun"><span className="fg-fun">{FG_COLOR_DISCLAIMER}</span></p>
           </div>
-          <div className="fg-actions fg-actions--row fcl-foot">
-            <button type="button" className="fg-btn fg-btn--ghost" onClick={toCamera}><RotateCcw size={44} strokeWidth={2.4} aria-hidden="true" />다시 찍기</button>
-            <button type="button" className="fg-btn fg-btn--primary" onClick={home}>처음으로</button>
+          {/* 인쇄가 이 화면의 마지막 할 일 — 크게 한 줄, 다시 찍기 · 처음으로는 그 아래 */}
+          <div className="fg-actions fcl-foot">
+            <FgPrintButton printable={cards[cardKey] ?? null} className="fg-btn fg-btn--primary fcl-print" label="사진 인쇄하기" />
+            <div className="fg-actions--row fcl-foot-row">
+              <button type="button" className="fg-btn fg-btn--ghost" onClick={toCamera}><RotateCcw size={40} strokeWidth={2.4} aria-hidden="true" />다시 찍기</button>
+              <button type="button" className="fg-btn fg-btn--ghost" onClick={home}>처음으로</button>
+            </div>
           </div>
         </div>
       </div>

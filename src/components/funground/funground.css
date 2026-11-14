@@ -93,3 +93,24 @@
 .fg-split { display: grid; flex: 1; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 48px; min-height: 0; padding: 44px 56px 48px; }
 .fg-split > * { min-width: 0; min-height: 0; }
 .fg-panel { display: flex; flex-direction: column; gap: 24px; min-height: 0; }
+
+/* 인쇄 미리보기 · QR 창(FgResultSheet) — 왼쪽 인쇄물 / 오른쪽 휴대폰으로 받기 */
+.fg-sheet { position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 40px; background: rgba(13, 18, 32, 0.62); }
+.fg-sheet-card { display: grid; grid-template-columns: auto minmax(0, 760px); gap: 56px; align-items: center; max-height: 100%; padding: 48px 56px; border-radius: 40px; background: var(--fg-paper); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35); }
+.fg-sheet-preview { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 0; }
+.fg-sheet-preview img { display: block; max-height: 780px; max-width: 600px; border-radius: 10px; background: #fff; box-shadow: 0 12px 30px rgba(23, 33, 58, 0.22); }
+.fg-sheet-preview[data-printer='receipt'] img { max-width: 440px; border-radius: 2px; }
+.fg-sheet-preview figcaption { color: var(--fg-soft); font-size: 26px; font-weight: 700; }
+.fg-sheet-side { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.fg-sheet-title { margin: 0; font-size: 60px; font-weight: 900; letter-spacing: -0.03em; line-height: 1.15; }
+.fg-sheet-note { margin: 0; color: var(--fg-soft); font-size: 30px; font-weight: 600; line-height: 1.45; }
+.fg-sheet-qr { display: flex; align-items: center; gap: 30px; padding: 26px; border-radius: 30px; background: #fff; box-shadow: 0 8px 24px rgba(23, 33, 58, 0.08); }
+.fg-sheet-qr-code { display: flex; flex: none; align-items: center; justify-content: center; width: 240px; height: 240px; border-radius: 18px; background: #f3f0ea; }
+.fg-sheet-qr-code img { width: 240px; height: 240px; border-radius: 12px; }
+.fg-sheet-qr-text { display: flex; flex-direction: column; gap: 10px; font-size: 28px; font-weight: 600; line-height: 1.45; color: var(--fg-soft); }
+.fg-sheet-qr-text b { display: inline-flex; align-items: center; gap: 10px; color: var(--fg-ink); font-size: 36px; font-weight: 900; }
+.fg-sheet-retry { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 180px; min-height: 140px; border: 0; background: none; font-size: 30px !important; font-weight: 800; }
+.fg-sheet-spin { color: var(--fg-tone); animation: fg-spin 0.9s linear infinite; }
+.fg-sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.fg-sheet-actions .fg-btn { min-height: 104px; padding: 0 24px; font-size: 36px !important; text-decoration: none; }
+.fg-sheet-fine { margin: 0; color: var(--fg-soft); font-size: 24px; font-weight: 600; }

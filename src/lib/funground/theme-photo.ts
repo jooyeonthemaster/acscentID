@@ -49,15 +49,20 @@ export async function loadThemeFont(): Promise<string> {
   return family
 }
 
-/** 배경 그림 한 장 불러오기(같은 출처) — 실패하면 null(코드 그림으로) */
-export function loadThemeArt(id: ThemeId): Promise<HTMLImageElement | null> {
+/** 미리 만든 배경 그림 한 장 불러오기(같은 출처 주소) — 실패하면 null(코드 그림으로). LATER! 도 같이 쓴다 */
+export function loadArtImage(url: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     const img = new Image()
     img.decoding = 'async'
     img.onload = () => resolve(img)
     img.onerror = () => resolve(null)
-    img.src = themeArtUrl(id)
+    img.src = url
   })
+}
+
+/** 테마 배경 그림 한 장 불러오기 — 실패하면 null(코드 그림으로) */
+export function loadThemeArt(id: ThemeId): Promise<HTMLImageElement | null> {
+  return loadArtImage(themeArtUrl(id))
 }
 
 /** 테마 견본(사람 없이) — 고르기 카드 · 카메라 옆 작은 그림. 1200×1800 좌표로 그려 줄인다 */
@@ -99,14 +104,36 @@ export const WIDE_GROUP = 1.8
  * 아래 끝은 인화 아래에서 PEOPLE_BOTTOM 위 — 원본 사진 테두리에서 잘린 몸(cutoutPerson 이 흐리게 처리)은 앞 장식의 아래 띠(불투명)에 가리고,
  * 사진 아래쪽에 있는 얼굴(앞줄에 앉은 사람)은 띠보다 위에 온다. 앞 장식의 아래 띠는 모두 인화 아래 150px 안쪽에서만 불투명하게 둔다.
  */
-export function placePeople(cw: number, ch: number) {
+export function placePeople(cw: number, ch: number, { bottom = PRINT.H - PEOPLE_BOTTOM, maxH = PRINT.H * 0.64 }: PeopleSlot = {}) {
   const maxW = PRINT.W * (cw / ch > WIDE_GROUP ? 1 : 0.9)
-  const maxH = PRINT.H * 0.64
   const scale = Math.min(maxW / cw, maxH / ch, 2.2)
   const width = cw * scale
   const height = ch * scale
-  const bottom = PRINT.H - PEOPLE_BOTTOM
   return { cx: PRINT.W / 2, cy: bottom - height / 2, width, height, bottom }
+}
+
+/** 사람 자리를 바꿀 때(LATER! — 위에 편지 카드 · 아래 큰 도장) — 아래 끝 y 와 최대 높이(1200×1800 좌표) */
+export interface PeopleSlot {
+  bottom?: number
+  maxH?: number
+}
+
+export type PeoplePlace = ReturnType<typeof placePeople>
+
+/**
+ * 사람 층 — 뒤에 은은한 빛(오려 낸 경계를 배경에 녹인다) + 바닥 그림자 + 사람 그대로.
+ * 사람 그림 자체(얼굴 · 옷 · 피부색)는 그대로 그린다 — 색 보정(toneColor)도 쓰지 않는다. THEME! · LATER! 가 같이 쓴다.
+ */
+export function drawPeople(ctx: CanvasRenderingContext2D, cutout: HTMLCanvasElement, p: PeoplePlace, glowColor: string) {
+  drawBackGlow(ctx, cutout, p, glowColor)
+  ctx.save()
+  const floor = ctx.createRadialGradient(p.cx, p.bottom - 40, 10, p.cx, p.bottom - 40, p.width * 0.62)
+  floor.addColorStop(0, 'rgba(0,0,0,0.42)')
+  floor.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = floor
+  ctx.fillRect(0, p.bottom - 260, PRINT.W, 260)
+  ctx.restore()
+  drawCutoutPerson(ctx, cutout, p.cx, p.cy, p.width, 0, { shadow: true })
 }
 
 /** 테마 배경 + 사람 + 앞 장식 → 1200×1800 캔버스 */
@@ -121,26 +148,17 @@ export function composeThemePhoto({ theme, cutout, art, font, date = printDate()
   if (art) drawCoverFocal(ctx, art, 0, 0, PRINT.W, PRINT.H)
   else drawThemeBackground(a)
 
-  // ② 사람 — 뒤에 테마 빛을 흐리게 깔아 오려 낸 경계를 배경에 녹이고, 바닥 그림자 + 드롭섀도.
-  //    사람 그림 자체(얼굴 · 옷 · 피부색)는 그대로 그린다 — 색 보정(toneColor)도 쓰지 않는다.
+  // ② 사람 — 뒤에 테마 빛을 흐리게 깔아 오려 낸 경계를 배경에 녹이고, 바닥 그림자 + 드롭섀도. 사람 그림은 그대로.
   const p = placePeople(cutout.width, cutout.height)
-  drawBackGlow(ctx, cutout, p, theme.glow)
-  ctx.save()
-  const floor = ctx.createRadialGradient(p.cx, p.bottom - 40, 10, p.cx, p.bottom - 40, p.width * 0.62)
-  floor.addColorStop(0, 'rgba(0,0,0,0.42)')
-  floor.addColorStop(1, 'rgba(0,0,0,0)')
-  ctx.fillStyle = floor
-  ctx.fillRect(0, p.bottom - 260, PRINT.W, 260)
-  ctx.restore()
-  drawCutoutPerson(ctx, cutout, p.cx, p.cy, p.width, 0, { shadow: true })
+  drawPeople(ctx, cutout, p, theme.glow)
 
   // ③ 앞 장식 — 사람이 있는 자리는 비운다(꽃가루 · 촛불 · 풍선 · 스티커가 얼굴을 가리지 않게)
   drawThemeFront({ ...a, people: peopleHitTest(cutout, p) })
   return canvas
 }
 
-/** 합성한 사람 자리를 1/10 격자로 — (x, y) 반경 r 안에 사람이 조금이라도 있으면 true */
-function peopleHitTest(cutout: HTMLCanvasElement, p: ReturnType<typeof placePeople>) {
+/** 합성한 사람 자리를 1/10 격자로 — (x, y) 반경 r 안에 사람이 조금이라도 있으면 true(앞 장식이 얼굴 · 몸을 가리지 않게) */
+export function peopleHitTest(cutout: HTMLCanvasElement, p: PeoplePlace) {
   const S = 10
   const gw = Math.ceil(PRINT.W / S)
   const gh = Math.ceil(PRINT.H / S)
@@ -164,7 +182,7 @@ function peopleHitTest(cutout: HTMLCanvasElement, p: ReturnType<typeof placePeop
 }
 
 /** 사람 실루엣을 테마 빛 색으로 칠해 흐리게 뒤에 깐다(사람 앞에는 아무것도 칠하지 않는다) */
-function drawBackGlow(ctx: CanvasRenderingContext2D, cutout: HTMLCanvasElement, p: ReturnType<typeof placePeople>, color: string) {
+function drawBackGlow(ctx: CanvasRenderingContext2D, cutout: HTMLCanvasElement, p: PeoplePlace, color: string) {
   const off = document.createElement('canvas')
   off.width = Math.max(1, Math.round(p.width))
   off.height = Math.max(1, Math.round(p.height))

@@ -1,4 +1,4 @@
-/* 펀그라운드 B안 미래 직업 탐색(NEXT!) — 1920×1080 가로(머리 112px 아래 968px). 공통 틀은 components/funground/funground.css, 여기는 이 화면만(fgc-).
+/* 펀그라운드 B안 미래 직업 탐색(NEXT!) — 1920×1080 가로(머리 112px 아래 968px). 사진 한 장(질문 앞) → 질문 여덟 → 결과. 공통 틀은 components/funground/funground.css, 여기는 이 화면만(fgc-).
    가로 배치는 노트북판 /kiosk/pc/career(experience-pc.css)를 따른다 — 질문은 가로로 넓게(활동 4열 · MBTI 8열 · 답 나란히), 결과는 왼쪽 풀이 · 오른쪽 직업 셋.
    누르는 곳 88px 이상 · 글자는 2m 앞에서 읽히게. 색은 키오스크 NEXT!(코발트 · 오렌지)를 따른다. 화면 전체는 스크롤하지 않는다. */
 .fgc { --fgc-orange: #f2702a; --fgc-soft: color-mix(in srgb, var(--fg-tone) 12%, #fff); }
@@ -6,6 +6,9 @@
 .fgc-bottom { display: flex; flex-direction: column; gap: 16px; margin-top: auto; }
 .fgc-wide { width: 100%; }
 .fgc-center { text-align: center; }
+/* 단추 둘 나란히 — 왼쪽 덜 중요한 것(테두리) · 오른쪽 다음으로 가는 것(색) */
+.fgc-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 20px; }
+.fgc-pair .fg-btn { padding: 0 24px; white-space: nowrap; }
 
 /* ── 첫 화면 — 왼쪽 NEXT! · 그림 / 오른쪽 소개 · 시작 ─────────── */
 .fgc-intro.fg-split { grid-template-columns: minmax(0, 1fr) 800px; gap: 72px; padding: 40px 80px 52px; }
@@ -16,6 +19,21 @@
 .fgc-panel .fgc-bottom { margin-top: 20px; }
 .fgc-facts { display: flex; flex-wrap: wrap; gap: 16px; }
 .fgc-facts li { padding: 14px 30px; border-radius: 999px; background: var(--fg-white); color: var(--fg-tone); font-size: 34px; font-weight: 800; box-shadow: 0 6px 18px rgba(49, 92, 168, 0.12); }
+
+/* ── 사진 — 왼쪽 세로 3:4 카메라(찍히는 범위 그대로) / 오른쪽 안내 · 찍기 ─────────── */
+.fgc-shoot.fg-split { grid-template-columns: 660px minmax(0, 1fr); align-items: center; gap: 88px; padding: 40px 104px 44px; }
+.fgc-view { position: relative; width: 660px; height: 880px; overflow: hidden; border-radius: 40px; background: #10131f; box-shadow: 0 14px 40px rgba(23, 33, 58, 0.2); animation: fgc-rise 0.45s ease-out backwards; }
+.fgc-feed { display: block; width: 100%; height: 100%; object-fit: cover; }
+.fgc-feed--mirror { transform: scaleX(-1); }
+.fgc-guide { position: absolute; inset: 13% 15% 24%; border: 6px dashed rgba(255, 255, 255, 0.85); border-radius: 50%; pointer-events: none; }
+.fgc-guide span { position: absolute; bottom: -78px; left: 50%; padding: 8px 26px; border-radius: 999px; background: rgba(23, 33, 58, 0.78); color: #fff; font-size: 30px; font-weight: 800; white-space: nowrap; transform: translateX(-50%); }
+.fgc-view-msg { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 48px; background: rgba(16, 19, 31, 0.86); color: #fff; font-size: 34px; font-weight: 800; line-height: 1.4; text-align: center; }
+.fgc-spin { animation: fg-spin 0.9s linear infinite; }
+.fgc-countdown { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 320px; font-weight: 900; text-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); animation: fgc-countdown 1s ease-out both; }
+.fgc-flash { position: absolute; inset: 0; background: #fff; animation: fgc-flash 0.26s ease-out forwards; }
+.fgc-shoot-panel { justify-content: center; gap: 28px; animation: fgc-rise 0.45s ease-out 0.08s backwards; }
+.fgc-shoot-panel .fgc-bottom { margin-top: 20px; }
+.fgc .fgc-error { padding: 18px 28px; border-radius: 24px; background: #fff1e8; color: #b4471a; font-size: 30px; font-weight: 800; line-height: 1.4; }
 
 /* ── 질문 — 위 진행 점 · 질문 한 줄 / 가운데 답(가로로 넓게) / 아래 이전 · 고른 수 · 다음 ─────────── */
 .fgc--ask .fg-body { gap: 26px; padding: 34px 72px 44px; }
@@ -75,6 +93,12 @@
 /* 풀이 칸은 왼쪽 높이를 다 쓰고 글은 가운데에 */
 .fgc-combo { display: flex; flex: 1; flex-direction: column; align-items: flex-start; justify-content: center; gap: 14px; min-height: 0; padding: 40px 48px; border: 5px solid color-mix(in srgb, var(--fg-tone) 25%, #fff); border-radius: 40px; background: var(--fg-white); }
 .fgc-combo h2 { margin-top: 8px !important; color: var(--fg-ink); font-size: 64px; font-weight: 900; line-height: 1.15; letter-spacing: -0.03em; }
+/* 풀이 위 — 제목(왼쪽) · 찍은 사진(오른쪽, 살짝 기울인 탐험가 카드) */
+.fgc-combo-top { display: flex; align-items: center; gap: 32px; width: 100%; }
+.fgc-combo-head { display: flex; flex: 1; flex-direction: column; align-items: flex-start; gap: 14px; min-width: 0; }
+.fgc-me { position: relative; flex: none; width: 210px; margin: 0; transform: rotate(3deg); }
+.fgc-me img { display: block; width: 210px; height: 280px; border: 8px solid var(--fg-white); border-radius: 26px; background: var(--fgc-soft); object-fit: cover; box-shadow: 0 10px 26px rgba(23, 33, 58, 0.2); }
+.fgc-me figcaption { position: absolute; bottom: -18px; left: 50%; padding: 6px 22px; border-radius: 999px; background: var(--fgc-orange); color: #fff; font-size: 26px; font-weight: 900; white-space: nowrap; transform: translateX(-50%); }
 .fgc-combo-axes { color: var(--fg-tone); font-size: 32px; font-weight: 800; }
 .fgc-combo-body { margin-top: 10px; color: #33415f; font-size: 36px; font-weight: 600; line-height: 1.55; }
 
@@ -97,6 +121,8 @@
 
 @keyframes fgc-rise { from { opacity: 0; transform: translateY(24px); } }
 @keyframes fgc-pop { from { transform: scale(0.4); } }
+@keyframes fgc-countdown { from { opacity: 0; transform: scale(1.6); } 30% { opacity: 1; transform: scale(1); } }
+@keyframes fgc-flash { from { opacity: 0.95; } to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .fgc-visual, .fgc-panel, .fgc-q, .fgc-option, .fgc-read, .fgc-picks, .fgc-mbti-note, .fgc-check { animation: none; }
+  .fgc-visual, .fgc-panel, .fgc-q, .fgc-option, .fgc-read, .fgc-picks, .fgc-mbti-note, .fgc-check, .fgc-view, .fgc-shoot-panel, .fgc-countdown, .fgc-flash, .fgc-spin { animation: none; }
 }
