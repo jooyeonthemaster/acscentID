@@ -15,6 +15,7 @@ import { savePhoto } from './save'
 import { PrintCard, QrCard, usePrint, useSavedLink } from './SavePanel'
 import { Creative, Modal, OptionGroups, PanelHead, Progress, Split, Stages, useElapsed } from './ui'
 import { loadImage } from './video'
+import { FUNGROUND_SITE, fungroundWebcamOnly, isFungroundSite } from '@/lib/funground/demo'
 
 type Step = 'capture' | 'options' | 'generating' | 'result' | 'save'
 type Shot = HTMLCanvasElement | HTMLImageElement
@@ -135,7 +136,9 @@ function CaptureStep({ ctx, shots, shotUrls, setShot, onNext }: {
   const need = program.capture.shots
   const active = shots.findIndex((s) => !s)
   const done = active === -1
-  const camera = useCamera({ enabled: !done })
+  // 펀그라운드 데모(노트북 확인)는 웹캠만 — DSLR 브리지를 찾지 않는다(src/lib/funground/demo.ts fungroundWebcamOnly)
+  const [allowDslr] = useState(() => !fungroundWebcamOnly())
+  const camera = useCamera({ enabled: !done, allowDslr })
   const [delay, setDelay] = useState<3 | 5>(3)
   const [count, setCount] = useState<number | null>(null)
   const [flash, setFlash] = useState(false)
@@ -353,7 +356,8 @@ function Generate({ ctx, shots, shotUrls, choices, labels, onDone, onStyle }: {
         const ticket = await ctx.getTicket()
         const res = await fetch('/api/photobooth/program', {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: abort.signal,
-          body: JSON.stringify({ ticket, program: program.id, choices, photos, people }),
+          // 펀그라운드 데모(주소 site=funground)면 표시를 같이 보낸다 — 서버가 펀그라운드 모델 표(Seedream 먼저)로 만든다(src/lib/booth/image-models.ts)
+          body: JSON.stringify({ ticket, program: program.id, choices, photos, people, ...(isFungroundSite() ? { site: FUNGROUND_SITE } : {}) }),
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || typeof data.image !== 'string') throw new Error(data.error || `AI 사진을 만들지 못했어요 (${res.status}).`)

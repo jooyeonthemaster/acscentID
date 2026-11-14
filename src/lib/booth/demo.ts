@@ -52,7 +52,8 @@ export const BOOTH_DEMOS: BoothDemo[] = [
   { id: 'idol-mv-still', mode: 'kwave-2026', concept: 'mv-still', tag: 'MV', name: '뮤비 스틸', desc: '네온이 가득한 뮤직비디오의 한 장면처럼, 강한 컬러 조명과 액세서리.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#1f8a9a', screen: shot('idol-mv-still'), print: shot('print-mv-still') },
   // 포토부스 프로그램 14종 — 화면 견본은 실제 시작 화면 캡처(/assets/booth-demo/program-<id>.webp).
   // 행사 전용(ANSAN 등)은 랜딩에 넣지 않는다 — 주소(/booth?mode=ansan-2026&demo=1)로는 열린다
-  ...PROGRAMS.filter((p) => !p.event).map((p): BoothDemo => ({
+  // 특정 고객 전용(site — 펀그라운드 QUEST! · MVP!)도 넣지 않는다 — 그 고객의 데모(/booth-demo/funground)에서 연다
+  ...PROGRAMS.filter((p) => !p.event && !p.site).map((p): BoothDemo => ({
     id: `program-${p.id}`,
     mode: p.id,
     tag: p.card.tag,

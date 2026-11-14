@@ -191,6 +191,68 @@ const HAND = () => `'${DRAW_HAND}', ${S()}`
 const DRAW = { yellow: '#fef0aa', coral: '#f0563c', star: '#f6c531', ink: '#1f1d1b', paper: '#fffaf0' }
 
 const DESIGNS: Record<string, [Design, Design]> = {
+  // ───── 펀그라운드 별내 A안 새 프로그램(2026-11-14) — 인화물에 펀그라운드 로고 자리(임시 글자 FUN GROUND 별내) ─────
+  quest: [
+    // 모험 포스터 — 사진을 꽉 채우고 위에 금빛 제목, 아래 세계관 띠
+    (ctx, { result, labels }) => {
+      cover(ctx, result, 0, 0, PRINT_W, PRINT_H, 0.25)
+      const top = ctx.createLinearGradient(0, 0, 0, 460)
+      top.addColorStop(0, 'rgba(20,10,45,0.85)'); top.addColorStop(1, 'rgba(20,10,45,0)')
+      ctx.fillStyle = top; ctx.fillRect(0, 0, PRINT_W, 460)
+      const gold = ctx.createLinearGradient(0, 80, 0, 260)
+      gold.addColorStop(0, '#fff2c2'); gold.addColorStop(1, '#e0a93a')
+      fitText(ctx, 'QUEST!', PRINT_W / 2, 250, 1000, 230, B(), gold as unknown as string, '', 'center', (c) => { c.shadowColor = 'rgba(0,0,0,0.5)'; c.shadowBlur = 24 })
+      text(ctx, 'Your quest begins', PRINT_W / 2, 330, `60px ${S()}`, '#fff2c2')
+      const bottom = ctx.createLinearGradient(0, PRINT_H - 380, 0, PRINT_H)
+      bottom.addColorStop(0, 'rgba(20,10,45,0)'); bottom.addColorStop(1, 'rgba(20,10,45,0.9)')
+      ctx.fillStyle = bottom; ctx.fillRect(0, PRINT_H - 380, PRINT_W, 380)
+      text(ctx, `${labels.world ?? ''}의 모험가`, PRINT_W / 2, PRINT_H - 150, `700 64px ${G()}`, '#ffffff')
+      text(ctx, `FUN GROUND 별내 · ${today()}`, PRINT_W / 2, PRINT_H - 70, `32px ${A()}`, '#e0a93a', 'center', (c) => { c.letterSpacing = '6px' })
+    },
+    // 모험가 카드 — 양피지 바탕에 금테 카드, 별 장식
+    (ctx, { result, labels }) => {
+      paper(ctx, '#ecdcb8', 'rgba(110,70,20,0.09)', 2000)
+      ctx.save(); shadow(ctx, 36, 'rgba(60,30,0,0.35)')
+      rect(ctx, 110, 130, 980, 1420, '#2a1b4d', 36); ctx.restore()
+      stroke(ctx, 130, 150, 940, 1380, '#e0a93a', 6, 28)
+      photoClip(ctx, result, 170, 190, 860, 1120, 18, 0.25)
+      text(ctx, 'ADVENTURER CARD', PRINT_W / 2, 1390, `40px ${A()}`, '#e0a93a', 'center', (c) => { c.letterSpacing = '10px' })
+      text(ctx, `${labels.world ?? ''} · ${labels.cape ?? ''} 망토`, PRINT_W / 2, 1470, `700 46px ${G()}`, '#fff2c2')
+      for (const [x, y, r] of [[160, 120, 34], [1040, 120, 28], [150, 1560, 26], [1050, 1570, 36]] as const) star(ctx, x, y, r, '#e0a93a')
+      text(ctx, 'QUEST!', PRINT_W / 2, 1680, `110px ${B()}`, '#2a1b4d')
+      text(ctx, `FUN GROUND 별내 · ${today()}`, PRINT_W / 2, 1745, `28px ${A()}`, '#6b4a2b', 'center', (c) => { c.letterSpacing = '6px' })
+    },
+  ],
+  mvp: [
+    // 우승 포스터 — 사진 위에 굵은 MVP!, 아래 종목 · 날짜 띠
+    (ctx, { result, labels }) => {
+      cover(ctx, result, 0, 0, PRINT_W, PRINT_H, 0.25)
+      const top = ctx.createLinearGradient(0, 0, 0, 420)
+      top.addColorStop(0, 'rgba(10,15,30,0.8)'); top.addColorStop(1, 'rgba(10,15,30,0)')
+      ctx.fillStyle = top; ctx.fillRect(0, 0, PRINT_W, 420)
+      text(ctx, 'MVP!', 70, 250, `250px ${A()}`, '#ffd23f', 'left', (c) => { c.shadowColor = 'rgba(0,0,0,0.45)'; c.shadowBlur = 20 })
+      text(ctx, 'CHAMPION OF THE DAY', 80, 320, `40px ${A()}`, '#ffffff', 'left', (c) => { c.letterSpacing = '8px' })
+      ctx.save(); ctx.translate(0, PRINT_H - 230); ctx.rotate(-0.03)
+      rect(ctx, -40, 0, PRINT_W + 80, 150, '#d9681f')
+      text(ctx, `${labels.sport ?? ''} 우승 · ${today()}`, PRINT_W / 2, 100, `900 64px ${H()}`, '#ffffff')
+      ctx.restore()
+      text(ctx, 'FUN GROUND 별내', PRINT_W / 2, PRINT_H - 30, `30px ${A()}`, '#ffffff', 'center', (c) => { c.letterSpacing = '8px' })
+    },
+    // 선수 카드 — 트레이딩 카드 모양(글자 · 번호 대신 별 다섯)
+    (ctx, { result, labels }) => {
+      const bg = ctx.createLinearGradient(0, 0, PRINT_W, PRINT_H)
+      bg.addColorStop(0, '#13213f'); bg.addColorStop(1, '#2c4a8a')
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, PRINT_W, PRINT_H)
+      ctx.save(); shadow(ctx, 40, 'rgba(0,0,0,0.45)')
+      rect(ctx, 120, 120, 960, 1480, '#ffd23f', 40); ctx.restore()
+      photoClip(ctx, result, 150, 150, 900, 1200, 26, 0.25)
+      rect(ctx, 150, 1370, 900, 200, '#13213f', 24)
+      text(ctx, 'MVP!', 200, 1490, `120px ${A()}`, '#ffd23f', 'left')
+      text(ctx, labels.sport ?? '', 1000, 1450, `900 60px ${H()}`, '#ffffff', 'right')
+      for (let i = 0; i < 5; i++) star(ctx, 760 + i * 58, 1520, 22, '#ffd23f')
+      text(ctx, `FUN GROUND 별내 · ${today()}`, PRINT_W / 2, 1700, `30px ${A()}`, '#ffffff', 'center', (c) => { c.letterSpacing = '8px' })
+    },
+  ],
   runway: [
     (ctx, { result, labels }) => {
       cover(ctx, result, 0, 0, PRINT_W, PRINT_H, 0.2)

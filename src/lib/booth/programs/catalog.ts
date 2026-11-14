@@ -12,6 +12,8 @@ export const PROGRAM_IDS = [
   'housing-movein', 'housing-cover', 'housing-2046',
   // 2026 안산사이언스밸리 과학축제(11-07~08) AI 포토존 — 운영 모드 'ANSAN'(modes.ts), docs/photobooth-programs.md 'ANSAN 타임캡슐'
   'ansan-2026',
+  // 펀그라운드 별내(9~19세 공공시설) 상설 체험기 견적 A안의 새 프로그램(2026-11-14) — 펀그라운드 데모(/booth-demo/funground)에서만 연다(site)
+  'quest', 'mvp',
 ] as const
 export type ProgramId = (typeof PROGRAM_IDS)[number]
 
@@ -80,6 +82,11 @@ export interface ProgramDef {
   card: { tag: string; desc: string; color: string; badges: string[] }
   /** 행사 전용 — 운영 모드는 modes.ts 의 행사 항목(이름·기간)으로 따로 두고, 프로그램 모드 목록·영업용 데모 랜딩에는 넣지 않는다 */
   event?: boolean
+  /**
+   * 특정 고객 전용 — 그 고객의 데모(펀그라운드: /booth-demo/funground, src/lib/funground/demo.ts)에서만 연다.
+   * 프로그램 모드 목록 · 영업용 데모 랜딩(/booth-demo)에는 넣지 않고, 생성은 그 고객의 모델 표(src/lib/booth/image-models.ts)를 쓴다
+   */
+  site?: 'funground'
 }
 
 const intro = (id: ProgramId) => `/assets/booth-programs/${id}.webp`
@@ -583,6 +590,61 @@ export const PROGRAMS: ProgramDef[] = [
     creative: 'AI가 만든 재미로 보는 상상 사진이에요. 실제 미래 모습과는 달라요',
     intro: '/assets/booth-programs/asv/sample.webp', script: 'See you later!', designs: ['ASV 화이트', 'ASV 블랙'],
     card: { tag: 'LATER!', desc: '혼자~4명이 한 컷을 찍으면 지금·10년·20년·30년 뒤의 우리를 2×6 사진 네 컷으로 뽑아요.', color: '#5b55d6', badges: ['AI 생성', '1~4인', '2×6 사진'] },
+  },
+  // ───── 펀그라운드 별내(9~19세) 견적 A안 새 프로그램 — 얼굴은 그대로, 옷 · 배경만. 1~4명. 생성은 Seedream 5.0 Flash 먼저(image-models.ts) ─────
+  {
+    id: 'quest', kind: 'photo', site: 'funground', name: '판타지 모험', wordmark: 'QUEST!',
+    headline: '오늘, 나는\n모험의 주인공', lead: '얼굴은 그대로, 모험가 옷과 배경만 바뀌어요',
+    steps: ['촬영', '세계관 · 망토', '모험 포스터'], startCta: '모험 떠나기',
+    capture: { title: '모험가의 얼굴을\n담아 주세요', hint: '혼자도, 친구와 함께도 좋아요(최대 4명). 모든 얼굴이 화면에 들어오게 서 주세요', people: 1, shots: 1, group: true },
+    options: {
+      title: '어느 세계로 떠날까요?', sub: '세계관과 망토 색을 골라 주세요', cta: '이 모험으로 떠나기',
+      groups: [
+        { id: 'world', label: '세계관', look: 'tiles', options: [
+          { id: 'magic-school', label: '마법 학교', sub: '떠다니는 촛불 · 마법책', swatch: 'radial-gradient(circle at 30% 25%,#ffe9a8 0 6%,transparent 7%),radial-gradient(circle at 70% 35%,#ffe9a8 0 5%,transparent 6%),linear-gradient(170deg,#3b2a6e,#1a1236 70%)', prompt: 'the grand hall of an original fantasy magic academy: floating candles, tall arched stained-glass windows, shelves of spell books and a softly glowing crystal orb (no school crests or emblems). Everyone wears a plain apprentice wizard robe with a hooded cape — no crest, badge or emblem anywhere and no striped school tie; they may hold a carved wooden wand or a spell book' },
+          { id: 'dragon', label: '용의 계곡', sub: '착한 용 · 노을', swatch: 'linear-gradient(170deg,#f7a35c,#b8452f 55%,#3d1f2c)', prompt: 'a rocky mountain valley at golden hour with a large, friendly, gentle dragon resting calmly behind them (curious and kind, never scary or attacking). Everyone wears light leather adventurer gear with a satchel; one may hold a rolled treasure map; no weapons' },
+          { id: 'forest', label: '숲 속 모험', sub: '반딧불 · 빛나는 버섯', swatch: 'radial-gradient(circle at 25% 70%,#c8ff9a 0 4%,transparent 5%),radial-gradient(circle at 75% 60%,#c8ff9a 0 3%,transparent 4%),linear-gradient(170deg,#2f7a4a,#0f3322 70%)', prompt: 'an enchanted forest trail with sun rays through tall trees, glowing mushrooms and fireflies. Everyone wears a ranger-style tunic, boots and a satchel; one may hold a small glowing lantern; no weapons' },
+        ] },
+        { id: 'cape', label: '망토 색', look: 'swatches', options: [
+          { id: 'crimson', label: '진홍', swatch: '#b3232f', prompt: 'a deep crimson red cape' },
+          { id: 'midnight', label: '밤하늘', swatch: '#1d2a6b', prompt: 'a midnight blue cape with tiny silver star embroidery' },
+          { id: 'emerald', label: '에메랄드', swatch: '#167a52', prompt: 'an emerald green cape' },
+        ] },
+      ],
+    },
+    generating: { title: '모험의 세계로\n들어가는 중이에요', sub: '얼굴은 그대로, 모험가 옷과 배경을 입히고 있어요', stages: ['사진 확인', '모험 장면 그리는 중', '포스터 완성'] },
+    result: { title: '모험가 등장!', sub: '인화할 디자인을 골라 주세요' },
+    save: { title: '모험의 순간을 가져가세요', sub: '4×6 사진으로 인화해요' },
+    creative: '상상 속 모험 장면이에요 — AI가 만든 창작 이미지예요',
+    intro: intro('quest'), script: 'Your quest begins', designs: ['모험 포스터', '모험가 카드'],
+    card: { tag: 'QUEST!', desc: '마법 학교 · 용의 계곡 · 숲 속 모험 — 얼굴은 그대로, 모험가 옷과 배경만 바꿔요.', color: '#5b3fc4', badges: ['AI 생성', '1~4인', '4×6 인화'] },
+  },
+  {
+    id: 'mvp', kind: 'photo', site: 'funground', name: '스포츠 스타', wordmark: 'MVP!',
+    headline: '오늘의 MVP는\n바로 나', lead: '축구 · 농구 · 야구 경기장의 우승 장면 속으로',
+    steps: ['촬영', '종목 · 유니폼', '우승 포스터'], startCta: '경기장 입장하기',
+    capture: { title: '우승한 표정을\n보여 주세요', hint: '혼자도, 친구와 함께도 좋아요(최대 4명). 모든 얼굴이 화면에 들어오게 서 주세요', people: 1, shots: 1, group: true },
+    options: {
+      title: '어느 경기장에 설까요?', sub: '종목과 유니폼 색을 골라 주세요', cta: '이 경기로 만들기',
+      groups: [
+        { id: 'sport', label: '종목', look: 'tiles', options: [
+          { id: 'soccer', label: '축구', sub: '결승전 우승', swatch: 'repeating-linear-gradient(90deg,#2e8b3e 0 18%,#279036 18% 36%),#2e8b3e', prompt: 'on the grass pitch of a huge soccer stadium right after winning the final, golden confetti falling, cheering crowd blurred in the background, holding a plain golden trophy (no engraving), wearing a plain soccer kit with shorts and socks' },
+          { id: 'basketball', label: '농구', sub: '챔피언전 우승', swatch: 'linear-gradient(170deg,#d98a3d,#9c5420 60%,#3a2010)', prompt: 'on the hardwood court of an indoor basketball arena under bright lights after a championship win, confetti falling, holding a basketball, wearing a plain sleeveless basketball jersey and shorts' },
+          { id: 'baseball', label: '야구', sub: '우승의 밤', swatch: 'linear-gradient(170deg,#1b2a4a,#24406e 50%,#3a8a46 51%,#2e7a3c)', prompt: 'on a baseball field infield at night under bright stadium lights after a championship win, fireworks in the sky, holding a baseball glove and ball, wearing a plain baseball uniform and a plain cap' },
+        ] },
+        { id: 'kit', label: '유니폼 색', look: 'swatches', options: [
+          { id: 'red', label: '레드', swatch: '#d2232a', prompt: 'everyone in a red uniform' },
+          { id: 'navy', label: '네이비', swatch: '#1c2f6b', prompt: 'everyone in a navy blue uniform' },
+          { id: 'white', label: '화이트', swatch: '#f4f4f2', prompt: 'everyone in a white uniform with thin dark trim' },
+        ] },
+      ],
+    },
+    generating: { title: '경기장에\n입장하는 중이에요', sub: '얼굴은 그대로, 우승 유니폼과 경기장을 만들고 있어요', stages: ['사진 확인', '우승 장면 만드는 중', '포스터 완성'] },
+    result: { title: '오늘의 MVP!', sub: '인화할 디자인을 골라 주세요' },
+    save: { title: '우승의 순간을 가져가세요', sub: '4×6 사진으로 인화해요' },
+    creative: '상상 속 우승 장면이에요 — AI가 만든 창작 이미지예요',
+    intro: intro('mvp'), script: 'Champion of the day', designs: ['우승 포스터', '선수 카드'],
+    card: { tag: 'MVP!', desc: '축구 · 농구 · 야구 경기장의 우승 장면. 유니폼에 글자 · 번호 · 로고는 넣지 않아요.', color: '#d9681f', badges: ['AI 생성', '1~4인', '4×6 인화'] },
   },
 ]
 

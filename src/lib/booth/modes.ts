@@ -103,7 +103,8 @@ export const BOOTH_MODES: BoothMode[] = [
     program: 'ansan-2026',
   },
   // 프로그램 모드 — 행사 전용 프로그램(event)은 위에 행사 모드로 따로 둔다
-  ...PROGRAMS.filter((p) => !p.event).map((p): BoothMode => ({
+  // 특정 고객 전용(site — 펀그라운드 QUEST! · MVP!)은 운영 모드에 넣지 않는다 — 데모 주소(/booth?mode=quest&demo=1&site=funground)로만 연다
+  ...PROGRAMS.filter((p) => !p.event && !p.site).map((p): BoothMode => ({
     id: p.id,
     label: `${p.wordmark} ${p.name}`,
     note: p.kind === 'photo' ? `프로그램 · AI 사진${p.capture.people > 1 ? ' · 2인' : p.capture.group ? ' · 1~4인' : ''} · 4×6 인화·QR` : '프로그램 · 영상 · QR 다운로드',

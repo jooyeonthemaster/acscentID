@@ -1,0 +1,111 @@
+/* 펀그라운드 B안 퍼스널 컬러(COLOR!) — 1080×1920 세로. 공통 틀 · 단추는 funground.css(.fg-*), 이 화면만 .fcl-* */
+.fcl .fg-body { padding: 48px 56px; gap: 32px; }
+
+/* ── 시작 ── */
+.fcl--intro .fg-body { justify-content: space-between; background: radial-gradient(circle at 90% 4%, color-mix(in srgb, var(--fg-pink) 22%, transparent) 0 150px, transparent 151px), radial-gradient(circle at 6% 52%, color-mix(in srgb, var(--fg-sky) 18%, transparent) 0 110px, transparent 111px), var(--fg-paper); }
+.fcl-intro { display: flex; flex-direction: column; gap: 14px; }
+.fcl-word { color: var(--fg-tone); font-size: 92px; font-weight: 900; line-height: 1; letter-spacing: -0.02em; }
+.fcl-ring { position: relative; flex: none; align-self: center; width: 440px; height: 440px; }
+.fcl-ring i { position: absolute; top: 50%; left: 50%; width: 92px; height: 92px; margin: -46px; border: 6px solid #fff; border-radius: 50%; box-shadow: 0 6px 16px rgba(23, 33, 58, 0.16); transform: rotate(calc(var(--i) * 30deg)) translateY(-174px); }
+.fcl-ring span { position: absolute; inset: 96px; display: grid; place-items: center; border-radius: 50%; background: var(--fg-white); color: var(--fg-tone); box-shadow: 0 10px 30px rgba(23, 33, 58, 0.1); }
+.fcl-ring span svg { width: 150px; height: 150px; }
+.fcl-how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.fcl-how li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 30px 12px 26px; border-radius: 32px; background: var(--fg-white); color: var(--fg-tone); text-align: center; box-shadow: 0 8px 24px rgba(23, 33, 58, 0.07); }
+.fcl-how b { position: absolute; top: -16px; left: 22px; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--fg-tone); color: #fff; font-size: 28px; font-weight: 900; }
+.fcl-how span { color: var(--fg-ink); font-size: 32px; font-weight: 800; line-height: 1.3; white-space: pre-line; }
+.fcl-privacy { display: flex; align-items: center; gap: 16px; padding: 22px 30px; border-radius: 28px; background: color-mix(in srgb, var(--fg-green) 12%, #fff); color: #0f6b4a; font-size: 30px; font-weight: 800; line-height: 1.35; }
+.fcl-privacy svg { flex: none; }
+.fcl-privacy--sm { align-self: center; padding: 16px 28px; font-size: 28px; }
+.fcl-go { width: 100%; }
+
+/* ── 촬영 ── */
+.fcl-cam-head { display: flex; flex-direction: column; gap: 10px; text-align: center; }
+.fcl-cam { position: relative; flex: none; align-self: center; width: 780px; height: 1040px; overflow: hidden; border-radius: 44px; background: #1b2236; box-shadow: 0 0 0 8px var(--fg-white), 0 16px 40px rgba(23, 33, 58, 0.18); }
+.fcl-cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+.fcl-guide { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fcl-count { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 300px; font-weight: 900; text-shadow: 0 8px 30px rgba(0, 0, 0, 0.45); animation: fcl-pop 0.9s ease-out both; }
+@keyframes fcl-pop { from { opacity: 0; transform: scale(1.5); } 30% { opacity: 1; transform: scale(1); } to { opacity: 0.85; } }
+.fcl-nocam { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; color: #fff; text-align: center; }
+.fcl-nocam b { font-size: 46px; font-weight: 900; }
+.fcl-nocam span { max-width: 80%; font-size: 32px; font-weight: 700; line-height: 1.45; opacity: 0.9; }
+.fcl-nocam .fcl-recam { margin-top: 12px; min-height: 104px; font-size: 38px !important; }
+.fcl-tips { display: flex; justify-content: center; gap: 18px; }
+.fcl-tips li { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; border-radius: 999px; background: var(--fg-white); color: var(--fg-ink); font-size: 32px; font-weight: 800; box-shadow: 0 4px 12px rgba(23, 33, 58, 0.06); }
+.fcl-tips svg { color: var(--fg-green); }
+.fcl-actions { margin-top: auto; }
+.fcl-actions--row > .fcl-back { flex: 0 0 300px; }
+.fcl--camera .fcl-actions > .fcl-back { flex: 0 0 320px; }
+
+/* ── 분석 ── */
+.fcl--analyzing .fg-body { align-items: stretch; }
+.fcl-scan { position: relative; flex: none; align-self: center; width: 600px; height: 800px; margin: 0; overflow: hidden; border-radius: 40px; background: #1b2236; box-shadow: 0 0 0 8px var(--fg-white), 0 16px 40px rgba(23, 33, 58, 0.18); }
+.fcl-scan img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.fcl-scan i { position: absolute; left: 0; right: 0; top: 0; height: 140px; background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--fg-tone) 55%, transparent) 70%, #fff 100%); opacity: 0.85; animation: fcl-scan 1.6s ease-in-out infinite alternate; }
+@keyframes fcl-scan { from { transform: translateY(-140px); } to { transform: translateY(800px); } }
+.fcl-steps { display: flex; flex-direction: column; gap: 14px; align-self: center; width: 720px; }
+.fcl-steps li { display: flex; align-items: center; gap: 20px; color: var(--fg-soft); font-size: 36px; font-weight: 800; transition: color 0.3s; }
+.fcl-steps li span { display: grid; place-items: center; flex: none; width: 56px; height: 56px; border-radius: 50%; background: var(--fg-line); color: var(--fg-white); font-size: 28px; font-weight: 900; }
+.fcl-steps li[data-state='now'] { color: var(--fg-ink); }
+.fcl-steps li[data-state='now'] span { background: var(--fg-tone); animation: fcl-blink 0.9s ease-in-out infinite alternate; }
+.fcl-steps li[data-state='done'] { color: var(--fg-ink); }
+.fcl-steps li[data-state='done'] span { background: var(--fg-green); }
+@keyframes fcl-blink { to { opacity: 0.55; } }
+
+/* ── 다시 찍기 ── */
+.fcl-retake { display: flex; flex-direction: column; align-items: center; gap: 22px; padding-top: 24px; text-align: center; }
+.fcl-retake-photo { width: 390px; height: 520px; margin: 0 0 18px; overflow: hidden; border: 8px dashed color-mix(in srgb, var(--fg-tone) 45%, #fff); border-radius: 40px; background: #1b2236; }
+.fcl-retake-photo img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
+.fcl-retake-tips { display: flex; flex-direction: column; gap: 16px; width: 100%; margin-top: 16px; text-align: left; }
+.fcl-retake-tips li { display: flex; align-items: center; gap: 20px; padding: 26px 32px; border-radius: 28px; background: var(--fg-white); font-size: 36px; font-weight: 800; line-height: 1.3; box-shadow: 0 6px 18px rgba(23, 33, 58, 0.06); }
+.fcl-retake-tips svg { flex: none; color: var(--fg-green); }
+
+/* ── 결과 ── */
+.fcl--result .fg-body { padding: 0; gap: 0; }
+.fcl-scroll { display: flex; flex: 1; flex-direction: column; gap: 32px; min-height: 0; padding: 40px 40px 48px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.fcl-scroll::-webkit-scrollbar { display: none; }
+.fcl-res-head { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.fcl-badges { display: flex; gap: 12px; margin-bottom: 8px; }
+.fcl-badges span { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 999px; background: color-mix(in srgb, var(--fg-tone) 12%, #fff); color: var(--fg-tone); font-size: 26px; font-weight: 800; }
+.fcl-res-kicker { color: var(--fg-soft); font-size: 36px; font-weight: 800; }
+.fcl-type { display: flex; align-items: center; gap: 22px; font-size: 96px; font-weight: 900; line-height: 1.05; letter-spacing: -0.04em; }
+.fcl-type em { padding: 10px 24px; border-radius: 999px; background: #ffe7d6; color: #b4471a; font-size: 32px; font-style: normal; font-weight: 900; letter-spacing: 0; }
+.fcl-type em[data-tone='cool'] { background: #dfe9ff; color: #2a4fb3; }
+.fcl-nick { color: var(--fg-tone); font-size: 48px; font-weight: 900; letter-spacing: -0.02em; }
+
+.fcl-look { display: grid; grid-template-columns: 176px 600px 176px; gap: 24px; justify-content: center; }
+.fcl-col { display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
+.fcl-sw { display: flex; flex-direction: column; align-items: center; gap: 16px; min-height: 140px; padding: 0; border: 0; background: none; }
+.fcl-sw i { display: grid; place-items: center; width: 92px; height: 92px; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(23, 33, 58, 0.12), 0 4px 10px rgba(23, 33, 58, 0.12); transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.fcl-sw span { max-width: 176px; color: var(--fg-ink); font-size: 23px; font-weight: 800; line-height: 1.2; text-align: center; }
+.fcl-sw[data-on] i { box-shadow: 0 0 0 5px var(--fg-white), 0 0 0 10px var(--fg-tone), 0 8px 18px rgba(23, 33, 58, 0.2); }
+.fcl-sw[data-on] span { color: var(--fg-tone); }
+.fcl-sw:active i { transform: scale(0.94); }
+
+.fcl-photo { display: flex; flex-direction: column; gap: 18px; margin: 0; }
+.fcl-photo-box { position: relative; width: 600px; height: 800px; overflow: hidden; border-radius: 40px; background: #1b2236; box-shadow: 0 0 0 8px var(--fg-white), 0 16px 40px rgba(23, 33, 58, 0.16); }
+.fcl-photo-box img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.fcl-overlay { animation: fcl-fade 0.35s ease-out both; }
+@keyframes fcl-fade { from { opacity: 0; } to { opacity: 1; } }
+/* 옷을 못 찾은 사진 — 얼굴 아래에 고른 색 천(드레이프)을 두른다 */
+.fcl-cape { position: absolute; left: -12%; right: -12%; bottom: -10%; height: 36%; border-radius: 50% 50% 0 0 / 70% 70% 0 0; background: var(--fcl-drape); box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.18), inset 0 18px 30px rgba(255, 255, 255, 0.18); transition: background 0.3s ease; }
+.fcl-photo figcaption { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 18px; }
+.fcl-photo figcaption i { grid-row: span 2; width: 76px; height: 76px; border-radius: 22px; box-shadow: inset 0 0 0 2px rgba(23, 33, 58, 0.12); transition: background 0.3s ease; }
+.fcl-photo figcaption b { font-size: 42px; font-weight: 900; line-height: 1.1; }
+.fcl-photo figcaption span { display: inline-flex; align-items: center; gap: 8px; color: var(--fg-soft); font-size: 26px; font-weight: 700; }
+
+.fcl-card { display: flex; flex-direction: column; gap: 24px; padding: 40px 44px; }
+.fcl-summary { font-size: 36px; font-weight: 700; line-height: 1.5; }
+.fcl-features { display: flex; flex-direction: column; gap: 14px; }
+.fcl-features li { display: flex; align-items: center; gap: 16px; padding: 18px 24px; border-radius: 22px; background: color-mix(in srgb, var(--fg-tone) 7%, #fff); font-size: 32px; font-weight: 800; }
+.fcl-features svg { flex: none; color: var(--fg-tone); }
+.fcl-h2 { display: flex; align-items: center; gap: 14px; color: var(--fg-tone); font-size: 42px; font-weight: 900; }
+.fcl-advice { display: flex; flex-direction: column; gap: 18px; }
+.fcl-advice li { position: relative; padding-left: 40px; font-size: 33px; font-weight: 700; line-height: 1.45; }
+.fcl-advice li::before { content: ''; position: absolute; top: 18px; left: 6px; width: 16px; height: 16px; border-radius: 50%; background: var(--fg-tone); }
+.fcl-advice b { color: var(--fg-tone); }
+.fcl-fun { text-align: center; }
+.fcl-foot { flex: none; padding: 24px 56px 40px; background: var(--fg-white); box-shadow: 0 -8px 24px rgba(23, 33, 58, 0.06); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fcl-scan i, .fcl-steps li span, .fcl-count, .fcl-overlay { animation: none; }
+}

@@ -22,7 +22,7 @@ export function programImageOptions(program: ProgramDef, faces?: number): BoothI
   return {}
 }
 
-const NO_TEXT = 'DO NOT add any text, captions, logos, watermarks or signatures, and no readable letters or numbers anywhere in the image. Do not make anyone resemble a real celebrity. Clothing is modest and age-appropriate.'
+const NO_TEXT = 'DO NOT add any text, captions, logos, watermarks or signatures, and no readable letters or numbers anywhere in the image. Do not make anyone resemble a real celebrity. Clothing is modest and age-appropriate.\nGLASSES: anyone wearing glasses in IMAGE 1 keeps the very same glasses on (same frame shape and color) — never remove or add glasses.'
 
 function identity(people: number, inputs: number): string {
   const many = people > 1
@@ -38,17 +38,25 @@ function identity(people: number, inputs: number): string {
   ].join('\n')
 }
 
-/** 혼자도 여럿도 — 찍힌 사람 수 그대로(입주 기념사진) */
-function identityGroup(): string {
+/** 혼자도 여럿도 — 찍힌 사람 수 그대로(입주 기념사진). keepClothes=false 면 옷은 프로그램이 정한 옷으로(펀그라운드 QUEST! · MVP!) */
+function identityGroup(keepClothes = true): string {
   return [
     'IMAGE 1 is a photo of one or more real people. Count them and keep EXACTLY that many people — never add, remove, duplicate or merge anyone.',
     'IDENTITY LOCK — the most important rule:',
     "- Preserve every person's real face exactly: face shape, eyes and eyelids, brows, nose, lips, jawline, moles and marks, skin tone, ethnicity, age and gender presentation. Children stay children.",
     '- Everyone must be instantly recognizable as themselves. Do not beautify, swap or regenerate faces, enlarge the eyes, change the nose or lips, or lighten/darken the skin.',
-    "- Keep each person's own hairstyle, hair color and glasses; keep their own clothes (only neatened).",
+    keepClothes
+      ? "- Keep each person's own hairstyle, hair color and glasses; keep their own clothes (only neatened)."
+      : "- Keep each person's own hairstyle, hair color and glasses. Only the clothes and the background change.",
     '- Keep their relative positions from the photo, all faces clearly visible and similar in size.',
   ].join('\n')
 }
+
+/**
+ * 펀그라운드 별내(9~19세 공공시설) 데모 — 아이 · 청소년을 어른처럼 만들지 않게, 안경을 벗기지 않게(2026-11-14 Seedream 아이돌 메이크업 시험에서 안경이 빠졌다).
+ * 생성 서버가 펀그라운드 생성(site=funground)일 때만 프롬프트 끝에 붙인다. 위 photo() 의 'realistic adult body proportions' 보다 우선한다고 밝힌다.
+ */
+export const FUNGROUND_RULES = 'AGE RULE (overrides anything above): many guests are children or teenagers aged 9 to 19. Keep every person exactly their real age with the natural body proportions of that age — never make anyone look older, taller or more mature. Keep any makeup light and youthful for children and teenagers. Clothing is modest and age-appropriate.\nGLASSES: anyone wearing glasses in IMAGE 1 keeps the very same glasses on (same frame shape and color) — never remove or add glasses.'
 
 const photo = (framing: string) =>
   `PHOTOGRAPHY: professional quality, sharp focus on the eyes, light natural retouching that keeps skin texture, realistic adult body proportions, vertical 2:3 image that fills the entire frame edge to edge (no borders, frames, split panels or collage), ${framing}.`
@@ -165,6 +173,23 @@ export function buildProgramPrompt(program: ProgramDef, choices: Record<string, 
         identity(people, inputs), '',
         'STYLING: comfortable near-future casual clothes in soft tones (no costumes, no armor, no helmets); hopeful, peaceful, people-friendly city — not dystopian.',
         photo('the person framed from the waist up in the foreground with the future city clearly visible behind them'), NO_TEXT,
+      ].join('\n')
+    // 펀그라운드 QUEST! — 얼굴은 그대로, 모험가 옷과 배경만(1~4명)
+    case 'quest':
+      return [
+        `EDIT IMAGE 1 into a fantasy adventure movie still of the SAME real people in ${c('world')}.`,
+        identityGroup(false), '',
+        `CAPE: everyone wears ${c('cape')} over the outfit described above.`,
+        'MOOD: wonder and excitement, friendly and family-safe — nothing scary, no weapons, no blood.',
+        photo('framed from the knees or waist up so every face is clearly visible, cinematic magical lighting'), NO_TEXT,
+      ].join('\n')
+    // 펀그라운드 MVP! — 경기장 우승 장면. 유니폼에 글자 · 번호 · 로고 없이
+    case 'mvp':
+      return [
+        `EDIT IMAGE 1 into a championship celebration sports photo of the SAME real people, ${c('sport')}.`,
+        identityGroup(false), '',
+        `UNIFORM: ${c('kit')}, completely plain — no letters, no numbers, no names, no badges, no team crests and no sponsor or brand logos anywhere on clothes, caps, trophy, balls, banners or scoreboards.`,
+        photo('framed from the knees or waist up so every face is clearly visible, joyful winning expressions, bright sports photography'), NO_TEXT,
       ].join('\n')
     default:
       throw new Error(`no prompt for ${program.id}`)

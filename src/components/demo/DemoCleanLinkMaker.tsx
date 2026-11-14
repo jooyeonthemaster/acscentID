@@ -10,7 +10,10 @@ import './demo-clean-link.css'
 
 type Made = { key: string; expiresAt: number }
 
-export function DemoCleanLinkMaker() {
+const DEFAULT_PATHS: [string, string][] = [['포토부스 데모', '/booth-demo/clean'], ['키오스크 데모', '/kiosk-demo/clean']]
+
+/** paths: 만든 서명을 붙여 보여 줄 랜딩(이름, 경로) — 없으면 포토부스 · 키오스크 데모(펀그라운드 데모는 제 랜딩만) */
+export function DemoCleanLinkMaker({ paths = DEFAULT_PATHS }: { paths?: [string, string][] } = {}) {
   const [open, setOpen] = useState(false)
   const [pin, setPin] = useState('')
   const [days, setDays] = useState<DemoCleanDays>(30)
@@ -71,7 +74,7 @@ export function DemoCleanLinkMaker() {
             ) : (
               <>
                 <p><b>{until}</b>까지 쓸 수 있어요. 그 뒤에는 같은 링크로 열어도 워터마크가 보여요.</p>
-                {[['포토부스 데모', '/booth-demo/clean'], ['키오스크 데모', '/kiosk-demo/clean']].map(([label, path]) => (
+                {paths.map(([label, path]) => (
                   <div key={path} className="dcl-out">
                     <span>{label}</span>
                     <input readOnly value={link(path)} onFocus={(e) => e.currentTarget.select()} aria-label={`${label} 링크`} />

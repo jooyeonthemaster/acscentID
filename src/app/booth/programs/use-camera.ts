@@ -22,9 +22,10 @@ export interface CameraHandle {
   still: () => Promise<HTMLCanvasElement>
 }
 
-const errorText = (error: unknown) => {
+const errorText = (error: unknown, audio = false) => {
   const name = error instanceof DOMException ? error.name : ''
-  if (name === 'NotAllowedError' || name === 'SecurityError') return '카메라 권한이 꺼져 있어요. 브라우저 주소창의 카메라 권한을 허용해 주세요.'
+  // 마이크도 쓰는 화면(뮤직비디오)은 마이크 권한까지 말한다
+  if (name === 'NotAllowedError' || name === 'SecurityError') return audio ? '카메라 · 마이크 권한이 꺼져 있어요. 브라우저 주소창의 카메라 · 마이크 권한을 허용해 주세요.' : '카메라 권한이 꺼져 있어요. 브라우저 주소창의 카메라 권한을 허용해 주세요.'
   if (name === 'NotFoundError' || name === 'OverconstrainedError') return '연결된 카메라를 찾지 못했어요.'
   if (name === 'NotReadableError') return '다른 프로그램이 카메라를 쓰고 있어요.'
   return '카메라를 켜지 못했어요.'
@@ -84,7 +85,7 @@ export function useCamera({ enabled, audio = false, allowDslr = true }: { enable
         setState('ready')
       } catch (cause) {
         if (!alive) return
-        setError(errorText(cause)); setState('error')
+        setError(errorText(cause, audio)); setState('error')
       }
     })()
     return () => {

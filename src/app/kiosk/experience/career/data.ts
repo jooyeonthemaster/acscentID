@@ -84,17 +84,20 @@ const careerFor = (primary: CareerAxis, secondary: CareerAxis | null) =>
 
 /**
  * interests: 첫 질문에서 고른 활동(고른 순서) · answers: 상황 질문마다 고른 보기 번호 · mbti·traits: 곁들이는 단서(없어도 된다).
- * 활동마다 2점, 상황 질문은 고른 보기의 축에 2점, MBTI 는 글자마다 0.5~1점, 관상 특징은 1점씩.
+ * extra: 이 다섯 질문 밖에서 더 물은 상황 질문의 답(고른 보기의 축) — 펀그라운드 별내판(관상 대신 질문 하나 더, src/lib/funground/career.ts)만 넘긴다.
+ *   키오스크 studio-career 는 넘기지 않으므로 결과가 그대로다.
+ * 활동마다 2점, 상황 질문은 고른 보기의 축에 2점(extra 도 같다), MBTI 는 글자마다 0.5~1점, 관상 특징은 1점씩.
  * 점수가 같으면 첫 질문에서 먼저 고른 쪽이 앞선다.
  * 제안: ① 1위×2위 ② 2위×1위 ③ 1위 한 축(둘이 같은 축이면 1위×3위)
  */
-export function exploreCareers(interests: CareerInterest[], answers: number[], mbti: MbtiType | null = null, traits: FaceTrait[] = []): CareerResult {
+export function exploreCareers(interests: CareerInterest[], answers: number[], mbti: MbtiType | null = null, traits: FaceTrait[] = [], extra: CareerAxis[] = []): CareerResult {
   const score: Record<CareerAxis, number> = { make: 0, solve: 0, help: 0, talk: 0 }
   const picks = interests.map(interestAxis)
   picks.forEach((axis) => { score[axis] += 2 })
   answers.forEach((choice, i) => { const axis = CAREER_QUESTIONS[i]?.options[choice]; if (axis) score[axis] += 2 })
   if (mbti) for (const letter of mbtiLetters(mbti)) for (const [axis, value] of Object.entries(MBTI_WEIGHT[letter])) score[axis as CareerAxis] += value
   traits.forEach((trait) => { score[FACE_TRAITS[trait]] += 1 })
+  extra.forEach((axis) => { score[axis] += 2 })
   const order = (axis: CareerAxis) => { const at = picks.indexOf(axis); return at < 0 ? 10 + CAREER_AXES.indexOf(axis) : at }
   const axes = [...CAREER_AXES].sort((a, b) => score[b] - score[a] || order(a) - order(b))
   const [first, second, third] = axes

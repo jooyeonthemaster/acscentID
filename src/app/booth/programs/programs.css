@@ -681,3 +681,33 @@ canvas.pg-cam-video { transform: none; }
   66% { transform: translate(-140px, 130px) rotate(-6deg); }
   83% { transform: translate(120px, 170px) rotate(10deg); }
 }
+
+/* ═════════ 펀그라운드 별내 A안 새 프로그램(2026-11-14) — /booth-demo/funground 에서만 연다(catalog site) ═════════ */
+
+/* QUEST! 판타지 모험 — 밤하늘 보라 · 금색 · 별 */
+.pg[data-program='quest'] {
+  --pg-bg: #1c1238; --pg-outer: #120b26; --pg-ink: #fbf3dc; --pg-muted: #c4b8e0; --pg-accent: #e0a93a; --pg-on-accent: #1c1238;
+  --pg-surface: #2a1d52; --pg-line: #4a3a7a; --pg-radius: 18px; --pg-display: var(--pg-f-bagel), Impact, sans-serif;
+  --pg-bg-image: radial-gradient(circle at 12% 18%, rgba(255, 233, 168, 0.55) 0 2px, transparent 3px), radial-gradient(circle at 78% 12%, rgba(255, 233, 168, 0.5) 0 2px, transparent 3px), radial-gradient(circle at 64% 38%, rgba(255, 233, 168, 0.35) 0 1.5px, transparent 2.5px), radial-gradient(circle at 30% 70%, rgba(255, 233, 168, 0.35) 0 1.5px, transparent 2.5px), radial-gradient(ellipse 60% 50% at 50% 110%, rgba(91, 63, 196, 0.55), transparent 70%);
+  --pg-photo-border: 4px solid #e0a93a; --pg-photo-shadow: 0 0 0 8px rgba(224, 169, 58, 0.18), 0 18px 40px rgba(0, 0, 0, 0.4);
+}
+.pg[data-program='quest'] .pg-wordmark { background: linear-gradient(180deg, #fff2c2, #e0a93a); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 12px rgba(224, 169, 58, 0.35)); }
+.pg[data-program='quest'] .pg-panel { background: rgba(28, 18, 56, 0.85); border: 1.5px solid #4a3a7a; }
+.pg[data-program='quest'] .pg-error-text { color: #ff9f9f; }
+.pg[data-program='quest'] .pg-cam--off { background: #241848; color: #a99bd0; }
+.pg[data-program='quest'] .pg-script { color: #e0a93a; }
+.pg[data-program='quest'] .pg-flow-steps i { background: #e0a93a; color: #1c1238; }
+
+/* MVP! 스포츠 스타 — 경기장 밤 조명 · 오렌지 · 노랑 */
+.pg[data-program='mvp'] {
+  --pg-bg: #0f1a33; --pg-outer: #0a1226; --pg-ink: #f5f7fb; --pg-muted: #a9b5cf; --pg-accent: #ff7a1a; --pg-on-accent: #fff;
+  --pg-surface: #16264a; --pg-line: #2e4170; --pg-radius: 8px; --pg-display: var(--pg-f-anton), Impact, sans-serif;
+  --pg-bg-image: radial-gradient(ellipse 30% 40% at 15% -5%, rgba(255, 255, 255, 0.22), transparent 70%), radial-gradient(ellipse 30% 40% at 85% -5%, rgba(255, 255, 255, 0.22), transparent 70%);
+  --pg-photo-border: 4px solid #ffd23f; --pg-photo-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+}
+.pg[data-program='mvp'] .pg-wordmark { color: #ffd23f; font-style: italic; text-shadow: 0 6px 0 #d9681f; }
+.pg[data-program='mvp'] .pg-panel { background: rgba(15, 26, 51, 0.88); border: 2px solid #ff7a1a; }
+.pg[data-program='mvp'] .pg-error-text { color: #ff9f9f; }
+.pg[data-program='mvp'] .pg-cam--off { background: #16264a; color: #8d9bb8; }
+.pg[data-program='mvp'] .pg-script { color: #ffd23f; }
+.pg[data-program='mvp'] .pg-flow-steps i { background: #ff7a1a; }

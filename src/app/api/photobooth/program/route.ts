@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { findProgram, validChoices } from '@/lib/booth/programs/catalog'
-import { buildProgramPrompt, programImageOptions } from '@/lib/booth/programs/prompts'
+import { buildProgramPrompt, programImageOptions, FUNGROUND_RULES } from '@/lib/booth/programs/prompts'
+import { FUNGROUND_PRIMARY, generateFungroundImage } from '@/lib/booth/image-models'
 import { generateBoothImage, IdolError, spendIdolTicket } from '@/lib/booth/idol-generate'
 import { DEMO_TICKET_OWNER, takeDemoGeneration } from '@/lib/booth/demo-server'
 import { buildCommentPrompt, fallbackComment, hasComment, parseComment } from '@/lib/booth/programs/comment'
@@ -18,6 +19,11 @@ export const maxDuration = 120
  * ticket 은 AI 아이돌과 같은 생성 표(이용권 확인·이용권 없는 모드·영업용 데모가 준다) — 표 하나로 2번(첫 생성 + 재시도).
  * 데모 표는 데모 상한(1분 3장·하루 40장, 모든 데모 생성이 함께 센다)을 따른다. 프롬프트는 서버가 옵션 id 로 만든다.
  * 손님 사진은 생성에만 쓰고 저장·기록하지 않는다.
+ *
+ * 펀그라운드 별내 데모(2026-11-14): 부스 화면 주소에 site=funground 가 있으면 body.site='funground' 가 온다. 그 데모 표이고 펀그라운드 모델 표
+ * (src/lib/booth/image-models.ts FUNGROUND_PRIMARY)에 있는 프로그램이면 Seedream 5.0 Flash → Gemini 2.5 Flash Image 로, 펀그라운드 키로 만들고
+ * 9~19세 나이 규칙(FUNGROUND_RULES)을 붙인다. 펀그라운드 전용 프로그램(QUEST! · MVP!, catalog 의 site)은 데모 표로만 만든다.
+ * 그 밖의 요청은 예전 그대로다.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -32,7 +38,16 @@ export async function POST(request: NextRequest) {
     }
     // 여럿 프로그램(capture.group)은 부스가 센 얼굴 수도 보낸다 — DRAW! 캐리커처가 세로(혼자) · 가로(여럿) 그림을 고른다. 못 세면 -1
     const people = typeof body?.people === 'number' && Number.isFinite(body.people) ? Math.max(-1, Math.min(9, Math.round(body.people))) : undefined
-    if (spendIdolTicket(body?.ticket) === DEMO_TICKET_OWNER) await takeDemoGeneration()
+    const owner = spendIdolTicket(body?.ticket)
+    const demo = owner === DEMO_TICKET_OWNER
+    if (program.site && !demo) return NextResponse.json({ error: '데모에서만 쓰는 프로그램이에요.' }, { status: 403 })
+    if (demo) await takeDemoGeneration()
+    const funground = demo && (program.site === 'funground' || body?.site === 'funground') && Boolean(FUNGROUND_PRIMARY[program.id])
+    if (funground) {
+      const prompt = `${buildProgramPrompt(program, choices, photos.length, people)}\n\n${FUNGROUND_RULES}`
+      const made = await generateFungroundImage(program.id, prompt, photos, `${program.id} ${Object.values(choices).join('/')} 얼굴${people ?? '-'}`)
+      return NextResponse.json({ image: made.image }, { headers: { 'Cache-Control': 'no-store' } })
+    }
     const image = await generateBoothImage(buildProgramPrompt(program, choices, photos.length, people), photos[0], photos.slice(1), programImageOptions(program, people))
     const comment = hasComment(program) ? await writeComment(program, choices, image) : undefined
     return NextResponse.json({ image, ...(comment ? { comment } : {}) }, { headers: { 'Cache-Control': 'no-store' } })
