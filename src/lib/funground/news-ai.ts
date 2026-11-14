@@ -83,6 +83,29 @@ export function normalizeArticle(value: unknown): string[] {
   return out.map((g) => g.join(' '))
 }
 
+/** 끝이 잘린 JSON 을 닫는다 — 열린 문자열을 닫고, 끝의 쉼표 · 콜론과 값 없는 키를 지우고, 열린 [ { 를 거꾸로 닫는다 */
+export function closeJson(text: string): string {
+  const stack: string[] = []
+  let inString = false
+  let escaped = false
+  for (const ch of text) {
+    if (inString) {
+      if (escaped) escaped = false
+      else if (ch === '\\') escaped = true
+      else if (ch === '"') inString = false
+      continue
+    }
+    if (ch === '"') inString = true
+    else if (ch === '{' || ch === '[') stack.push(ch === '{' ? '}' : ']')
+    else if (ch === '}' || ch === ']') stack.pop()
+  }
+  let out = text
+  if (inString) out += '"'
+  out = out.replace(/[\s,:]+$/, '')
+  out = out.replace(/,\s*"[^"]*"$/, '')
+  return out + stack.reverse().join('')
+}
+
 /**
  * 본문을 지면에 맞춘다 — 문단이 길면 끝 문장부터 덜어 내고(문장 하나는 남긴다), 합계가 넘으면 마지막 문단을 뺀다(두 문단은 남긴다).
  * 2026-11-14 실측: 한 문단이 몇 자 넘쳐(125자 > 120) 기사 전체가 미리 쓴 기사로 바뀌었다 — 문장 단위로 줄이면 대부분 살릴 수 있다
@@ -116,14 +139,17 @@ export function parseFgNews(raw: string, local: NewsStory, patched: string[] = [
   try {
     data = JSON.parse(cleaned) as Record<string, unknown>
   } catch {
-    // 앞뒤에 말이 붙어 오는 일이 있다(2026-11-14 실측) — 첫 { 부터 마지막 } 까지만 다시 읽는다
+    // 앞뒤에 말이 붙어 오는 일이 있다(2026-11-14 실측) — 첫 { 부터 마지막 } 까지만 다시 읽는다.
+    // 끝이 잘려 오는 일도 있다(운영 2026-11-14: 마지막 칸 글 도중에 끝남) — 열린 따옴표 · 괄호를 닫아 읽는다
     const from = cleaned.indexOf('{'), to = cleaned.lastIndexOf('}')
-    try {
-      if (from < 0 || to <= from) throw new Error('no object')
-      data = JSON.parse(cleaned.slice(from, to + 1)) as Record<string, unknown>
-    } catch {
-      throw new Error('JSON 이 아닙니다')
+    const tries = [from >= 0 && to > from ? cleaned.slice(from, to + 1) : '', from >= 0 ? closeJson(cleaned.slice(from)) : '']
+    let parsed: Record<string, unknown> | null = null
+    for (const t of tries) {
+      if (!t) continue
+      try { parsed = JSON.parse(t) as Record<string, unknown>; break } catch { /* 다음 방법 */ }
     }
+    if (!parsed) throw new Error('JSON 이 아닙니다')
+    data = parsed
   }
   if (typeof data !== 'object' || data === null) throw new Error('JSON 객체가 아닙니다')
   const text = (v: unknown) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : '')

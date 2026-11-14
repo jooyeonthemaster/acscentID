@@ -222,3 +222,18 @@ test('news API — 펀그라운드 키가 없으면 AI 를 부르지 않고 바�
     else process.env.OPENROUTER_API_KEY = savedSite
   }
 })
+
+test('AI 응답 — 끝이 잘린 JSON 도 닫아서 읽는다(운영 2026-11-14 실측 모양)', () => {
+  const base = local()
+  const good = goodAnswer()
+  // 마지막 칸(작은 상자 글) 도중에 끝난 응답
+  const full = JSON.stringify({ ...good, sidebar: { title: '별내 미래 신문', text: '20년 뒤 꿈이 이뤄질 거예요' } }, null, 2)
+  const cut = full.slice(0, full.lastIndexOf('이뤄질') + 3)
+  const story = parseFgNews(cut, base)
+  assert.equal(story.headline, good.headline)
+  assert.equal(story.sidebar.title, '별내 미래 신문')
+  // 키만 쓰고 끝난 응답도 그 키를 지우고 읽는다
+  const cutKey = full.slice(0, full.indexOf('"text"') + 6)
+  const story2 = parseFgNews(cutKey, base)
+  assert.equal(story2.headline, good.headline)
+})

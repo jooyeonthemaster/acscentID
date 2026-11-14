@@ -39,7 +39,19 @@ export async function POST(request: NextRequest) {
   if (capped) return capped
 
   try {
-    const result = await requestFgNews({ apiKey, prompt: buildFgNewsPrompt(answers, local), local, timeoutMs: TIMEOUT_MS })
+    // JSON 을 못 읽으면 한 번 더 묻는다(1회 약 $0.001 · 2초) — 남은 시간 안에서만
+    const started = Date.now()
+    const ask = (timeoutMs: number) => requestFgNews({ apiKey, prompt: buildFgNewsPrompt(answers, local), local, timeoutMs })
+    let result: Awaited<ReturnType<typeof ask>>
+    try {
+      result = await ask(TIMEOUT_MS)
+    } catch (first) {
+      const left = TIMEOUT_MS - (Date.now() - started)
+      if (!(first instanceof Error && /JSON/.test(first.message)) || left < 8_000) throw first
+      const firstCost = (first as { cost?: unknown }).cost
+      console.warn(`[${requestId}] JSON 을 못 읽어 한 번 더 묻습니다${typeof firstCost === 'number' ? ` · cost=$${firstCost.toFixed(5)}` : ''}`)
+      result = await ask(left)
+    }
     const patched = result.patched.length ? ` · 미리 쓴 값으로 바꾼 칸: ${result.patched.join(', ')}` : ''
     console.log(`[${requestId}] 완료 ${result.elapsedMs}ms · cost=${result.cost === null ? '?' : `$${result.cost.toFixed(5)}`} · ${FG_NEWS_MODEL}${patched}`)
     return NextResponse.json<NewsResponse>({ success: true, engine: 'ai', fallback: false, story: result.story })
