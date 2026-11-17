@@ -23,8 +23,10 @@
 .nh-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 16px; background: var(--nh-paper); border: 1px solid var(--nh-line); box-shadow: 0 10px 26px rgba(90, 60, 30, .08); }
 .nh-card-shot { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9; background: linear-gradient(160deg, #2a2420, #4a3d33); overflow: hidden; }
 .nh-card[data-device='kiosk'] .nh-card-shot { aspect-ratio: 16 / 11; }
-.nh-card-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.nh-card[data-device='kiosk'] .nh-card-shot img { width: auto; height: 94%; object-fit: contain; border-radius: 10px; box-shadow: 0 8px 22px rgba(0, 0, 0, .4); }
+/* 그림은 칸 기준 절대 위치로 — 사파리는 aspect-ratio 칸 안 그리드 항목의 height % 를 풀지 못해 세로 견본이 아래로 밀려 잘렸다(2026-11-17) */
+.nh-card-shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.nh-card[data-device='kiosk'] .nh-card-shot img { inset: 3% auto; left: 50%; width: auto; height: 94%; max-width: 92%; transform: translateX(-50%); object-fit: contain; border-radius: 10px; box-shadow: 0 8px 22px rgba(0, 0, 0, .4); }
+.nh-card-device { z-index: 1; }
 .nh-card-device { position: absolute; left: 12px; top: 12px; padding: 4px 10px; border-radius: 99px; background: rgba(0, 0, 0, .55); color: #fff; font-size: 12px; font-weight: 800; }
 .nh-card-body { display: flex; flex-direction: column; gap: 8px; padding: 18px 18px 20px; flex: 1; }
 .nh-flags { display: flex; gap: 6px; }
