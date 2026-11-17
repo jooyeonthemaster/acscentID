@@ -18,7 +18,7 @@ import { useAiJob } from './ai-client'
 import { readPhoto } from './read-photo'
 import { TakeActions } from './shared'
 import { useWineDrop, WineBottle, WineGlass } from './nh-wine-art'
-import { MotionScene, preloadMotion, TRAVEL_MS, useTravel } from './SipMotion'
+import { MotionScene, preloadMotion, travelMs, useTravel } from './SipMotion'
 import './sip-game.css'
 
 const ID = 'sommelier-nh' as const
@@ -131,7 +131,7 @@ export default function SipGameMode({ motion = false }: { /** 실험판 2 — �
     setBundle(made); counted.current = null
     run(made, read)
   }
-  useEffect(() => { if (step !== 'reveal') return; const t = window.setTimeout(() => setStep('result'), motion ? 2600 + TRAVEL_MS : 2600); return () => window.clearTimeout(t) }, [step, motion])
+  useEffect(() => { if (step !== 'reveal') return; const t = window.setTimeout(() => setStep('result'), motion ? 2600 + travelMs('tasting') : 2600); return () => window.clearTimeout(t) }, [step, motion])
   useEffect(() => {
     if (step !== 'result' || !result?.pour || counted.current === result.id) return
     counted.current = result.id; addCount(result.pour.no)

@@ -27,6 +27,11 @@
 .sip-flicker { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(circle at 9% 13%, rgba(255, 186, 100, .42), transparent 16%), radial-gradient(circle at 92% 14%, rgba(255, 186, 100, .3), transparent 12%), radial-gradient(ellipse 60% 40% at 30% 30%, rgba(255, 170, 90, .12), transparent 70%); animation: sip-flicker 2.6s linear infinite; }
 @keyframes sip-flicker { 0%, 100% { opacity: .85; } 12% { opacity: .55; } 20% { opacity: 1; } 37% { opacity: .7; } 52% { opacity: .95; } 61% { opacity: .6; } 78% { opacity: 1; } 88% { opacity: .75; } }
 
+/* 영상 장면 — 영상 자체가 움직이니 카메라는 아주 조금만, 그리고 배율 1 에서 시작(이동 영상 끝 프레임과 같은 자리) */
+.sip-layer--still[data-video] { animation: sip-still-v 16s ease-in-out infinite alternate; }
+@keyframes sip-still-v { from { transform: none; } to { transform: scale(1.035) translate3d(-.6%, -.4%, 0); } }
+.sip-world.sip-live[data-cut], .sip-live[data-cut] .sip-cam { animation: none; }
+
 /* 해나 — 흔들림(몸) · 숨(위아래) · 끄덕임(말할 때) */
 .sip-hana { position: absolute; translate: -50% 0; pointer-events: none; }
 .sip-hana::after { content: ''; position: absolute; left: 16%; right: 16%; bottom: -1.2%; height: 3%; z-index: -1; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, .5), transparent); }
@@ -79,3 +84,8 @@
 @keyframes sip-tv-flick { 50% { transform: rotate(2.6deg) scale(1.06); } }
 .sip-tv-flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 46%, rgba(255, 244, 222, .95), rgba(255, 214, 160, .35) 65%); opacity: 0; animation: sip-tv-flash .5s 1.2s ease-out both; }
 @keyframes sip-tv-flash { 0% { opacity: 0; } 30% { opacity: .78; } 100% { opacity: 0; } }
+
+/* 이동 영상 — 떠나는 장면이 빨려 들어가는 동안 아래에서 이동 영상이 빨리감기로 돈다. 속도선은 영상 길이만큼 */
+.sip-travel[data-movie] .sip-tv-from { z-index: 2; animation-duration: .45s; }
+.sip-travel[data-movie] .sip-tv-lines { z-index: 3; }
+.sip-tv-lines[data-movie] { animation: sip-tv-lines 1.6s .15s both, sip-tv-flick .1s steps(1) infinite; }
