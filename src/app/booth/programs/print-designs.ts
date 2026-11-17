@@ -142,7 +142,12 @@ const PRINT_ART: Partial<Record<string, string[]>> = { caricature: [DRAW_MARK] }
 const artCache = new Map<string, HTMLImageElement>()
 /** DRAW! 손글씨 — 한글까지 든 나눔손글씨 펜 원본(next/font 의 pen 은 라틴 글자만 받아 한글이 기본 글꼴로 나왔다). 키오스크 명함 디자이너와 같은 파일 */
 const DRAW_HAND = 'pg-draw-hand'
-const PRINT_FONTS: Partial<Record<string, [family: string, url: string][]>> = { caricature: [[DRAW_HAND, '/fonts/ui/nanum-pen/400.woff2']] }
+/** DREAM! 한글 제목 — 저장소의 Black Han Sans 원본 한 파일(next/font 판은 글자 묶음별로 나뉘어, 아직 안 받은 글자가 기본 글꼴로 섞여 나왔다) */
+const DREAM_HEAD = 'pg-dream-head'
+const PRINT_FONTS: Partial<Record<string, [family: string, url: string][]>> = {
+  caricature: [[DRAW_HAND, '/fonts/ui/nanum-pen/400.woff2']],
+  dream: [[DREAM_HEAD, '/fonts/ui/black-han-sans/400.woff2']],
+}
 const fontsAdded = new Set<string>()
 
 export async function loadPrintArt(program: ProgramDef): Promise<void> {
@@ -184,6 +189,9 @@ const B = () => bagel.style.fontFamily
 const H = () => blackHan.style.fontFamily
 export const G = () => gowun.style.fontFamily
 const S = () => pen.style.fontFamily
+/** DREAM! 강조색 — src/components/funground/FgStage.tsx FG_ACCENT.dream 과 같은 값 */
+const DREAM_ACCENT = '#8B5CF6'
+const DH = () => `${DREAM_HEAD}, ${H()}`
 /** DRAW! 손글씨(한글 포함) — 못 받았으면 next/font 손글씨 */
 const HAND = () => `'${DRAW_HAND}', ${S()}`
 
@@ -223,36 +231,39 @@ const DESIGNS: Record<string, [Design, Design]> = {
       text(ctx, `FUN GROUND 별내 · ${today()}`, PRINT_W / 2, 1745, `28px ${A()}`, '#6b4a2b', 'center', (c) => { c.letterSpacing = '6px' })
     },
   ],
+  // DREAM! — 펀그라운드 별내 전용(「FUN GROUND Editorial」 2026-11-16): 흰 바탕 · 검정 선 · 보라 강조색 하나, 영문은 Anton · 한글은 Black Han Sans
   dream: [
-    // 꿈의 직업 포스터 — 사진을 꽉 채우고 위에 DREAM!, 아래 직업 띠
+    // 꿈의 직업 포스터 — 위 막대(FUN GROUND · 날짜), 사진 크게, 아래 직업 이름 + DREAM!
     (ctx, { result, labels }) => {
-      cover(ctx, result, 0, 0, PRINT_W, PRINT_H, 0.25)
-      const top = ctx.createLinearGradient(0, 0, 0, 420)
-      top.addColorStop(0, 'rgba(8,30,60,0.78)'); top.addColorStop(1, 'rgba(8,30,60,0)')
-      ctx.fillStyle = top; ctx.fillRect(0, 0, PRINT_W, 420)
-      fitText(ctx, 'DREAM!', PRINT_W / 2, 240, 1000, 230, B(), '#ffffff', '', 'center', (c) => { c.shadowColor = 'rgba(31,143,208,0.7)'; c.shadowBlur = 30 })
-      text(ctx, 'Dream it, wear it', PRINT_W / 2, 320, `58px ${S()}`, '#bfe7ff')
-      const bottom = ctx.createLinearGradient(0, PRINT_H - 400, 0, PRINT_H)
-      bottom.addColorStop(0, 'rgba(8,30,60,0)'); bottom.addColorStop(1, 'rgba(8,30,60,0.9)')
-      ctx.fillStyle = bottom; ctx.fillRect(0, PRINT_H - 400, PRINT_W, 400)
-      rect(ctx, PRINT_W / 2 - 330, PRINT_H - 250, 660, 110, '#1f8fd0', 55)
-      fitText(ctx, `꿈의 직업 · ${labels.job ?? ''}`, PRINT_W / 2, PRINT_H - 175, 600, 60, G(), '#ffffff', '700')
-      text(ctx, `FUN GROUND 별내 · ${today()}`, PRINT_W / 2, PRINT_H - 70, `32px ${A()}`, '#bfe7ff', 'center', (c) => { c.letterSpacing = '6px' })
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, PRINT_W, PRINT_H)
+      text(ctx, 'FUN GROUND', 60, 118, `64px ${A()}`, '#111111', 'left')
+      text(ctx, today(), PRINT_W - 60, 116, `36px ${A()}`, '#111111', 'right')
+      rect(ctx, 60, 148, PRINT_W - 120, 4, '#111111')
+      photoClip(ctx, result, 60, 182, PRINT_W - 120, 1110, 0, 0.25)
+      stroke(ctx, 60, 182, PRINT_W - 120, 1110, '#111111', 2)
+      rect(ctx, 60, 1326, 268, 72, DREAM_ACCENT)
+      text(ctx, '꿈의 직업', 194, 1380, `46px ${DH()}`, '#ffffff')
+      fitText(ctx, labels.job ?? '', 60, 1540, PRINT_W - 120, 150, DH(), '#111111', '', 'left')
+      rect(ctx, 60, 1574, PRINT_W - 120, 2, '#111111')
+      text(ctx, 'DREAM!', 52, 1748, `170px ${A()}`, '#111111', 'left')
+      text(ctx, 'FUN GROUND 별내', PRINT_W - 60, 1740, `32px ${A()}`, '#6b6b6b', 'right', (c) => { c.letterSpacing = '2px' })
     },
-    // 꿈의 명함 — 하늘색 바탕에 사진 카드 + 명함 칸(이름 자리는 비워 손글씨로)
+    // 꿈의 명함 — 사진 + 아래 명함 칸(검정 선 상자, 이름 자리는 비워 손글씨로)
     (ctx, { result, labels }) => {
-      const bg = ctx.createLinearGradient(0, 0, PRINT_W, PRINT_H)
-      bg.addColorStop(0, '#e6f5ff'); bg.addColorStop(1, '#c9e6fb')
-      ctx.fillStyle = bg; ctx.fillRect(0, 0, PRINT_W, PRINT_H)
-      for (let i = 0; i < 26; i++) star(ctx, (i * 211) % PRINT_W, 40 + ((i * 137) % 260), 6 + (i % 4) * 3, 'rgba(31,143,208,0.35)')
-      ctx.save(); shadow(ctx, 36, 'rgba(10,50,90,0.3)'); rect(ctx, 110, 150, 980, 1100, '#ffffff', 36); ctx.restore()
-      photoClip(ctx, result, 140, 180, 920, 1040, 22, 0.25)
-      ctx.save(); shadow(ctx, 30, 'rgba(10,50,90,0.25)'); rect(ctx, 110, 1300, 980, 380, '#ffffff', 30); ctx.restore()
-      text(ctx, 'DREAM CARD', 160, 1375, `40px ${A()}`, '#1f8fd0', 'left', (c) => { c.letterSpacing = '8px' })
-      fitText(ctx, labels.job ?? '', 160, 1490, 860, 96, G(), '#0f2a44', '700', 'left')
-      rect(ctx, 160, 1530, 880, 4, '#cfe6f6')
-      text(ctx, '이름 · ____________________', 160, 1600, `700 40px ${G()}`, '#5a7690', 'left')
-      text(ctx, `FUN GROUND 별내 · ${today()}`, 1040, 1650, `26px ${A()}`, '#1f8fd0', 'right', (c) => { c.letterSpacing = '4px' })
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, PRINT_W, PRINT_H)
+      text(ctx, 'FUN GROUND', 60, 118, `64px ${A()}`, '#111111', 'left')
+      text(ctx, today(), PRINT_W - 60, 116, `36px ${A()}`, '#111111', 'right')
+      rect(ctx, 60, 148, PRINT_W - 120, 4, '#111111')
+      photoClip(ctx, result, 60, 182, PRINT_W - 120, 1000, 0, 0.25)
+      stroke(ctx, 60, 182, PRINT_W - 120, 1000, '#111111', 2)
+      stroke(ctx, 60, 1222, PRINT_W - 120, 518, '#111111', 3)
+      rect(ctx, 100, 1262, 300, 66, DREAM_ACCENT)
+      text(ctx, 'DREAM CARD', 250, 1312, `44px ${A()}`, '#ffffff', 'center', (c) => { c.letterSpacing = '2px' })
+      fitText(ctx, labels.job ?? '', 100, 1462, PRINT_W - 200, 112, DH(), '#111111', '', 'left')
+      rect(ctx, 100, 1496, PRINT_W - 200, 2, '#111111')
+      text(ctx, '이름', 100, 1600, `48px ${DH()}`, '#111111', 'left')
+      rect(ctx, 220, 1606, PRINT_W - 320, 2, '#bdbdbd')
+      text(ctx, 'FUN GROUND 별내', PRINT_W - 100, 1696, `30px ${A()}`, '#6b6b6b', 'right', (c) => { c.letterSpacing = '2px' })
     },
   ],
   mvp: [

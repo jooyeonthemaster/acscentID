@@ -1,0 +1,659 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   펀그라운드 데모(주소 site=funground) — 노트북 가로판 퍼스널 컬러(COLOR!) · 직업 탐색(NEXT!)을 「FUN GROUND Editorial」 테마로.
+   목업 ~/Downloads/펀그라운드별내_UI목업_20261116_에디토리얼/{color,next}_{1,2,3}.png. 모든 규칙은 html[data-site='funground'] 아래 —
+   FgPcFrame 이 펀그라운드 주소일 때만 html 에 표시를 달고 이 파일을 싣는다. 행사용 같은 링크 · 세로 키오스크는 그대로다.
+
+   크기: 노트북 가로판은 1280×780 CSS 픽셀 기준으로 그리고 창에 맞춰 zoom 한다(usePcFit) — 높이가 기준이라 1920×1080 화면에서
+   이 파일의 1px ≈ 목업(1920×1080)의 1.385px. 목업 크기 × 0.72 로 적는다(제목 232→168 · 머리말 80→56 · 한 줄 38→26 · 주 단추 128→92).
+   흰 바탕 · 검정 잉크 #111 · 1px 검정 선 · 모서리 4px · 그림자 없음 · 강조색 하나(--fg-accent, FgPcFrame 이 html 에 단다).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html[data-site='funground'] {
+  --fgpc-top: 70px;
+  --fgpc-left: 45%;
+  --fgpc-gap: 56px;
+  --fgpc-pad: 60px;
+  --fge-display: var(--pg-f-anton), 'Anton', Impact, 'Arial Narrow', sans-serif;
+  --fge-head: 'FG Black Han Sans', 'FG Pretendard', 'Apple SD Gothic Neo', sans-serif;
+  --fge-text: 'FG Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --fgpc-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --fgpc-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 40' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20h86M72 5l17 15-17 15'/%3E%3C/svg%3E");
+  --fgpc-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  background: #ffffff;
+}
+html[data-site='funground'] body { background: #ffffff; }
+
+/* ── 위 막대(FgTopBar · editorial.css 의 .fge-top 를 노트북 기준 크기로) ── */
+.fgpc-top { position: fixed; top: 0; left: 0; z-index: 70; }
+html[data-site='funground'] .fgpc-top .fge-top { gap: 26px; height: var(--fgpc-top); padding: 0 28px 0 32px; font-family: var(--fge-text); }
+html[data-site='funground'] .fgpc-top .fge-logo { font-size: 40px; }
+html[data-site='funground'] .fgpc-top .fge-steps { gap: 32px; }
+html[data-site='funground'] .fgpc-top .fge-steps li { font-size: 37px; }
+html[data-site='funground'] .fgpc-top .fge-steps li[data-on]::after { left: -4px; right: -4px; bottom: -10px; height: 5px; }
+html[data-site='funground'] .fgpc-top .fge-home { min-width: 144px; height: 46px; padding: 0 20px; font: 800 22px/1 var(--fge-text) !important; }
+html[data-site='funground'] .fgpc-top .fge-home::before { inset: -12px -6px; }
+@media (hover: hover) { html[data-site='funground'] .fgpc-top .fge-home:hover { background: #333333; } }
+
+/* ═══════════════════════ COLOR! — 퍼스널 컬러(KioskClassic pinnedMode='ai-color' pc) ═══════════════════════ */
+html[data-site='funground'] .ksk-root[data-layout='pc'] {
+  --paper: #ffffff !important; --ink: #111111 !important; --ink-soft: #6b6b6b !important; --line: #111111 !important;
+  --accent: #111111 !important; --on-accent: #ffffff !important; --accent-soft: #f1f1f1 !important;
+  --surface: #ffffff !important; --surface-strong: #ffffff !important; --ksk-radius: 4px !important; --ksk-shadow: none !important;
+  --ksk-body-font: var(--fge-text) !important; --ksk-display-font: var(--fge-head) !important;
+  --pg-ink: #111111; --pg-soft: #6b6b6b; --pg-line: #111111; --pg-paper: #ffffff; --pg-card: #ffffff;
+  --pg-accent: #111111; --pg-accent-soft: #f1f1f1; --pg-alert: #ffffff; --pg-radius: 4px; --pg-title-font: var(--fge-head);
+  box-sizing: border-box; padding: var(--fgpc-top) 0 0; background: #ffffff; color: #111111; font-family: var(--fge-text); letter-spacing: -0.01em;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-stage { max-width: none; padding: 0; border: 0; background: #ffffff; }
+/* 프로그램 머리띠 · 언어 버튼 — 위 막대가 대신한다(펀그라운드는 한국어만) */
+html[data-site='funground'] .ksk-root[data-layout='pc'] :is(.pg-top, .program-brandbar, .ksk-lang) { display: none !important; }
+
+/* 공통 글자 · 단추 */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-title {
+  position: relative; margin: 52px 0 18px; color: #111111; font: 400 54px/1.18 var(--fge-head); letter-spacing: -0.02em; text-align: left;
+  text-decoration: underline; text-decoration-color: var(--fg-accent); text-decoration-thickness: 9px; text-underline-offset: 10px; text-decoration-skip-ink: none;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-title::before {
+  position: absolute; left: 0; bottom: 100%; margin-bottom: 18px; padding: 5px 12px 3px; background: var(--fg-accent); color: var(--fg-on-accent);
+  font: 900 24px/1.2 var(--fge-text); letter-spacing: -0.01em; white-space: nowrap;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-info .pg-title::before { content: '02 / 정보'; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture[data-view='camera'] .pg-title::before { content: '02 / 촬영'; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture[data-view='confirm'] .pg-title::before { content: '02 / 확인'; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture[data-view='qr'] .pg-title::before { content: '02 / 폰 사진'; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-title::before { content: 'AI 분석'; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-desc { margin: 4px 0 0; color: #111111; font: 600 24px/1.42 var(--fge-text); text-align: left; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] :is(.ksk-btn, .ksk-alt) {
+  min-height: 64px; border: 2px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; box-shadow: none;
+  font: 800 24px/1 var(--fge-text); letter-spacing: -0.02em;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] :is(.ksk-btn-primary, .ksk-btn-primary:active:not(:disabled)) { border-color: #111111; background: #111111; color: #ffffff; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-btn:disabled { border-color: #bdbdbd; background: #ffffff; color: #bdbdbd; opacity: 1; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-btn-primary:disabled { border-color: #bdbdbd; background: #bdbdbd; color: #ffffff; }
+@media (hover: hover) {
+  html[data-site='funground'] .ksk-root[data-layout='pc'] :is(.ksk-btn, .ksk-alt, .pg-wide, .pg-choice, .clr2-tabs button, .clr2-compare-btn):hover:not(:disabled):not([data-on]):not(.ksk-btn-primary) { background: #f1f1f1; }
+  html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-btn-primary:hover:not(:disabled) { background: #333333; }
+}
+/* 단추 오른쪽 가는 화살표(lucide ArrowRight 대신) */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-btn-primary > svg.lucide-arrow-right { display: none; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-btn-primary:has(> svg.lucide-arrow-right)::after {
+  content: ''; flex: none; width: 64px; height: 26px; background: currentColor; -webkit-mask: var(--fgpc-arrow) center / contain no-repeat; mask: var(--fgpc-arrow) center / contain no-repeat;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-actions.pg-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 14px; margin-top: 28px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-actions.pg-actions > .ksk-btn { width: 100%; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-actions.pg-actions > .ksk-btn-primary { min-height: 92px; justify-content: space-between; padding: 0 36px; font-size: 36px; font-weight: 900; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-actions.pg-actions > .ksk-btn:not(.ksk-btn-primary) { min-height: 92px; }
+
+/* ── 두 칸 틀: 왼쪽 45% 꽉 찬 그림 · 오른쪽 글(세로 가운데) ── */
+html[data-site='funground'] .ksk-root[data-layout='pc'] :is(.pg-info, .pg-capture, .pg-analyzing[data-theme='color']) {
+  grid-template-columns: var(--fgpc-left) var(--fgpc-gap) minmax(0, 1fr) var(--fgpc-pad);
+  column-gap: 0; padding: 0; overflow: hidden; background: #ffffff;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] :is(.pg-info, .pg-capture, .pg-analyzing[data-theme='color'])::before { grid-area: 1 / 3; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] :is(.pg-info, .pg-capture, .pg-analyzing[data-theme='color']) > * { grid-column: 3; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] :is(.pg-info > .pg-info-art, .pg-capture > .pg-cam-slot, .pg-capture > .pg-qr, .pg-analyzing > .pg-analyzing-art) {
+  grid-column: 1; grid-row: 1 / -1; margin: 0;
+}
+/* 꽉 찬 사진(옅은 필름 그레인) */
+html[data-site='funground'] .ksk-root[data-layout='pc'] :is(.program-art, .pg-info-art, .pg-analyzing-art) {
+  position: relative; display: block; width: auto; height: auto; aspect-ratio: auto; overflow: hidden; padding: 0;
+  border-right: 1px solid #111111; background: #e9e9e9 url('/assets/booth-programs/funground-editorial/color-hero.webp') 50% 22% / cover no-repeat;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] :is(.program-art, .pg-info-art, .pg-analyzing-art) > *,
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing-art::before { display: none !important; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] :is(.program-art, .pg-info-art, .pg-analyzing-art)::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.09; mix-blend-mode: multiply; background-image: var(--fgpc-grain);
+}
+
+/* ── ① 첫 화면(목업 color_1) ── */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .program-attract {
+  grid-template-columns: var(--fgpc-left) var(--fgpc-gap) minmax(0, 1fr) var(--fgpc-pad);
+  grid-template-rows: 1fr auto auto 1fr;
+  grid-template-areas: 'art . . .' 'art . intro .' 'art . start .' 'art . . .';
+  column-gap: 0; padding: 0;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .program-art { grid-area: art; margin: 0; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .program-intro { position: relative; text-align: left; }
+/* 강조색 라벨 띠 + 오른쪽으로 가는 선 */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .program-intro::before {
+  content: 'AI 퍼스널 컬러'; position: relative; z-index: 1; display: inline-block; padding: 6px 14px 4px; background: var(--fg-accent); color: var(--fg-on-accent);
+  font: 900 27px/1.2 var(--fge-text); letter-spacing: -0.02em; box-shadow: 22px 0 0 #ffffff;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .program-intro::after { content: ''; position: absolute; left: 0; right: 0; top: 20px; height: 1px; background: #111111; }
+html[data-site='funground'] .ksk-root[data-layout='pc'][data-program-theme] .program-wordmark {
+  margin: 20px 0 0; padding: 0; border: 0; color: #111111; font-family: var(--fge-display); font-size: 232px; font-weight: 400; line-height: 0.92; letter-spacing: 0;
+}
+/* 「나에게 어울리는 색,」(첫 줄) = 한글 머리말 + 강조색 밑줄 · 「AI가 찾아 드릴게요」 = 한 줄 설명 */
+html[data-site='funground'] .ksk-root[data-layout='pc'][data-program-theme] .program-headline {
+  max-width: none; margin: 24px 0 0; color: #111111; font: 600 27px/1.5 var(--fge-text); letter-spacing: -0.01em; text-align: left;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'][data-program-theme] .program-headline::first-line {
+  font-family: var(--fge-head); font-size: 56px; font-weight: 400; line-height: 1.5; letter-spacing: -0.02em;
+  text-decoration: underline; text-decoration-color: var(--fg-accent); text-decoration-thickness: 9px; text-underline-offset: 12px; text-decoration-skip-ink: none;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .program-start-area { margin-top: 34px; text-align: left; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] :is(.program-note, .program-signature) { display: none; }
+html[data-site='funground'] .ksk-root[data-layout='pc'][data-program-theme] .program-start {
+  justify-content: space-between; min-height: 92px; padding: 0 36px 0 40px; border: 0; border-radius: 4px; background: #111111; color: #ffffff;
+  font: 900 38px/1 var(--fge-text); letter-spacing: -0.02em;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'][data-program-theme] .program-start::after { display: none; }
+html[data-site='funground'] .ksk-root[data-layout='pc'][data-program-theme] .program-start > span:last-child {
+  width: 70px; height: 28px; overflow: hidden; color: transparent; font-size: 0; background: #ffffff;
+  -webkit-mask: var(--fgpc-arrow) center / contain no-repeat; mask: var(--fgpc-arrow) center / contain no-repeat;
+}
+
+/* ── ② 정보(이름 · 성별) — 목업 없음: 첫 화면과 같은 틀 ── */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-info .pg-title { font-size: 54px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-info-card { margin-top: 26px; padding: 0; border: 0; background: transparent; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-label { margin: 0 0 10px; color: #111111; font: 800 21px/1.3 var(--fge-text); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-label em { color: #6b6b6b; font-weight: 600; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-label + :is(.pg-input, input) + .pg-label { margin-top: 22px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-input {
+  min-height: 72px; padding: 0 22px; border: 2px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; font: 700 28px/1 var(--fge-text);
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-input--text:focus { border-color: #111111; box-shadow: inset 0 -6px 0 var(--fg-accent); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-input--text::placeholder { color: #bdbdbd; font-weight: 600; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-choices { gap: 12px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-choice {
+  position: relative; min-height: 72px; border: 2px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; font: 800 26px/1 var(--fge-text);
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-choice[data-on] { border-color: #111111; background: var(--fg-accent); color: var(--fg-on-accent); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-choice-check { width: 26px; height: 26px; border-radius: 0; background: #111111; color: var(--fg-accent); }
+/* 처음으로 — 위 막대에 있다. 다음만 넓게 */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-info .ksk-actions.pg-actions { grid-template-columns: 1fr; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-info .ksk-actions.pg-actions > .ksk-btn:not(.ksk-btn-primary) { display: none; }
+
+/* ── ② 촬영 · 확인(목업 color_2) — 왼쪽 칸 전체가 카메라. 카메라 위 그림들은 이 틀(.pg-capture)을 기준으로 자리 잡는다 ── */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture { position: relative; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture > .pg-cam-slot {
+  position: static; display: block; min-height: 0; padding: 0 !important; border-right: 1px solid #111111; background: #1a1a1a;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-cam {
+  position: static; width: 100% !important; height: 100% !important; aspect-ratio: auto; border-radius: 0; background: #1a1a1a;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-cam > :is(video, img) { object-position: 50% 35%; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-guide { display: none; }
+/* 카메라 위 작은 검정 라벨 */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture[data-view='camera'] .pg-cam:not([data-error])::before {
+  content: '밝은 곳에서 정면으로'; position: absolute; top: 20px; left: 20px; z-index: 3; padding: 9px 14px; background: #111111; color: #ffffff; font: 800 21px/1 var(--fge-text);
+}
+/* 얼굴 자리 — 강조색 모서리 괄호 넷(왼쪽 칸의 가운데) */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture[data-view='camera'] .pg-corner { z-index: 2; width: 52px; height: 52px; border: 0 solid var(--fg-accent); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture[data-view='camera'] .pg-corner[data-pos='tl'] { top: 17%; left: calc(var(--fgpc-left) * 0.2); border-top-width: 6px; border-left-width: 6px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture[data-view='camera'] .pg-corner[data-pos='tr'] { top: 17%; right: calc(100% - var(--fgpc-left) * 0.8); border-top-width: 6px; border-right-width: 6px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture[data-view='camera'] .pg-corner[data-pos='bl'] { bottom: 16%; left: calc(var(--fgpc-left) * 0.2); border-bottom-width: 6px; border-left-width: 6px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture[data-view='camera'] .pg-corner[data-pos='br'] { bottom: 16%; right: calc(100% - var(--fgpc-left) * 0.8); border-bottom-width: 6px; border-right-width: 6px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture[data-view='confirm'] .pg-corner,
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-cam[data-error] .pg-corner { display: none; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture :is(.pg-noface, .pg-nocam) { top: 0; bottom: 0; left: 0; right: auto; width: var(--fgpc-left); z-index: 3; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-nocam { background: #1a1a1a; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-nocam p { font-size: 22px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-nocam b { font-size: 26px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-file { min-height: 64px; padding: 0 26px; font: 800 22px/1 var(--fge-text); }
+/* 아주 큰 카운트다운 — 오른쪽 칸 가운데(그동안 안내 줄은 숨긴다) */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-count {
+  z-index: 4; left: calc(var(--fgpc-left) + var(--fgpc-gap)); right: var(--fgpc-pad); top: auto; bottom: 190px; width: auto; height: auto;
+  border-radius: 0; background: transparent; color: #111111; font: 400 220px/0.9 var(--fge-display); transform: none; animation: none;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture:has(.pg-count) :is(.pg-desc, .pg-tips, .pg-wide) { visibility: hidden; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-desc { font-size: 19px; font-weight: 500; color: #6b6b6b; }
+/* 찍는 요령 — 01 · 02 · 03 번호 줄 */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-tips { counter-reset: fgtip; gap: 0; margin: 22px 0 0; padding: 0; border-top: 1px solid #111111; font-size: 22px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-tips li { counter-increment: fgtip; gap: 18px; padding: 13px 0; border-bottom: 1px solid #111111; color: #111111; font-weight: 600; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-tips li::before { content: '0' counter(fgtip); flex: none; width: 36px; font: 400 26px/1 var(--fge-display); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-tips svg { display: none; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-wide { min-height: 56px; margin-top: 22px !important; border-width: 1px; font-size: 20px; font-weight: 700; gap: 10px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .ksk-actions.pg-actions { margin-top: 14px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .ksk-actions.pg-actions > .ksk-btn-primary { justify-content: center; gap: 14px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .ksk-actions.pg-actions > .ksk-btn-primary > svg { width: 30px; height: 30px; stroke-width: 1.5; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-alert { margin-top: 16px; padding: 14px 18px; border: 2px solid #111111; border-left-width: 10px; border-left-color: var(--fg-accent); border-radius: 4px; background: #ffffff; font-size: 20px; }
+/* 확인 — 색 견본 띠 · 확인 줄 · 사진 안내 */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-strip { gap: 0; width: 100%; margin-top: 26px; border: 1px solid #111111; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-strip i { aspect-ratio: 1 / 0.9; border-radius: 0; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-check { gap: 12px; margin-top: 20px; font: 700 22px/1.3 var(--fge-text); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-check > span { width: 30px; height: 30px; border: 0; border-radius: 0; background: var(--fg-accent); color: var(--fg-on-accent); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-note--small { margin-top: 10px; color: #6b6b6b; font-size: 16px; text-align: left; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture[data-view='confirm'] .ksk-actions.pg-actions > .ksk-btn-primary { justify-content: space-between; }
+/* 폰으로 올리기(QR) — 왼쪽 칸 가운데 */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture > .pg-qr { align-self: stretch; justify-self: stretch; width: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 0; border-right: 1px solid #111111; border-radius: 0; background: #f4f4f4; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-qr-img { width: 260px; height: 260px; border: 1px solid #111111; background: #ffffff; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-capture .pg-qr :is(.pg-qr-caption, .pg-qr-steps, .pg-qr-msg) { color: #111111; font-size: 18px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-note { color: #6b6b6b; font-size: 17px; }
+
+/* ── 기다림(목업 없음) — 큰 사진 + 오른쪽 머리말 · 01 02 03 확인 줄 · 가는 진행 막대 ── */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing > .pg-analyzing-art { align-self: stretch; justify-self: stretch; width: auto; aspect-ratio: auto; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-title--hero { display: block; font-size: 54px; line-height: 1.2; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-title--hero > span { display: block; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-checklist { counter-reset: fgchk; gap: 0; margin: 28px 0 0; padding: 0; border: 0; border-top: 1px solid #111111; border-radius: 0; background: transparent; font-size: 24px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-checklist li { counter-increment: fgchk; gap: 18px; padding: 14px 0; border-bottom: 1px solid #111111; color: #bdbdbd; font-weight: 600; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-checklist li::before { content: '0' counter(fgchk); flex: none; width: 38px; font: 400 28px/1 var(--fge-display); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-checklist li > span { order: 2; width: 30px; height: 30px; margin-left: auto; border: 1px solid #bdbdbd; border-radius: 0; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-checklist li:is([data-state='done'], [data-state='now']) { color: #111111; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-checklist li[data-state='now'] { font-weight: 800; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-checklist li[data-state='done'] > span { border-color: var(--fg-accent); background: var(--fg-accent); color: var(--fg-on-accent); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-checklist li[data-state='now'] > span { border: 2px solid #111111; background: #ffffff; box-shadow: none; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-segments { gap: 6px; margin: 28px 0 0; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-segments i { height: 10px; border-radius: 0; background: #d6d6d6; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-segments b { background: var(--fg-accent); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-wait { margin-top: 16px; font: 700 24px/1.3 var(--fge-text); text-align: left; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-foot { margin: 14px 0 0; color: #6b6b6b; font-size: 15px; text-align: left; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-foot::before { display: none; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-analyzing .pg-foot::after { display: none; }
+
+/* ── 분석 실패 ── */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .pg-error-wrap > .pg-error { border: 2px solid #111111; border-radius: 4px; background: #ffffff; box-shadow: none; }
+
+/* ── ③ 결과(목업 color_3) — 왼쪽 옷 색 미리보기(꽉 찬 사진) · 오른쪽 유형 · 색 · 톤 · 스타일(넘겨 보기) · 맨 아래 처음으로 · 인쇄하기 ── */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-body { padding: 0; }
+/* 사진 칸이 맨 아래까지 — 결과 틀(.ksk-result)을 두 칸 그리드로 하고 .clr2 는 상자 없이(display: contents) 두 칸을 그대로 넘긴다 */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-result { display: grid; grid-template-columns: var(--fgpc-left) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-result > :not(.clr2, .ksk-actions) { grid-column: 1 / -1; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2[data-pc] { display: contents; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side { grid-column: 1; grid-row: 1 / 3; justify-content: stretch; border-right: 1px solid #111111; background: #f2f2f2; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-main { grid-column: 2; grid-row: 1; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) { position: relative; flex: 1; grid-template-rows: auto minmax(0, 1fr); gap: 0; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) > :is(.clr2-h3, .clr2-sub) { display: none; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) > .clr2-tabs { grid-row: 1; gap: 0; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) > .clr2-compare-btn { grid-row: 1; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) > .clr2-frame { grid-row: 2; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-tabs button,
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) > .clr2-compare-btn {
+  min-height: 58px; border: 0; border-bottom: 1px solid #111111; border-right: 1px solid #111111; border-radius: 0; background: #ffffff; color: #111111;
+  font: 800 19px/1.1 var(--fge-text);
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) > .clr2-compare-btn { border-right: 0; font-size: 17px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-tabs button[data-on] { background: #111111; color: #ffffff; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) .clr2-frame { position: relative; gap: 0; min-height: 0; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) .clr2-photo { flex: 1 1 0; width: 100%; max-width: none; height: 100%; aspect-ratio: auto; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try:not([data-view='compare']) .clr2-frame figcaption {
+  position: absolute; left: 20px; bottom: 20px; z-index: 2; padding: 9px 14px; border-radius: 0; background: #111111; color: #ffffff; font: 800 19px/1 var(--fge-text);
+}
+/* 나란히 비교 */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try[data-view='compare'] { padding: 20px 24px; background: #ffffff; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try[data-view='compare'] > .clr2-h3 { margin: 0; font: 400 34px/1.2 var(--fge-head); color: #111111; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-try[data-view='compare'] > .clr2-sub { color: #6b6b6b; font-size: 17px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-compare .clr2-frame { border: 1px solid #111111; background: #ffffff; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-compare figcaption { background: #ffffff; color: #111111; font-size: 16px; font-weight: 800; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-selected { border: 1px solid #111111; background: #ffffff; color: #111111; font-size: 17px; }
+/* 옷을 못 찾음 — 얼굴 둘레 색 */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-drape { background: #ffffff; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr2-drape .clr-portrait { width: min(400px, 78%); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-side .clr-drape-color { color: #111111; font: 800 19px/1.3 var(--fge-text); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr .sjr-kicker { color: #111111; font: 800 22px/1.3 var(--fge-text); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-status { color: #6b6b6b; font-size: 16px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-retry { border-color: #111111; background: #ffffff; color: #111111; }
+
+/* 오른쪽 — 라벨 띠 · 큰 유형 이름(강조색 밑줄) · 한 줄 · 색 띠 */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-main { gap: 18px; padding: 40px var(--fgpc-pad) 20px var(--fgpc-gap); scrollbar-color: #bdbdbd transparent; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-head { gap: 0; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-kicker {
+  align-self: flex-start; padding: 6px 14px 4px; background: var(--fg-accent); color: var(--fg-on-accent); font: 900 26px/1.2 var(--fge-text); letter-spacing: -0.02em;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-type { align-items: flex-end; margin-top: 18px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-main .clr2-type h2 {
+  color: #111111; font: 400 92px/1.12 var(--fge-head); letter-spacing: -0.02em;
+  text-decoration: underline; text-decoration-color: var(--fg-accent); text-decoration-thickness: 12px; text-underline-offset: 14px; text-decoration-skip-ink: none;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-badge,
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-badge[data-tone='cool'] { margin-bottom: 18px; padding: 7px 14px; border: 2px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; font: 800 19px/1 var(--fge-text); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-main .clr2-tagline { margin-top: 24px !important; color: #111111; font: 700 28px/1.4 var(--fge-text); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2 .clr-palette { padding: 18px 0 6px; border-top: 1px solid #111111; border-bottom: 0; background: transparent; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2 .clr-hint { margin: 0; color: #6b6b6b; font-size: 17px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr-swatch-label { margin-top: 16px !important; color: #111111; font: 800 20px/1.2 var(--fge-text); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr-swatches { grid-template-columns: repeat(8, minmax(0, 1fr)); justify-items: stretch; gap: 0; margin-top: 10px; padding: 0; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr-swatches[data-avoid] { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr-swatch { position: relative; max-width: none; min-width: 0; min-height: 0; aspect-ratio: 1 / 1.05; border: 0; border-radius: 0; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr-swatch[data-on] { z-index: 1; outline: 4px solid #111111; outline-offset: -4px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr-swatch:focus-visible { outline: 4px solid #111111; outline-offset: -4px; box-shadow: none; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr-names { margin-top: 10px; color: #6b6b6b; font-size: 17px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-more { align-self: flex-start; min-height: 52px; padding: 0; color: #111111; font: 800 19px/1 var(--fge-text); text-decoration: underline; text-underline-offset: 6px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-more--box { align-self: stretch; justify-content: space-between; padding: 0 20px; border: 2px solid #111111; border-radius: 4px; background: #ffffff; text-decoration: none; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-section { gap: 16px; padding-top: 22px; border-top: 1px solid #111111; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-mini { color: #111111; font-size: 17px; text-align: left; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-mini b { font: 400 34px/1.2 var(--fge-head); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] :is(.clr2-h2, .clr2-pc-main .clr2-h3) { margin-top: 8px; color: #111111; font: 400 40px/1.2 var(--fge-head); letter-spacing: -0.02em; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-main .clr2-sub { color: #6b6b6b; font-size: 18px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-callout { padding: 20px 22px; border: 0; border-left: 10px solid var(--fg-accent); border-radius: 0; background: #f4f4f4; color: #111111; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-callout p { font-size: 22px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-observe { padding: 0; border: 0; border-top: 1px solid #111111; border-radius: 0; background: transparent; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-observe li { padding: 14px 0; border-bottom: 1px solid #111111; color: #111111; font-size: 18px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-observe li + li { border-top: 0; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-observe span { color: #111111; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-style { padding: 18px 20px; border: 1px solid #111111; border-radius: 4px; background: #ffffff; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-style-title { color: #111111; font-size: 22px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-style .sjr-brief p { font-size: 17px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-style-icon { color: #111111; stroke-width: 1.25; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-chips i { border-color: rgba(17, 17, 17, 0.18); }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2 .sjr-chip { border: 1px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; font-weight: 700; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2 .xpr-note { border-radius: 0; background: #f4f4f4; color: #6b6b6b; font-size: 15px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr-gauge-track { background: #e4e4e4; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr-gauge-track i { background: #111111; border-color: #111111; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .clr2-pc-main { mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent); }
+/* 맨 아래 단추 둘 — 처음으로(흰 테두리) · 인쇄하기(검정) */
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-result > .ksk-actions {
+  grid-column: 2; grid-row: 2; display: grid; grid-template-columns: var(--fgpc-gap) minmax(0, 1fr) minmax(0, 1fr) var(--fgpc-pad); gap: 0; margin: 0; padding: 0;
+  border-top: 0; background: #ffffff;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-result > .ksk-actions::before { display: none; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-result > .ksk-actions .ksk-btn {
+  min-height: 86px; margin: 8px 0 22px; font-size: 32px; font-weight: 900;
+}
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-result > .ksk-actions .ksk-btn:first-child { grid-column: 2; margin-right: 14px; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-result > .ksk-actions .ksk-btn:last-child { grid-column: 3; }
+html[data-site='funground'] .ksk-root[data-layout='pc'] .ksk-stage[data-step='result'] .ksk-result > .ksk-actions .ksk-btn:first-child:last-child { grid-column: 2 / 4; margin-right: 0; }
+html[data-site='funground'][data-kiosk-demo] .ksk-root[data-layout='pc'] .pc-share-btn::before { width: 30px; height: 30px; }
+
+/* 인쇄 미리보기 · QR 창 */
+html[data-site='funground'] :is(.ksk-root, .kx-root)[data-layout='pc'] :is(.pcs-sheet, .kx-sheet) { background: rgba(17, 17, 17, 0.55); }
+html[data-site='funground'] :is(.ksk-root, .kx-root)[data-layout='pc'] :is(.pcs-card, .kx-sheet-card) { border: 2px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; box-shadow: none; }
+html[data-site='funground'] :is(.ksk-root, .kx-root)[data-layout='pc'] :is(.pcs-card, .kx-sheet-card) h2 { color: #111111; font: 400 40px/1.2 var(--fge-head); letter-spacing: -0.02em; text-decoration: underline; text-decoration-color: var(--fg-accent); text-decoration-thickness: 8px; text-underline-offset: 9px; text-decoration-skip-ink: none; }
+html[data-site='funground'] :is(.ksk-root, .kx-root)[data-layout='pc'] .pp-sheet .pp-side h2 { margin-bottom: 8px; }
+html[data-site='funground'] :is(.ksk-root, .kx-root)[data-layout='pc'] :is(.pcs-desc, .kx-sheet-desc) { color: #111111; font-size: 18px; }
+html[data-site='funground'] :is(.ksk-root, .kx-root)[data-layout='pc'] :is(.pcs-qr, .kx-sheet-qr) { border: 1px solid #111111; border-radius: 0; box-shadow: none; }
+html[data-site='funground'] :is(.ksk-root, .kx-root)[data-layout='pc'] :is(.pcs-keep, .kx-sheet-keep) { color: #6b6b6b; }
+html[data-site='funground'] :is(.ksk-root, .kx-root)[data-layout='pc'] .pp-sheet .pp-paper { border: 1px solid #111111; border-radius: 0; background: #ececec; }
+html[data-site='funground'] :is(.ksk-root, .kx-root)[data-layout='pc'] .pp-sheet .pp-paper img { box-shadow: none; }
+html[data-site='funground'] :is(.ksk-root, .kx-root)[data-layout='pc'] .pp-sheet .pp-note { color: #111111; font-size: 17px; }
+html[data-site='funground'] :is(.ksk-root, .kx-root)[data-layout='pc'] .pp-sheet .pp-qr-desc { font-size: 16px; }
+html[data-site='funground'] :is(.ksk-root, .kx-root)[data-layout='pc'] .pp-sheet .pp-actions > * { min-height: 64px; border-radius: 4px; font: 800 20px/1 var(--fge-text); box-shadow: none; }
+
+/* ═══════════════════════ NEXT! — 미래 직업 탐색(ExperienceApp id='career' pc) ═══════════════════════ */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] {
+  --kx-bg: #ffffff; --kx-paper: #ffffff; --kx-ink: #111111; --kx-soft: #6b6b6b; --kx-line: #111111; --kx-frame: transparent;
+  --kx-accent: #111111; --kx-on-accent: #ffffff; --kx-accent-soft: #f1f1f1; --kx-radius: 4px; --kx-card-radius: 4px; --crr-orange: var(--fg-accent);
+  --kx-display: var(--fge-display); --kx-font: var(--fge-text);
+  box-sizing: border-box; padding-top: var(--fgpc-top); background: #ffffff; color: #111111; font-family: var(--fge-text); letter-spacing: -0.01em;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-stage { max-width: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-stage::after { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.kx-start, .kx-page) { padding: 0; }
+/* 머리(처음으로 · NEXT! · 언어)는 위 막대가 대신한다 */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.kx-top, .kx-start-bar, .kx-spacer) { display: none !important; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-btn { min-height: 64px; border: 2px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; box-shadow: none; font: 800 24px/1 var(--fge-text); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-btn--primary { border-color: #111111; background: #111111; color: #ffffff; box-shadow: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-btn:disabled { opacity: 1; border-color: #bdbdbd; color: #bdbdbd; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-btn--primary:disabled { background: #bdbdbd; color: #ffffff; }
+@media (hover: hover) {
+  html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-btn--primary:hover:not(:disabled) { filter: none; background: #333333; }
+  html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.crr-tile, .crr-option, .crr-mbti button):hover:not([data-on]) { border-color: #111111; background: #f4f4f4; }
+}
+/* 단추 오른쪽 가는 화살표 */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.kx-cta, .crr-next) { justify-content: space-between; min-height: 92px; padding: 0 36px 0 40px; font: 900 36px/1 var(--fge-text); letter-spacing: -0.02em; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.kx-cta, .crr-next) > svg.lucide-arrow-right { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.kx-cta, .crr-next):has(> svg.lucide-arrow-right)::after {
+  content: ''; position: static; flex: none; width: 70px; height: 28px; background: currentColor; transform: none; animation: none; opacity: 1;
+  -webkit-mask: var(--fgpc-arrow) center / contain no-repeat; mask: var(--fgpc-arrow) center / contain no-repeat;
+}
+/* 큰 사진 칸(옅은 그레인) */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-start-art,
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ai']::after {
+  position: relative; margin: 0; border-right: 1px solid #111111;
+  background: #e9e9e9 url('/assets/booth-programs/funground-editorial/next-hero.webp') 50% 30% / cover no-repeat;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-start-art > * { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-start-art::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.09; mix-blend-mode: multiply; background-image: var(--fgpc-grain);
+}
+
+/* ── ① 첫 화면(목업 next_1) ── */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-start {
+  grid-template-columns: var(--fgpc-left) var(--fgpc-gap) minmax(0, 1fr) var(--fgpc-pad);
+  grid-template-rows: 1fr auto auto auto auto auto 1fr;
+  grid-template-areas: 'art . . .' 'art . label .' 'art . word .' 'art . head .' 'art . info .' 'art . cta .' 'art . . .';
+  column-gap: 0;
+}
+/* 강조색 라벨 띠 + 가는 선(둘 다 그리드 칸에 든 가짜 요소) */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-start::before {
+  content: 'AI 미래 직업 탐색'; grid-area: label; justify-self: start; position: relative; z-index: 1; padding: 6px 14px 4px; background: var(--fg-accent); color: var(--fg-on-accent);
+  font: 900 27px/1.2 var(--fge-text); letter-spacing: -0.02em; box-shadow: 22px 0 0 #ffffff;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-start::after { content: ''; grid-area: label; align-self: center; height: 1px; background: #111111; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-start-art { grid-area: art; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-wordmark {
+  margin: 18px 0 0; padding: 0; border: 0; color: #111111; font: 400 232px/0.92 var(--fge-display); letter-spacing: 0; text-align: left;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-headline {
+  justify-self: start; margin: 26px 0 0; color: #111111; font: 400 56px/1.2 var(--fge-head); letter-spacing: -0.02em; text-align: left;
+  text-decoration: underline; text-decoration-color: var(--fg-accent); text-decoration-thickness: 10px; text-underline-offset: 12px; text-decoration-skip-ink: none;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-start-info { align-items: flex-start; margin: 26px 0 0; text-align: left; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-sub { color: #111111; font: 600 27px/1.4 var(--fge-text); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-note { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-cta { margin-top: 32px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-start > .kx-foot { display: none; }
+
+/* ── ② 질문(목업 next_2) — 위 가는 진행 막대 + 「3 / 8」, 왼쪽 아주 큰 질문 + 사진 띠, 오른쪽 큰 칸 ── */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] {
+  grid-template-columns: 40% var(--fgpc-gap) auto minmax(0, 1fr) var(--fgpc-pad);
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    'steps steps steps steps steps'
+    'title . opts opts .'
+    'desc . opts opts .'
+    'strip . opts opts .'
+    'strip . mnote mnote .'
+    'strip . pill next .';
+  column-gap: 0; overflow: hidden;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > * { grid-column: auto; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] .crr-question { display: contents; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask']::after {
+  content: ''; grid-area: strip; min-height: 120px; border-top: 1px solid #111111; border-right: 1px solid #111111;
+  background: #e9e9e9 url('/assets/booth-programs/funground-editorial/next-strip.webp') 50% 55% / cover no-repeat;
+}
+/* 진행 막대 — 답한 칸만 강조색, 지금 칸은 검정 */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > .kx-steps {
+  grid-area: steps; gap: 8px; margin: 0; padding: 24px 190px 24px 40px; border-bottom: 1px solid #111111;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > .kx-steps li { flex: 1 1 0; width: auto; height: 12px; background: #d6d6d6; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > .kx-steps li::before,
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > .kx-steps .kx-step-dot { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > .kx-steps li[data-state='done'] { background: var(--fg-accent); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > .kx-steps li[data-state='now'] { background: #111111; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-count {
+  grid-area: steps; justify-self: end; align-self: center; margin: 0 40px 0 0; color: #111111; font: 400 42px/1 var(--fge-display); letter-spacing: 0.01em;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-count b { color: #111111; font: inherit; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] .kx-title {
+  grid-area: title; margin: 0; padding: 40px 32px 0 40px; border-right: 1px solid #111111; color: #111111;
+  font: 400 60px/1.16 var(--fge-head); letter-spacing: -0.02em; text-align: left; text-wrap: balance; word-break: keep-all;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] .kx-title span { display: block; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] .kx-title span + span::before { content: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] .kx-title::after { content: ''; display: block; width: 62%; height: 10px; margin-top: 22px; background: var(--fg-accent); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] .kx-desc {
+  grid-area: desc; margin: 0; padding: 20px 32px 30px 40px; border-right: 1px solid #111111; color: #111111; font: 600 24px/1.4 var(--fge-text); text-align: left;
+}
+/* 고르는 칸 — A · B · C … 번호, 가는 선 아이콘, 고른 칸은 강조색으로 꽉 */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.crr-tiles, .crr-mbti, .crr-options) { grid-area: opts; align-self: stretch; margin: 32px 0 0; counter-reset: fgopt; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 14px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.crr-tile, .crr-option) {
+  position: relative; counter-increment: fgopt; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  min-height: 0; padding: 44px 14px 22px; border: 2px solid #111111; border-radius: 4px; background: #ffffff; box-shadow: none; color: #111111; text-align: center; animation: none;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.crr-tile, .crr-option)::before {
+  content: counter(fgopt, upper-alpha); position: absolute; top: 12px; left: 16px; font: 400 34px/1 var(--fge-display);
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.crr-tile-icon, .crr-option-icon),
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.crr-tile, .crr-option):nth-child(n) :is(.crr-tile-icon, .crr-option-icon) {
+  width: auto; height: auto; border-radius: 0; background: transparent; color: currentColor;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.crr-tile-icon, .crr-option-icon) svg { width: 64px; height: 64px; stroke-width: 1.4; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-option-icon svg { width: 84px; height: 84px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-tile b { font: 800 24px/1.25 var(--fge-text); letter-spacing: -0.02em; word-break: keep-all; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-option b { align-self: center; font: 800 28px/1.3 var(--fge-text); letter-spacing: -0.02em; word-break: keep-all; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.crr-tile, .crr-option)[data-on] { border-color: var(--fg-accent); background: var(--fg-accent); color: var(--fg-on-accent); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.crr-radio, .crr-check) { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-mbti { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 12px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-mbti button {
+  min-height: 0; border: 2px solid #111111; border-radius: 4px; background: #ffffff; box-shadow: none; color: #111111; font: 400 44px/1 var(--fge-display); letter-spacing: 0.02em;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-mbti button[data-on] { border-color: var(--fg-accent); background: var(--fg-accent); color: var(--fg-on-accent); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-mbti-note { grid-area: mnote; min-height: 0; margin: 14px 0 0; color: #111111; font: 700 21px/1.35 var(--fge-text); text-align: left; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > .crr-pill {
+  grid-area: pill; align-self: stretch; justify-self: stretch; min-width: 170px; min-height: 92px; margin: 22px 14px 28px 0; padding: 0 26px; border-radius: 4px;
+  background: transparent; color: #111111; font: 800 24px/1 var(--fge-text);
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > p.crr-pill { justify-content: flex-start; padding: 0; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > .crr-pill--btn { border: 2px solid #111111; background: #ffffff; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > .crr-next { grid-area: next; margin: 22px 0 28px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ask'] > .kx-foot { display: none; }
+
+/* ── ② 관상 촬영(목업 color_2 와 같은 틀) — 왼쪽 칸 전체가 카메라, 위에 그리는 것은 화면 틀(.kx-page) 기준 ── */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] {
+  grid-template-columns: var(--fgpc-left) var(--fgpc-gap) minmax(0, 1fr) var(--fgpc-pad);
+  grid-template-rows: 1fr repeat(6, auto) 1fr; column-gap: 0; overflow: hidden;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face']::before { grid-area: 1 / 3; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] > * { grid-column: 3; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] > .kx-steps { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] > .kx-cam-slot {
+  position: static; grid-column: 1; grid-row: 1 / -1; display: block; min-height: 0; padding: 0; border-right: 1px solid #111111; background: #1a1a1a;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .kx-cam { position: static; width: 100%; height: 100%; max-width: none; aspect-ratio: auto; border-radius: 0; background: #1a1a1a; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .kx-cam > :is(video, img) { object-position: 50% 35%; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .crr-face-guide { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .kx-cam:not([data-error])::before {
+  content: '밝은 곳에서 정면으로'; position: absolute; top: 20px; left: 20px; z-index: 3; padding: 9px 14px; background: #111111; color: #ffffff; font: 800 21px/1 var(--fge-text);
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .kx-cam[data-flash]::after { left: 0; top: 0; bottom: 0; right: auto; width: var(--fgpc-left); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .kx-cam-corner { display: block; z-index: 2; width: 52px; height: 52px; border: 0 solid var(--fg-accent); animation: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .kx-cam-corner[data-pos='tl'] { top: 17%; left: calc(var(--fgpc-left) * 0.2); border-top-width: 6px; border-left-width: 6px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .kx-cam-corner[data-pos='tr'] { top: 17%; right: calc(100% - var(--fgpc-left) * 0.8); border-top-width: 6px; border-right-width: 6px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .kx-cam-corner[data-pos='bl'] { bottom: 16%; left: calc(var(--fgpc-left) * 0.2); border-bottom-width: 6px; border-left-width: 6px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .kx-cam-corner[data-pos='br'] { bottom: 16%; right: calc(100% - var(--fgpc-left) * 0.8); border-bottom-width: 6px; border-right-width: 6px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .kx-cam[data-error] .kx-cam-corner { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .kx-cam-error { left: 0; top: 0; bottom: 0; right: auto; width: var(--fgpc-left); z-index: 3; background: #1a1a1a; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .kx-cam-count {
+  z-index: 4; left: calc(var(--fgpc-left) + var(--fgpc-gap)); right: var(--fgpc-pad); top: auto; bottom: 150px; width: auto; height: auto;
+  border-radius: 0; background: transparent; color: #111111; font: 400 220px/0.9 var(--fge-display); transform: none; animation: none;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face']:has(.kx-cam-count) > :is(.kx-desc, .crr-privacy, .crr-face-actions) { visibility: hidden; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .crr-scan { width: 100%; height: 100%; max-width: none; aspect-ratio: auto; border-radius: 0; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .crr-scan i { background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--fg-accent) 55%, transparent) 85%, #ffffff 100%); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-face-title {
+  position: relative; margin: 52px 0 0; color: #111111; font: 400 54px/1.2 var(--fge-head); letter-spacing: -0.02em; text-align: left;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-face-title > span { display: block; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-face-title > span:last-child {
+  justify-self: start; text-decoration: underline; text-decoration-color: var(--fg-accent); text-decoration-thickness: 9px; text-underline-offset: 10px; text-decoration-skip-ink: none;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-face-title::before {
+  content: '02 / 촬영'; position: absolute; left: 0; bottom: 100%; margin-bottom: 18px; padding: 5px 12px 3px; background: var(--fg-accent); color: var(--fg-on-accent);
+  font: 900 24px/1.2 var(--fge-text); white-space: nowrap;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] > .kx-desc { margin: 22px 0 0; color: #111111; font: 600 26px/1.4 var(--fge-text); text-align: left; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is(.crr-privacy, .crr-reading) { justify-content: flex-start; margin-top: 18px; color: #6b6b6b; font: 500 18px/1.45 var(--fge-text); text-align: left; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-reading { color: #111111; font-size: 24px; font-weight: 800; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-alert { align-items: flex-start; margin-top: 18px; padding: 14px 18px; border: 2px solid #111111; border-left: 10px solid var(--fg-accent); border-radius: 4px; background: #ffffff; color: #111111; font-size: 19px; text-align: left; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-alert b { color: #111111; font-size: 21px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .crr-face-actions { margin-top: 30px; gap: 14px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .crr-face-actions .kx-btn { min-height: 92px; border-radius: 4px; font: 900 36px/1 var(--fge-text); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .crr-face-actions .kx-btn:not(.kx-btn--primary) { font-size: 24px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] .crr-face-actions .kx-btn svg { width: 34px; height: 34px; stroke-width: 1.5; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is([data-page='career-face'], [data-page='career-ai']) > .kx-foot {
+  justify-content: flex-start; margin: 0 0 18px; color: #6b6b6b; font-size: 14px; letter-spacing: 0; white-space: normal;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is([data-page='career-face'], [data-page='career-ai']) > .kx-foot::before,
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] :is([data-page='career-face'], [data-page='career-ai']) > .kx-foot::after { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-face'] > .kx-foot { grid-row: -2; align-self: end; }
+
+/* ── 기다림(목업 없음) — 왼쪽 큰 사진, 오른쪽 머리말 · 가는 진행 막대 · 한 줄 ── */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ai'] {
+  display: grid; grid-template-columns: var(--fgpc-left) var(--fgpc-gap) minmax(0, 1fr) var(--fgpc-pad); grid-template-rows: 1fr auto auto 1fr auto; overflow: hidden;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ai']::after { content: ''; grid-column: 1; grid-row: 1 / -1; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ai'] > * { grid-column: 3; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait { grid-row: 2; display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; text-align: left; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait > :is(img, svg) { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait::before {
+  content: 'AI 분석'; align-self: flex-start; margin-bottom: 18px; padding: 5px 12px 3px; background: var(--fg-accent); color: var(--fg-on-accent); font: 900 24px/1.2 var(--fge-text);
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait > .kx-title {
+  margin: 0; color: #111111; font: 400 54px/1.2 var(--fge-head); letter-spacing: -0.02em; text-align: left; word-break: keep-all;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait > .kx-desc { order: 3; margin: 22px 0 0; color: #111111; font: 600 24px/1.45 var(--fge-text); text-align: left; }
+/* 가는 진행 막대(끝을 모르는 기다림 — 강조색 조각이 지나간다) */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait::after {
+  content: ''; order: 2; height: 12px; margin-top: 30px;
+  background: linear-gradient(var(--fg-accent), var(--fg-accent)) -40% 0 / 40% 100% no-repeat, #d6d6d6; animation: fgpc-bar 1.6s ease-in-out infinite;
+}
+@keyframes fgpc-bar { 0% { background-position: -70% 0, 0 0; } 100% { background-position: 170% 0, 0 0; } }
+@media (prefers-reduced-motion: reduce) { html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-ai-wait::after { animation-duration: 4s; } }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ai'] > .kx-btn { grid-row: 3; justify-self: stretch; align-self: start; width: 100%; min-height: 72px; margin-top: 34px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-ai'] > .kx-foot { grid-row: 5; }
+
+/* ── ③ 결과(목업 next_3) — 왼쪽 관상 사진(+ 관심 축 띠), 오른쪽 위 큰 제목, 아래 두 칸: AI 풀이 · 직업 셋 · 첫 도전 · 인쇄하기 ── */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-result'] { overflow: hidden; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] [data-page='career-result'] > .kx-foot { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-cols {
+  flex: 1 1 0; min-height: 0; margin: 0; align-items: start;
+  grid-template-columns: 34% 44px minmax(0, 1fr) 30px minmax(0, 1fr) 44px;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas: 'photo . head head head .' 'photo . tags tags tags .' 'photo . ai main main .' 'photo . clues main main .';
+  column-gap: 0;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-fg-photo { grid-area: photo; align-self: stretch; position: relative; margin: 0; overflow: hidden; border-right: 1px solid #111111; background: #e9e9e9; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-fg-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-fg-photo figcaption {
+  position: absolute; left: 0; bottom: 0; padding: 12px 20px 10px; background: var(--fg-accent); color: var(--fg-on-accent); font: 900 30px/1.2 var(--fge-text); letter-spacing: -0.02em;
+}
+/* 머리(완료 표시 · 제목 · 한 줄 · 태그)는 왼쪽 칸 상자에서 꺼내 위쪽 넓은 칸에 */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-side { display: contents; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-side > .crr-done { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-side > .crr-result-title {
+  grid-area: head; justify-self: start; margin: 28px 0 0; color: #111111; font: 400 66px/1.12 var(--fge-head); letter-spacing: -0.02em; text-align: left;
+  text-decoration: underline; text-decoration-color: var(--fg-accent); text-decoration-thickness: 11px; text-underline-offset: 12px; text-decoration-skip-ink: none;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-side > .kx-desc { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-side > .crr-tags { grid-area: tags; justify-content: flex-start; margin: 24px 0 16px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-tags span,
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-tags span[data-clue] { min-height: 34px; padding: 0 12px; border: 1px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; font: 800 18px/1 var(--fge-text); }
+/* 왼쪽 아래 — AI 풀이 · 나를 읽은 단서 */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-side > .crr-ai {
+  grid-area: ai; align-self: stretch; align-content: start; gap: 10px; min-height: 0; margin: 0; padding: 16px 6px 12px 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+  border: 0; border-top: 1px solid #111111; border-radius: 0; background: transparent;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-side > .crr-clues { grid-area: clues; align-self: end; margin: 8px 0 22px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-ai em { justify-self: start; align-self: flex-start; padding: 4px 10px 3px; background: var(--fg-accent); color: var(--fg-on-accent); font: 900 17px/1.2 var(--fge-text); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-ai em svg { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-side .crr-ai b { color: #111111; font: 400 26px/1.3 var(--fge-head); letter-spacing: -0.01em; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-side .crr-ai p { color: #111111; font: 500 17px/1.6 var(--fge-text); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-side .crr-ai ul { padding-left: 18px; color: #6b6b6b; font: 500 15.5px/1.6 var(--fge-text); list-style: square; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-clues { min-height: 64px; border: 2px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-clues em { color: #6b6b6b; font-size: 14px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-clues b { color: #111111; font-size: 18px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-clues svg { stroke-width: 1.4; }
+/* 오른쪽 아래 — 01 · 02 · 03 직업(가는 선으로 나눔) · 첫 도전 · 인쇄하기 */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main { grid-area: main; align-self: stretch; justify-content: space-between; min-height: 0; padding-bottom: 22px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-careers { counter-reset: fgcareer; gap: 0; margin: 0; border-top: 1px solid #111111; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-careers .crr-career,
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-careers[data-tight] .crr-career {
+  counter-increment: fgcareer; grid-template-columns: 62px minmax(0, 1fr); align-items: start; gap: 14px; min-height: 0; padding: 11px 0 10px;
+  border-bottom: 1px solid #111111; border-radius: 0; background: transparent; box-shadow: none; animation: none;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-career::before { content: '0' counter(fgcareer); font: 400 44px/1 var(--fge-display); color: #111111; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-career img { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-careers .crr-career b { color: #111111; font: 400 28px/1.15 var(--fge-head); letter-spacing: -0.01em; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-careers .crr-career span { margin: 6px 0 0; color: #6b6b6b; font: 500 16px/1.4 var(--fge-text); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-career .crr-tags { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-first {
+  grid-template-columns: minmax(0, 1fr) auto; gap: 12px; margin: 14px 0 0; padding: 10px 14px; border: 2px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; animation: none;
+}
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-first > svg { display: none; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-first em { display: inline-block; padding: 3px 8px 2px; background: var(--fg-accent); color: var(--fg-on-accent); font: 900 15px/1.2 var(--fge-text); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-first b { margin-top: 5px; color: #111111; font: 800 18px/1.3 var(--fge-text); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-first span { color: #6b6b6b; font-size: 14px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-first button { min-height: 52px; border: 2px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; font: 800 16px/1 var(--fge-text); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-take { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 16px; margin-top: 14px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-take .crr-qr { border: 2px solid #111111; background: #ffffff; color: #111111; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-take .kx-btn { justify-content: center; min-height: 80px; margin: 0; padding: 0 24px; border-radius: 4px; font: 900 32px/1 var(--fge-text); gap: 14px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-pc-main .crr-take .kx-btn svg { width: 30px; height: 30px; stroke-width: 1.6; }
+/* 안내창(도전 가이드 · 단서) */
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-guide li b,
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-clue-sheet li b { border-radius: 0; background: var(--fg-accent); color: var(--fg-on-accent); }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .crr-clue-sheet h3 { color: #111111; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-sheet-card .kx-btn { min-height: 64px; border-radius: 4px; }
+html[data-site='funground'] .kx-root[data-layout='pc'][data-x='career'] .kx-idle-card { border: 2px solid #111111; border-radius: 4px; box-shadow: none; }

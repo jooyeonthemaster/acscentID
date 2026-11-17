@@ -47,3 +47,10 @@
 ## 종료된 행사 (2026-11-06)
 
 JBNU 전공탐색박람회(2026.11.4~5) 종료에 따라 `/kiosk/pc/jbnu` 랜딩과 전용 이미지를 삭제했다. 기존 경로는 404를 반환하고, `jbnu-major-fair.vercel.app`은 미들웨어에서 410 Gone을 반환한다. 행사 허브 등록을 제거해 `?hub=jbnu`로 공용 체험을 열어도 행사 로고나 삭제된 랜딩으로 돌아가는 링크가 표시되지 않는다. 공용 PC 체험 세 프로그램은 유지한다.
+
+## 펀그라운드 데모 테마 (2026-11-16)
+
+펀그라운드 데모(`/booth-demo/funground`)는 A안 COLOR! · NEXT! 을 이 노트북 가로판으로 연다 — 주소에 `site=funground` 가 붙는다(`src/lib/funground/demo.ts`). 이 표시가 있을 때만 `PcScreen` 이 `pc/FgPcFrame.tsx` 를 동적으로 불러 「FUN GROUND Editorial」 테마를 건다: 위 막대(FUN GROUND · 01 02 03 · 처음으로 — `FgTopBar`), html 의 `data-site='funground'` · `data-fg-program`, 테마 CSS `pc/funground-editorial.css`(모든 규칙이 `html[data-site='funground']` 아래). 단계(01 시작 · 02 하기 · 03 결과)는 화면 표시(`data-program-step` · `data-page`)를 읽어 묶는다. 「처음으로」는 프로그램 화면을 새로 그린다.
+
+- 프로그램 셸(`KioskClassic`)은 고치지 않는다 — CSS 만으로 바꾼다. 직업 탐색 결과에만 펀그라운드일 때 관상 사진 칸(`crr-fg-photo`)을 더한다(`CareerMode`).
+- 행사용 같은 링크(표시 없음)와 세로 키오스크는 이 파일들을 싣지 않는다 — 화면 그대로.

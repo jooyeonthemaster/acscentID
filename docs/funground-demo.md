@@ -85,6 +85,18 @@ QR 받기 업로드는 우리 서버 저장소라 AI 비용이 없다. COLOR! ·
 - 비교(가상 웹캠 사진 7장 + 아이 사진 3장): `cutoutPerson` 은 창문 · 프린터 · 책 · 노트북 · 아이 둘 사이 놀이매트를 사람에 붙였고, MediaPipe 만은 머리가 헬멧처럼 뭉개지고 든 손과 머리 사이 배경이 채워졌다. 남은 것: 어두운 방 검은 옷의 어깨선은 MODNet 도 조금 들쭉날쭉하다(어두운 벽과 색이 같다).
 - 같이 고침: `drawPeople`(`theme-photo.ts`)의 바닥 그림자가 띠 위 끝에서 잘려 사람 사이 틈으로 네모난 어두운 띠가 보이던 것 — 타원으로 띠 안에서 0 까지 흐려지게.
 
+## 화면 디자인 — 「FUN GROUND Editorial」 (2026-11-16, 사용자 지시)
+목업 15장(`~/Downloads/펀그라운드별내_UI목업_20261116_에디토리얼/` — `_한눈에.png`, `{color,next,fortune,news,dream}_{1,2,3}.png`)의 모양 · 배치 · 크기 · 색을 따르고, 내용(질문 · 보기 · 결과 글 · 흐름)은 그대로 둔다. 펀그라운드 화면에만 걸린다 — 다른 매장 · 행사 · 데모(/booth-demo, /kiosk-demo, /kiosk, /booth 의 다른 모드)와 기본값은 그대로.
+- 토큰: 바탕 #FFFFFF · 글자 #111111 · 보조 #6B6B6B · 꺼짐 #BDBDBD, 1px #111 선, 모서리 4px, 그림자 없음. 단추는 검정(흰 글자) / 흰 바탕 2px 테두리. 강조색은 프로그램마다 하나 — COLOR! #C8FF2E · NEXT! #2E6BFF · FORTUNE! #FF7A1A · FUTURE NEWS! #FF2E4D · DREAM! #8B5CF6(라임 · 주황 위엔 검정 글자, 나머지는 흰 글자). `FG_ACCENT`(`src/components/funground/FgStage.tsx`).
+- 글꼴(새로 넣은 것 없음, 모두 OFL): 영문 제목 Anton(`src/app/booth/programs/fonts.ts`), 한글 제목 Black Han Sans(`public/fonts/ui/black-han-sans/400.woff2`), 본문 Pretendard(`public/fonts/pretendard/PretendardVariable.woff2`). 사주 한자는 레이아웃에 있던 Noto Serif KR(한글 글꼴에 한자가 없다).
+- 위 막대(96px): FUN GROUND · 01 02 03(시작 · 하기 · 결과, 지금 단계 굵게 + 강조색 밑줄) · 작은 검정 「처음으로」. 결과 단추는 「인쇄하기」(검정) + 「QR로 받기」(흰색) — 둘 다 인쇄 미리보기 창(카드 + QR)을 연다.
+- 어디에 걸리나
+  - 전용 화면(`/booth-demo/funground/*`): `FgStage` 에 `program`(color · next · fortune · news · dream · start)과 `step` 을 넘기면 에디토리얼(`data-theme="editorial"`, `src/components/funground/editorial.css`). 넘기지 않으면 예전 틀(LATER! · THEME!).
+  - DREAM!(부스 `/booth?mode=dream&site=funground`): `useFgEditorial` → `.pg[data-site='funground']` 아래 규칙만(`src/app/booth/programs/funground-editorial.{tsx,css}`). site 없이 연 부스 화면은 픽셀 비교로 같음을 확인. 인쇄 카드(꿈의 직업 포스터 · 꿈의 명함)도 흰 바탕 · 보라 강조 — dream 은 펀그라운드 전용 프로그램이라 다른 행사에 영향 없음.
+  - A안 COLOR! · NEXT!(노트북 가로판 `/kiosk/pc/color|career?…&site=funground`): `FgPcFrame` 이 `html[data-site='funground']` 를 걸고 위 막대를 얹는다(`src/app/kiosk/pc/funground-editorial.css`). 프로그램 화면(KioskClassic)은 고치지 않았다 — 그래서 A안 COLOR! 결과 단추는 「처음으로 + 인쇄하기」(인쇄 창에 QR 있음). NEXT! 는 `CareerMode` 에 펀그라운드일 때만 관상 사진 · 「QR로 받기」.
+- 사진(개발 때 한 번 만든 것, `public/assets/booth-programs/funground-editorial/`): Seedream 5.0 Flash($0.018/장, 펀그라운드 키) 22장 $0.396 — color-hero 1, next-hero · next-strip 2, fortune-hero · fortune-sky 2, news-hero + news-dream-* 8 = 9, dream-hero + 직업 6 + 다시 만든 수의사 1 = 8. 가상의 고등학생 나이 인물, 글자 없는 사진(時日月年 칸 · 「별내 미래 신문」은 코드로 그린다). 시작 화면 타일의 `fortune-tile` · `news-tile` 은 첫 화면 왼쪽(코드로 그린 글자 포함)을 뜬 그림(비용 0).
+- 목업과 다르게 한 곳(이유): FORTUNE! 해 · 달 · 날 화면을 한 화면 휠 셋으로 합침(목업대로, 화면 수가 하나 줄었다) · 휠 시작값 올해−14년 1월 1일 / 촬영 · 결과 사진 칸은 실제로 찍히는 비율 그대로(COLOR! 3:4 38%, FORTUNE! 4:5, FUTURE NEWS! 16:9, DREAM! 2:3) / 질문 화면에 「이전 · 다음」(여러 개 고르기 · 고친 답 때문) / FUTURE NEWS! 꿈 카드 8장(목업 3장) / DREAM! 직업 고르기 아래 줄은 「인원」 대신 지금의 「장면」 / A안 COLOR! 결과 팔레트는 추천 8색 + 피할 4색.
+
 ## 문구 원칙
 외모 평가 · 점수 · 순위 없음. 퍼스널 컬러는 「어울리는 색」만. 사주 · 미래 직업은 「재미로 보는 풀이」를 화면에 늘 보인다. 연애 · 재물 같은 말은 빼거나 순화.
 

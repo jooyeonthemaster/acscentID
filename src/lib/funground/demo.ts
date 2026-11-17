@@ -130,7 +130,8 @@ export function fungroundTargetHref(target: FungroundTarget, cleanKey?: string):
     for (const [k, v] of Object.entries(target.query ?? {})) q.set(k, v)
     return `/booth-demo/funground/${target.id}?${q.toString()}`
   }
-  if (target.kind === 'pc') return `/kiosk/pc/${target.id}?${q.toString()}`
+  // 노트북 가로판도 site=funground — 펀그라운드 에디토리얼 테마는 이 표시가 있을 때만 걸린다(행사용 같은 링크는 그대로)
+  if (target.kind === 'pc') { q.set(FUNGROUND_SITE_PARAM, FUNGROUND_SITE); return `/kiosk/pc/${target.id}?${q.toString()}` }
   const base = new URLSearchParams({ mode: target.id })
   for (const [k, v] of q) base.set(k, v)
   base.set(FUNGROUND_SITE_PARAM, FUNGROUND_SITE)

@@ -7,6 +7,8 @@ import {
   BUILD_LABEL, PHASE_LABEL, PLAN_INFO, fungroundPlanPrograms, fungroundStartHref, fungroundTargetHref,
   type FungroundPlan, type FungroundProgram,
 } from '@/lib/funground/demo'
+import { FG_ACCENT, type FgProgramKey } from '@/components/funground/FgStage'
+import { anton } from '@/app/booth/programs/fonts'
 import './funground-landing.css'
 
 // 펀그라운드 별내 견적 데모 랜딩(/booth-demo/funground) — 포토부스 데모 랜딩(BoothDemoLanding)과 같은 카드 · 기기 그림 짜임.
@@ -48,7 +50,7 @@ function Device({ screen, alt, hero = false }: { screen: string; alt: string; he
 function Card({ program, cleanKey }: { program: FungroundProgram; cleanKey?: string }) {
   const two = program.targets.length > 1
   return (
-    <li className="fl-card" style={{ '--fl-tone': program.color } as CSSProperties}>
+    <li className="fl-card" style={{ '--fl-tone': FG_ACCENT[program.key.split('-')[1] as FgProgramKey]?.accent ?? program.color, '--fl-on': FG_ACCENT[program.key.split('-')[1] as FgProgramKey]?.on ?? '#fff' } as CSSProperties}>
       <Device screen={program.screen} alt={`${program.name} 화면`} />
       <div className="fl-card-body">
         <div className="fl-flags">
@@ -90,13 +92,13 @@ export function FungroundLanding({ cleanKey, cleanRejected = false }: { cleanKey
   const clean = Boolean(cleanKey)
 
   return (
-    <div className="fl">
+    <div className={`fl ${anton.variable}`}>
       {cleanRejected && (
         <p className="fl-notice" role="status">워터마크 없는 링크가 아니거나 사용 기간이 지났어요. 워터마크가 있는 데모로 보여 드려요 — 새 링크는 담당자에게 요청해 주세요.</p>
       )}
       <header className="fl-top">
-        <span className="fl-brand">NEANDER</span>
-        <span className="fl-pill">FUN GROUND 별내 · 견적 데모</span>
+        <span className="fl-brand">FUN GROUND</span>
+        <span className="fl-pill">별내 · 견적 데모 · NEANDER</span>
       </header>
 
       <main>

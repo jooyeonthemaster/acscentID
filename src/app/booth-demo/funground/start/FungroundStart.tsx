@@ -6,7 +6,7 @@
 
 import { ArrowLeft } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { FG_H, FG_W, FgStage, useFgScale, useSearch } from '@/components/funground/FgStage'
+import { FG_H, FG_W, FgStage, fgAccentVars, useFgScale, useSearch, type FgProgramKey } from '@/components/funground/FgStage'
 import { DEMO_CLEAN_KEY_PARAM, DEMO_CLEAN_VALUE } from '@/lib/demo-clean'
 import {
   PLAN_INFO, fungroundPlanPrograms, fungroundStartHref, fungroundTargetHref,
@@ -22,6 +22,13 @@ function readQuery(search: string) {
   const key = q.get('demo') === DEMO_CLEAN_VALUE ? q.get(DEMO_CLEAN_KEY_PARAM) ?? undefined : undefined
   return { plan, cleanKey: key }
 }
+
+/** 프로그램 → 에디토리얼 강조색 키(a-color → color …) */
+const fgKeyOf = (p: FungroundProgram): FgProgramKey => (p.key.split('-')[1] === 'later' ? 'start' : (p.key.split('-')[1] as FgProgramKey))
+
+/** 타일 사진 — 보통은 그 프로그램 첫 화면의 사진, FORTUNE! · FUTURE NEWS! 는 코드로 얹은 글자까지 보이게 첫 화면 왼쪽을 뜬 그림 */
+const TILE_PHOTO: Partial<Record<FgProgramKey, string>> = { news: 'news-tile', fortune: 'fortune-tile' }
+const tilePhoto = (fg: FgProgramKey) => `/assets/booth-programs/funground-editorial/${TILE_PHOTO[fg] ?? `${fg}-hero`}.webp`
 
 /** 시작 화면 타일 아래 한 줄 — AI 표기 규칙: B안은 테마 포토(AI 인물 인식) · 퍼스널 컬러(AI 인식 기반)만 'AI' */
 const kindLine = (p: FungroundProgram) => p.badges[0]
@@ -63,38 +70,35 @@ export function FungroundStart() {
 
   return (
     <>
-      <FgStage className="fgs" tone={state.plan === 'a' ? '#ff6b2c' : '#18a874'}>
+      <FgStage className="fgs" program="start" step={1}>
         <section className="fgs-hero">
-          <p className="fg-kicker">{state.plan === 'a' ? 'AI PHOTO · AI TEST' : 'PHOTO · PLAY · TEST'}</p>
-          <h1 className="fg-title">오늘은 뭐 하고<br />놀아 볼까?</h1>
-          <p className="fg-lead">하고 싶은 체험을 눌러 주세요</p>
+          <div className="fge-labelrow"><span className="fge-label">{PLAN_INFO[state.plan].title}</span></div>
+          <h1 className="fge-head fge-head--xl">오늘은 뭐 하고<br /><u>놀아 볼까?</u></h1>
+          <p className="fge-lead">하고 싶은 체험을 눌러 주세요</p>
+          <a className="fgs-switch" href={fungroundStartHref(state.plan === 'a' ? 'b' : 'a', state.cleanKey)}>
+            {state.plan === 'a' ? 'B안' : 'A안'} 시작 화면 보기<span aria-hidden="true">→</span>
+          </a>
         </section>
         <ul className="fgs-grid" data-count={programs.length}>
-          {programs.map((p) => (
-            <li key={p.key} style={{ '--fgs-tone': p.color } as CSSProperties}>
-              {p.targets.length === 1 ? (
+          {programs.map((p) => {
+            const fg = fgKeyOf(p)
+            return (
+              <li key={p.key} style={fgAccentVars(fg)}>
                 <button type="button" className="fgs-tile" onClick={() => open(p, p.targets[0])}>
-                  <span className="fgs-tag">{p.tag}</span>
-                  <b>{p.name}</b>
-                  <span className="fgs-kind">{kindLine(p)}</span>
-                </button>
-              ) : (
-                <div className="fgs-tile fgs-tile--pick">
-                  <span className="fgs-tag">{p.tag}</span>
-                  <b>{p.name}</b>
-                  <span className="fgs-kind">{p.note}</span>
-                  <span className="fgs-picks">
-                    {p.targets.map((t) => <button key={t.id} type="button" onClick={() => open(p, t)}>{t.label}</button>)}
+                  <span className="fgs-photo fge-grain">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={tilePhoto(fg)} alt="" onError={(e) => { e.currentTarget.style.visibility = 'hidden' }} />
                   </span>
-                </div>
-              )}
-            </li>
-          ))}
+                  <span className="fgs-text">
+                    <span className="fgs-tag">{p.tag}</span>
+                    <b>{p.name}</b>
+                    <span className="fgs-kind">{kindLine(p)}</span>
+                  </span>
+                </button>
+              </li>
+            )
+          })}
         </ul>
-        <footer className="fgs-foot">
-          <span>{PLAN_INFO[state.plan].title} · {PLAN_INFO[state.plan].quote}</span>
-          <a href={fungroundStartHref(state.plan === 'a' ? 'b' : 'a', state.cleanKey)}>{state.plan === 'a' ? 'B안' : 'A안'} 시작 화면 보기</a>
-        </footer>
       </FgStage>
 
       {opened && (

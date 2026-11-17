@@ -116,3 +116,21 @@ export function FgResultSheet({ printable, onClose }: { printable: FgPrintable; 
     </div>
   )
 }
+
+/**
+ * 결과 화면 단추 둘(에디토리얼 · 늘 같은 자리) — 검정 「인쇄하기」 · 흰 테두리 「QR로 받기」. 둘 다 같은 미리보기 · QR 창을 연다
+ * (설치 기기에서는 인쇄하기가 프린터로 바로 보낸다 — 브리지 연결은 설치 때)
+ */
+export function FgResultButtons({ printable, onOpen }: { printable: FgPrintable | null; onOpen?: () => void }) {
+  const [open, setOpen] = useState(false)
+  const show = () => { setOpen(true); onOpen?.() }
+  return (
+    <>
+      <div className="fge-actions">
+        <button type="button" className="fge-btn" disabled={!printable} onClick={show}>인쇄하기</button>
+        <button type="button" className="fge-btn fge-btn--ghost" disabled={!printable} onClick={show}>QR로 받기</button>
+      </div>
+      {open && printable && <FgResultSheet printable={printable} onClose={() => setOpen(false)} />}
+    </>
+  )
+}

@@ -17,7 +17,7 @@ import type { CareerAiAnalysis } from '@/lib/kiosk/career-ai'
 import { kxText } from '../kx-i18n'
 import { canvasBlob, drawCover, fillLines, fontsReady, kxFontFamily, loadImage, makeCanvas, roundRect, wrapLines } from '../kx-canvas'
 import { PC_PHOTO_NOTE } from '@/lib/kiosk/pc'
-import { useDemoLink } from '../../pc/demo-link'
+import { useDemoLink, useFungroundLink } from '../../pc/demo-link'
 import { loadVision, photoCanvas, preloadVision } from '../kx-vision'
 import { CAREERS, CAREER_INTERESTS, CAREER_QUESTIONS, CAREER_TOTAL, MBTI_TYPES, exploreCareers, mbtiLetters, type CareerAxis, type CareerInterest, type CareerResult, type FaceTrait, type MbtiType } from './data'
 import { readFace, type FaceReading } from './face'
@@ -226,6 +226,9 @@ export default function CareerMode() {
   /** 노트북 영업용 데모(…?demo=) — 결과 [인쇄하기] → 인쇄 미리보기 창. 행사 링크·매장 키오스크는 그대로 */
   const demoLink = useDemoLink()
   const printPreview = pc && demoLink
+  /** 펀그라운드 데모(…&site=funground) 노트북 화면 — 「FUN GROUND Editorial」 테마(pc/funground-editorial.css). 결과 왼쪽에 관상 사진을 크게 */
+  const fungroundLink = useFungroundLink()
+  const fgTheme = pc && fungroundLink
   // 노트북 — 결과 그림에 관상 사진이 들어가므로 '저장하지 않아요' 안내를 바꾼다
   const t = useMemo(() => {
     const base = kxText(CAREER_TEXT, lang)
@@ -548,6 +551,10 @@ export default function CareerMode() {
       <button type="button" className={pc ? 'kx-btn kx-btn--primary crr-next' : 'kx-btn crr-next'} onClick={() => setSaving(true)}>
         {printPreview ? <Printer size={24} strokeWidth={2.2} aria-hidden="true" /> : <Download size={24} strokeWidth={2.2} aria-hidden="true" />}{printPreview ? t.print : t.save}
       </button>
+      {/* 펀그라운드 데모 — 목업대로 [인쇄하기] 옆에 흰 [QR로 받기](같은 미리보기 창: 카드 + QR) */}
+      {fgTheme && printPreview && (
+        <button type="button" className="kx-btn crr-next crr-qr" onClick={() => setSaving(true)}>QR로 받기</button>
+      )}
       {!pc && (
         <button type="button" className="kx-btn kx-btn--primary crr-next" onClick={() => setPrinting(true)}>
           <Printer size={24} strokeWidth={2.2} aria-hidden="true" />{t.print}
@@ -561,6 +568,13 @@ export default function CareerMode() {
       {pc ? (
         // 노트북 가로 화면 — 왼쪽은 나에 대한 풀이, 오른쪽은 탐색해 볼 직업과 받기
         <div className="crr-pc-cols">
+          {fgTheme && (
+            <figure className="crr-fg-photo">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={facePhoto ?? '/assets/booth-programs/funground-editorial/next-hero.webp'} alt="" draggable={false} />
+              <figcaption>{result.axes.slice(0, 2).map((axis) => t.axes[axis]).join(' × ')}</figcaption>
+            </figure>
+          )}
           <div className="crr-pc-side">{heading}{aiPart}{cluesPart}</div>
           <div className="crr-pc-main">{careerList}{firstPart}{takePart}</div>
         </div>

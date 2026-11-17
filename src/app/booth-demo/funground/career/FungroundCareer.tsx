@@ -1,27 +1,31 @@
 'use client'
 
-// 펀그라운드 별내 B안 미래 직업 탐색(NEXT!) — 1920×1080 가로 화면(FgStage · 32인치 가로 터치스크린, 2026-11-14 세로에서 바꿈).
-// 가로 배치는 노트북판 /kiosk/pc/career(experience-pc.css)를 따른다 — 첫 화면: 왼쪽 그림 · 오른쪽 글과 시작 단추 /
-//   사진(질문 앞 따로 한 단계, 2026-11-14 「모든 프로그램에 사진」): 왼쪽 세로 3:4 카메라 · 오른쪽 안내와 찍기(3-2-1) → 다시 찍기 / 이 사진으로 /
-//   질문: 위에 질문 한 줄, 가운데 답을 가로로 넓게(활동 4열 · MBTI 8열 · 답 셋 · 넷 나란히), 맨 아래 이전 · 고른 수 · 다음 /
-//   결과: 왼쪽 재미로 보는 풀이(찍은 사진), 오른쪽 직업 셋 · 첫 도전 · 처음으로 · 사진 인쇄하기(4×6 카드, career-print.ts).
+// 펀그라운드 별내 B안 미래 직업 탐색(NEXT!) — 1920×1080 가로 화면, 「FUN GROUND Editorial」 테마(2026-11-16 목업 next_1~3, 강조색 블루 #2E6BFF).
+// 위 막대 단계: 01 첫 화면 · 02 사진 + 질문 여덟 · 03 결과.
+//   첫 화면: 왼쪽 45% 꽉 찬 흑백 사진(가는 블루 선 01 · 02 · 03) · 오른쪽 라벨 띠 · NEXT! · 「나의 다음 가능성」(블루 밑줄) · 한 줄 · 탐색 시작
+//   사진(질문 앞 따로 한 단계, 2026-11-14 「모든 프로그램에 사진」): 왼쪽 45% 카메라 + 블루 모서리 괄호 · 오른쪽 「02 / 촬영」 · 큰 카운트다운 · 찍기
+//   질문: 위 가는 진행 막대 + 「03 / 08」 · 왼쪽 큰 질문(블루 밑줄) + 아래 사진 띠 · 오른쪽 A·B·C·D 큰 칸(가는 선 아이콘, 고른 칸 블루)
+//     목업과 다른 곳 — 활동 여덟(여럿 고르기)은 4×2 칸 A~H, MBTI 는 4×4 유형 칸(글자 없이 유형만), 보기 셋인 질문은 3칸 한 줄,
+//     목업에 없는 이전 · 다음 단추를 오른쪽 아래에 둔다(여럿 고르기 · MBTI 건너뛰기 · 답 고치기 때문에 자동으로 넘기지 않는다)
+//   결과: 왼쪽 찍은 사진(꽉 차게) + 축 조합 라벨 · 오른쪽 「탐색해 볼 직업」 · 재미로 보는 풀이(제목 + 첫 문장) · 직업 셋(번호 · 선 아이콘 · 이름) · 작은 첫 도전 · 인쇄하기 / QR로 받기
 // 키오스크 studio-career(CareerMode)를 건드리지 않으려고 화면은 따로 두고, 규칙표 · 문구는 그대로 가져다 쓴다:
-//   data.ts(활동 · MBTI · 상황 질문 다섯 · 16개 직업) · text.ts(한국어 문구) · 축 그림(public/assets/kiosk-experiences/career-*.webp)
+//   data.ts(활동 · MBTI · 상황 질문 다섯 · 16개 직업) · text.ts(한국어 문구)
 // 바뀐 점: 관상 분석 없음 — 사진은 결과 카드에 넣을 뿐 얼굴을 읽지 않는다 · 새 상황 질문 하나(src/lib/funground/career.ts) · AI 풀이 대신 축 조합 풀이(career-combos.ts).
-// 사진 · 결과는 기기 안에만 있다 — 「사진 인쇄하기」 창(FgPrintButton)을 열 때만 카드 그림을 QR 받기용으로 우리 서버에 올린다(24시간, 사용자 결정).
+// 사진 · 결과는 기기 안에만 있다 — 「인쇄하기 · QR로 받기」 창(FgResultButtons)을 열 때만 카드 그림을 QR 받기용으로 우리 서버에 올린다(24시간, 사용자 결정).
 // 카메라를 못 켜면(권한 거절 · 카메라 없음) 「사진 없이 계속」으로 넘어간다 — 데모가 막히지 않게. 그 밖에는 외부 서비스 · AI 를 부르지 않는다.
 // 체험 프로그램이라 'AI'라고 쓰지 않는다.
 // 결과는 「탐색해 볼 직업」 · 「재미로 보는 풀이」 — 능력이나 적성을 판정하지 않는다.
 
 import {
-  ArrowLeft, ArrowRight, CalendarDays, Camera, CameraOff, Check, Ear, FlaskConical, Gamepad2, Gift, GraduationCap, HandHeart, Hammer, HeartHandshake, Image as ImageIcon,
-  Lightbulb, Loader2, Megaphone, MessagesSquare, Mic, Palette, Presentation, Puzzle, RefreshCw, RotateCcw, Scissors, Search, Sparkles, Users,
+  ArrowLeft, Armchair, Box, CalendarDays, CameraOff, ChartColumn, ChefHat, Clapperboard, ClipboardList, CodeXml, Ear, FlaskConical, Gamepad2, Gift, GraduationCap,
+  HandHeart, Hammer, HeartHandshake, Image as ImageIcon, Lightbulb, Loader2, Megaphone, MessageCircleHeart, MessagesSquare, Mic, MousePointerClick, Newspaper,
+  Palette, PenTool, Presentation, Puzzle, Scissors, Search, Sparkles, Users,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react'
 import { FgStage, useFgHome } from '@/components/funground/FgStage'
-import { FgPrintButton, type FgPrintable } from '@/components/funground/FgResultSheet'
+import { FgResultButtons, type FgPrintable } from '@/components/funground/FgResultSheet'
 import { useCamera } from '@/app/booth/programs/use-camera'
-import { CAREERS, CAREER_INTERESTS, CAREER_QUESTIONS, MBTI_TYPES, mbtiLetters, type CareerAxis, type CareerInterest, type MbtiType } from '@/app/kiosk/experience/career/data'
+import { CAREER_INTERESTS, MBTI_TYPES, CAREER_QUESTIONS, mbtiLetters, type CareerId, type CareerInterest, type MbtiType } from '@/app/kiosk/experience/career/data'
 import { CAREER_TEXT } from '@/app/kiosk/experience/career/text'
 import { FG_CAREER_EXTRA_QUESTION, FG_CAREER_QUESTION_COUNT, FG_CAREER_TOTAL, exploreFgCareers } from '@/lib/funground/career'
 import { pickCareerCombo } from '@/lib/funground/career-combos'
@@ -34,8 +38,18 @@ const ICONS: Record<string, IconType> = {
   megaphone: Megaphone, ear: Ear, bulb: Lightbulb, gift: Gift, hammer: Hammer, heart: HeartHandshake, spark: Sparkles, flask: FlaskConical, cap: GraduationCap,
   scissors: Scissors, gamepad: Gamepad2, handheart: HandHeart, mic: Mic,
 }
-const axisArt = (axis: CareerAxis) => `/assets/kiosk-experiences/career-${axis}.webp`
-const TONE = '#315ca8'
+/** 결과 직업 칸의 가는 선 아이콘(목업처럼 직업마다 하나) */
+const CAREER_ICONS: Record<CareerId, IconType> = {
+  'brand-designer': PenTool, 'space-designer': Armchair, 'product-designer': Box, 'food-creator': ChefHat,
+  developer: CodeXml, 'data-analyst': ChartColumn, 'service-planner': ClipboardList, researcher: Newspaper,
+  'social-worker': HandHeart, teacher: GraduationCap, 'service-designer': MousePointerClick, counselor: MessageCircleHeart,
+  'content-planner': Clapperboard, host: Mic, marketer: Megaphone, 'community-manager': Users,
+}
+const ART = '/assets/booth-programs/funground-editorial'
+const KEYS = 'ABCDEFGH'
+/** 카메라 칸 = 화면 왼쪽 45%(864 × 984) — 찍힌 사진도 이 비율 그대로(보인 만큼 찍힌다) */
+const VIEW_W = 864
+const VIEW_H = 984
 /** 아무도 누르지 않으면 처음으로 — 질문 중 2분 · 결과 1분 30초 */
 const IDLE_ASK_MS = 120_000
 const IDLE_RESULT_MS = 90_000
@@ -46,16 +60,20 @@ const SITUATIONS = [
   ...CAREER_QUESTIONS.map((q, i) => ({ title: t.questions[i].title, options: q.icons.map((icon, n) => ({ icon, label: t.questions[i].options[n] })) })),
   { title: FG_CAREER_EXTRA_QUESTION.title, options: FG_CAREER_EXTRA_QUESTION.options.map(({ icon, label }) => ({ icon, label })) },
 ]
+/** 활동 · MBTI 질문 제목 — 두 줄로 나눠 둘째 줄에 블루 밑줄(문구는 text.ts 그대로) */
+const INTEREST_TITLE: [string, string] = ['마음이 가는', '활동을 골라요']
+const MBTI_TITLE: [string, string] = ['MBTI를', '알고 있나요?']
 /** 보기 글이 줄을 바꿀 때 「·」가 줄 맨 앞에 오지 않게 — 앞 낱말에 붙인다(글은 그대로, 앞 칸만 줄 안 바뀌는 칸으로) */
-const keepDot = (label: string) => label.replace(/ · /g, '\u00a0· ')
+const keepDot = (label: string) => label.replace(/ · /g, ' · ')
 const emptyAnswers = () => Array.from({ length: FG_CAREER_QUESTION_COUNT }, () => null as number | null)
+const two = (n: number) => String(n).padStart(2, '0')
 
-/** 찍힌 사진 — 카메라 칸(세로 3:4, 가득 채움)에 보인 가운데만, 최대 720×960 JPEG(기기 메모리에만). still() 은 이미 거울 방향 */
+/** 찍힌 사진 — 카메라 칸(864:984, 가득 채움)에 보인 가운데만, 높이 최대 960 JPEG(기기 메모리에만). still() 은 이미 거울 방향 */
 function cropShot(src: HTMLCanvasElement): string {
-  const ch = Math.min(src.height, Math.round((src.width * 4) / 3))
-  const cw = Math.round((ch * 3) / 4)
+  const ch = Math.min(src.height, Math.round((src.width * VIEW_H) / VIEW_W))
+  const cw = Math.round((ch * VIEW_W) / VIEW_H)
   const outH = Math.min(960, ch)
-  const outW = Math.round((outH * 3) / 4)
+  const outW = Math.round((outH * VIEW_W) / VIEW_H)
   const out = document.createElement('canvas')
   out.width = outW
   out.height = outH
@@ -74,6 +92,46 @@ function useIdle(active: boolean, ms: number, onIdle: () => void) {
   }, [active, ms, onIdle])
 }
 
+/** 단추 오른쪽 가는 화살표(목업의 긴 화살표) */
+function Arrow() {
+  return (
+    <svg className="fge-arrow" viewBox="0 0 96 40" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="square" aria-hidden="true">
+      <path d="M2 20h90M74 4l18 16-18 16" />
+    </svg>
+  )
+}
+
+/** 첫 화면 사진 위 가는 블루 선 01 · 02 · 03(칸 864 × 984 기준 좌표 — 사진 속 머리 · 얼굴 · 가방끈을 가리킨다). 번호는 HTML 글자(SVG 글자는 글꼴이 들쭉날쭉) */
+function HeroMarks() {
+  return (
+    <div className="fgc-marks" aria-hidden="true">
+      <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}>
+        <g fill="none" stroke="var(--fg-accent)" strokeWidth={2}>
+          <path d="M-40 250 A 260 260 0 0 1 170 600" />
+          <path d="M600 984 A 300 300 0 0 1 864 820" />
+          <path d="M70 196 H 250 L 316 262" />
+          <path d="M842 500 H 620 L 494 462" />
+          <path d="M60 790 H 150 L 196 836" />
+        </g>
+        <g fill="var(--fg-accent)">
+          <rect x={308} y={254} width={16} height={16} />
+          <rect x={486} y={454} width={16} height={16} />
+          <rect x={188} y={828} width={16} height={16} />
+        </g>
+      </svg>
+      <i style={{ left: 70, top: 132 }}>01</i>
+      <i style={{ right: 112, top: 436 }} data-dark>02</i>
+      <i style={{ left: 60, top: 726 }}>03</i>
+    </div>
+  )
+}
+
+/** 질문 제목 두 줄 — 둘째 줄에 블루 밑줄 */
+const QTitle = ({ lines }: { lines: readonly [string, string] | readonly string[] }) => (
+  // 두 줄 다 짧으면(8자 이하) 목업처럼 더 크게
+  <h1 className="fge-head fgc-qtitle" data-big={lines.every((line) => line.length <= 8) || undefined}>{lines[0]}<br /><u>{lines[1]}</u></h1>
+)
+
 export function FungroundCareer() {
   const [step, setStep] = useState<'intro' | 'photo' | 'ask' | 'result'>('intro')
   /** 0 = 활동 고르기(여럿) · 1 = MBTI · 2~7 = 상황 질문 여섯 */
@@ -81,7 +139,7 @@ export function FungroundCareer() {
   const [picks, setPicks] = useState<CareerInterest[]>([])
   const [mbti, setMbti] = useState<MbtiType | null>(null)
   const [answers, setAnswers] = useState<(number | null)[]>(emptyAnswers)
-  /** 찍은 사진(data: JPEG 3:4) — 사진 없이 계속했으면 null */
+  /** 찍은 사진(data: JPEG 864:984) — 사진 없이 계속했으면 null */
   const [photo, setPhoto] = useState<string | null>(null)
   const [count, setCount] = useState<number | null>(null)
   const [flash, setFlash] = useState(false)
@@ -138,9 +196,8 @@ export function FungroundCareer() {
       tags: result.axes.slice(0, 2).map((axis) => t.axes[axis]),
       mbti,
       combo: { title: combo.title, axes: `${t.axes[combo.primary]} × ${t.axes[combo.secondary]}`, body: combo.body },
-      careers: result.careers.map((id) => ({ name: t.careers[id].name, desc: t.careers[id].desc, art: axisArt(CAREERS[id].primary) })),
+      careers: result.careers.map((id) => ({ name: t.careers[id].name, desc: t.careers[id].desc })),
       first: t.careers[result.careers[0]].first,
-      tone: TONE,
       date: new Date(),
     })
       .then((image) => { if (alive) setPrintable({ image, label: '미래 직업 탐색 카드', fileName: 'funground-career', printer: 'photo' }) })
@@ -159,30 +216,21 @@ export function FungroundCareer() {
 
   if (step === 'intro') {
     return (
-      <FgStage className="fgc fgc--intro" tone={TONE} onHome={home}>
-        <div className="fg-split fgc-intro">
-          {/* 왼쪽 — 큰 글자 · 그림 */}
-          <div className="fgc-visual">
-            <p className="fgc-word">NEXT!</p>
+      <FgStage className="fgc fgc--intro" program="next" step={1} onHome={home}>
+        <div className="fge-split">
+          <div className="fge-hero">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="fgc-hero" src="/assets/kiosk-experiences/career-hero.webp" alt="" draggable={false} />
+            <img src={`${ART}/next-hero.webp`} alt="" draggable={false} />
+            <HeroMarks />
           </div>
-          {/* 오른쪽 — 소개 · 시작 */}
-          <section className="fg-panel fgc-panel">
-            <p className="fg-kicker">미래 직업 탐색 · 체험 프로그램</p>
-            <h1 className="fg-title">{'나의 다음 가능성을\n찾아 볼까요?'}</h1>
-            <p className="fg-lead">{'사진 한 장을 찍고, 좋아하는 활동과 질문 여덟 개로\n탐색해 볼 직업 세 가지를 찾아 카드로 만들어요'}</p>
-            <ul className="fgc-facts">
-              <li>사진 1장</li>
-              <li>질문 8개</li>
-              <li>약 3분</li>
-            </ul>
-            <div className="fgc-bottom">
-              <button type="button" className="fg-btn fg-btn--primary fgc-wide" onClick={() => { setPhoto(null); setShotError(null); setStep('photo') }}>
-                탐색 시작<ArrowRight size={44} strokeWidth={2.6} aria-hidden="true" />
-              </button>
-              <p className="fg-note">재미로 보는 탐색이에요 · 적성 검사가 아니에요</p>
-            </div>
+          <section className="fge-panel fgc-intro">
+            <div className="fge-labelrow"><span className="fge-label">미래 직업 탐색 · 체험 프로그램</span></div>
+            <h1 className="fge-title">NEXT!</h1>
+            <p className="fge-head"><u>나의 다음 가능성</u></p>
+            <p className="fge-lead">질문 8개와 사진 한 장으로 찾아요</p>
+            <button type="button" className="fge-btn fge-btn--wide fgc-start" onClick={() => { setPhoto(null); setShotError(null); setStep('photo') }}>
+              탐색 시작<Arrow />
+            </button>
           </section>
         </div>
       </FgStage>
@@ -191,54 +239,70 @@ export function FungroundCareer() {
 
   if (step === 'photo') {
     const failed = !photo && camState === 'error'
+    let panel: ReactNode
+    if (photo) {
+      panel = (
+        <>
+          <h1 className="fge-head">이 사진으로<br /><u>할까요?</u></h1>
+          <p className="fge-lead">얼굴이 잘 보이면 「이 사진으로」를 눌러 주세요</p>
+          <div className="fgc-grow" />
+          <div className="fge-actions">
+            <button type="button" className="fge-btn fge-btn--ghost" onClick={retake}>다시 찍기</button>
+            <button type="button" className="fge-btn" onClick={() => toQuestions(true)}>이 사진으로</button>
+          </div>
+        </>
+      )
+    } else if (failed) {
+      panel = (
+        <>
+          <h1 className="fge-head">카메라를<br /><u>켜지 못했어요</u></h1>
+          <p className="fge-lead">다시 시도하거나 사진 없이 계속할 수 있어요</p>
+          <div className="fgc-grow" />
+          <div className="fge-actions">
+            <button type="button" className="fge-btn fge-btn--ghost" onClick={camRetry}>다시 시도</button>
+            <button type="button" className="fge-btn" onClick={() => toQuestions(false)}>사진 없이 계속</button>
+          </div>
+        </>
+      )
+    } else {
+      panel = (
+        <>
+          <h1 className="fge-head"><u>얼굴을 가운데 맞춰 주세요</u></h1>
+          <p className="fge-lead fge-soft">얼굴 분석 없이 결과 카드에만 넣어요</p>
+          {/* 아주 큰 카운트다운 — 누르기 전에는 옅은 3 */}
+          <p className="fge-count fgc-count" data-idle={count === null || undefined} key={count ?? 'idle'} aria-live="assertive">{count ?? 3}</p>
+          <button type="button" className="fge-btn fge-btn--wide fgc-shoot" disabled={camState !== 'ready' || count !== null} onClick={startShot}>
+            {count !== null ? '곧 찍어요!' : '찍기'}<Arrow />
+          </button>
+        </>
+      )
+    }
     return (
-      <FgStage className="fgc fgc--photo" tone={TONE} onHome={home}>
-        <div className="fg-split fgc-shoot">
-          {/* 왼쪽 — 세로 3:4 카메라(찍히는 범위 그대로) · 찍은 뒤에는 사진 */}
-          <div className="fgc-view">
+      <FgStage className="fgc fgc--photo" program="next" step={2} onHome={home}>
+        <div className="fge-split">
+          <div className="fge-cam">
             {photo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img className="fgc-feed" src={photo} alt="방금 찍은 사진" />
+              <img src={photo} alt="방금 찍은 사진" />
             ) : (
               <>
-                <video ref={camVideoRef} className="fgc-feed fgc-feed--mirror" muted playsInline autoPlay />
-                {camState === 'ready' && <div className="fgc-guide" aria-hidden="true"><span>얼굴이 점선 안에</span></div>}
-                {camState === 'starting' && <div className="fgc-view-msg"><Loader2 className="fgc-spin" size={64} aria-hidden="true" />카메라를 켜는 중…</div>}
-                {camState === 'error' && <div className="fgc-view-msg"><CameraOff size={72} aria-hidden="true" /><p role="alert">{camError}</p></div>}
-                {count !== null && count > 0 && <div className="fgc-countdown" key={count} aria-live="assertive">{count}</div>}
+                <video ref={camVideoRef} className="fgc-mirror" muted playsInline autoPlay />
+                {camState === 'ready' && (
+                  <>
+                    <span className="fge-camtag">밝은 곳에서 정면으로</span>
+                    <div className="fge-brackets" aria-hidden="true"><span /><span /><span /><span /></div>
+                  </>
+                )}
+                {camState === 'starting' && <div className="fgc-view-msg"><Loader2 className="fgc-spin" size={64} strokeWidth={1.5} aria-hidden="true" />카메라를 켜는 중…</div>}
+                {camState === 'error' && <div className="fgc-view-msg"><CameraOff size={72} strokeWidth={1.25} aria-hidden="true" /><p role="alert">{camError}</p></div>}
               </>
             )}
             {flash && <div className="fgc-flash" />}
           </div>
-          {/* 오른쪽 — 안내 · 찍기 / 다시 찍기 · 이 사진으로 */}
-          <section className="fg-panel fgc-shoot-panel">
-            <p className="fg-kicker">질문 전 · 탐험가 카드 사진</p>
-            <h1 className="fg-title fg-title--md">{photo ? '이 사진으로\n할까요?' : '탐험가 카드에 들어갈\n사진을 찍어요'}</h1>
-            <p className="fg-lead">
-              {photo ? '얼굴이 잘 보이면\n「이 사진으로」를 눌러 주세요' : failed ? '카메라를 켜지 못했어요.\n다시 시도하거나 사진 없이 계속할 수 있어요' : '얼굴이 점선 안에 오게 서 주세요\n누르면 3초 뒤에 찰칵 찍혀요'}
-            </p>
-            <ul className="fgc-facts">
-              <li>결과 카드에만 넣어요</li>
-              <li>얼굴 분석은 하지 않아요</li>
-            </ul>
+          <section className="fge-panel fgc-shot">
+            <span className="fge-steplabel">02 / 촬영</span>
+            {panel}
             {shotError && <p className="fgc-error" role="alert">{shotError}</p>}
-            <div className="fgc-bottom">
-              {photo ? (
-                <div className="fgc-pair">
-                  <button type="button" className="fg-btn fg-btn--ghost" onClick={retake}><RotateCcw size={40} aria-hidden="true" />다시 찍기</button>
-                  <button type="button" className="fg-btn fg-btn--primary" onClick={() => toQuestions(true)}>이 사진으로<ArrowRight size={40} strokeWidth={2.6} aria-hidden="true" /></button>
-                </div>
-              ) : failed ? (
-                <div className="fgc-pair">
-                  <button type="button" className="fg-btn fg-btn--ghost" onClick={camRetry}><RefreshCw size={38} aria-hidden="true" />다시 시도</button>
-                  <button type="button" className="fg-btn fg-btn--primary" onClick={() => toQuestions(false)}>사진 없이 계속<ArrowRight size={40} strokeWidth={2.6} aria-hidden="true" /></button>
-                </div>
-              ) : (
-                <button type="button" className="fg-btn fg-btn--primary fgc-wide" disabled={camState !== 'ready' || count !== null} onClick={startShot}>
-                  <Camera size={44} aria-hidden="true" />{count !== null ? '곧 찍어요!' : '찍기 · 3초 뒤'}
-                </button>
-              )}
-            </div>
           </section>
         </div>
       </FgStage>
@@ -249,84 +313,91 @@ export function FungroundCareer() {
     const kind = index === 0 ? 'interests' : index === 1 ? 'mbti' : 'question'
     const at = index - 2
     const situation = kind === 'question' ? SITUATIONS[at] : null
-    const answered = kind === 'interests' ? picks.length > 0 : kind === 'mbti' ? true : answers[at] !== null
+    const answered = kind === 'interests' ? picks.length > 0 : kind === 'mbti' ? mbti !== null : answers[at] !== null
+    const canNext = kind === 'mbti' || answered
     const last = index === FG_CAREER_TOTAL - 1
     const next = () => { if (last) setStep('result'); else setIndex(index + 1) }
     // 첫 질문에서 이전 = 사진 단계(찍은 사진이 있으면 그 사진으로 다시 고를 수 있다)
     const back = () => { if (index === 0) setStep('photo'); else setIndex(index - 1) }
+    const title = kind === 'interests' ? INTEREST_TITLE : kind === 'mbti' ? MBTI_TITLE : situation!.title
+    const lead = kind === 'interests' ? t.q1Sub
+      : kind === 'mbti' ? (mbti ? mbtiLetters(mbti).slice(0, 2).map((letter) => t.mbtiLetters[letter]).join(' · ') : t.mbtiSub)
+      : t.qSub
     return (
-      <FgStage className="fgc fgc--ask" tone={TONE} onHome={home}>
-        <div className="fgc-progress">
-          <ol className="fg-steps" aria-hidden="true">
-            {Array.from({ length: FG_CAREER_TOTAL }, (_, i) => <li key={i} data-state={i < index ? 'done' : i === index ? 'now' : undefined} />)}
+      <FgStage className="fgc fgc--ask" program="next" step={2} onHome={home}>
+        <div className="fgc-top">
+          <ol className="fge-progress" aria-label={`질문 ${index + 1} / ${FG_CAREER_TOTAL}`}>
+            {Array.from({ length: FG_CAREER_TOTAL }, (_, i) => <li key={i} data-on={i < index || (i === index && answered) || undefined} />)}
+            <li className="fge-progress-count">{two(index + 1)} / {two(FG_CAREER_TOTAL)}</li>
           </ol>
-          <p className="fgc-count"><b>{index + 1}</b> / {FG_CAREER_TOTAL}</p>
         </div>
-        {/* 질문이 바뀔 때마다 새로 올라온다 */}
-        <section className="fgc-q" key={index} data-kind={kind}>
-          {/* 두 줄로 나눠 쓰던 상황 질문을 한 줄로(가로가 넉넉하다) */}
-          <h1 className="fg-title fg-title--md">
-            {kind === 'interests' ? t.q1Title : kind === 'mbti' ? t.mbtiTitle : situation!.title.join(' ')}
-          </h1>
-          <p className="fg-lead">{kind === 'interests' ? t.q1Sub : kind === 'mbti' ? t.mbtiSub : t.qSub}</p>
-
-          {kind === 'interests' && (
-            <div className="fgc-tiles" role="group" aria-label={t.q1Title}>
-              {CAREER_INTERESTS.map(({ id, icon }, i) => {
-                const Icon = ICONS[icon]
-                const on = picks.includes(id)
-                return (
-                  <button key={id} type="button" aria-pressed={on} className="fgc-tile" data-on={on || undefined} data-warm={i % 4 === 1 || i % 4 === 2 || undefined}
-                    onClick={() => setPicks((list) => (on ? list.filter((a) => a !== id) : [...list, id]))}>
-                    {on && <i className="fgc-check" aria-hidden="true"><Check size={34} strokeWidth={3.4} /></i>}
-                    <span className="fgc-icon"><Icon size={60} strokeWidth={1.7} aria-hidden="true" /></span>
-                    <b>{t.interests[id]}</b>
-                  </button>
-                )
-              })}
+        <div className="fgc-ask">
+          {/* 왼쪽 — 큰 질문 · 한 줄 · 아래 사진 띠 */}
+          <section className="fgc-qside" key={`q${index}`}>
+            <div className="fgc-qtext">
+              <QTitle lines={title} />
+              <p className="fge-lead fgc-qlead" key={mbti ?? 'none'}>{lead}</p>
             </div>
-          )}
+            <div className="fgc-strip fge-grain">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`${ART}/next-strip.webp`} alt="" draggable={false} />
+            </div>
+          </section>
 
-          {kind === 'mbti' && (
-            <>
-              <div className="fgc-mbti" role="radiogroup" aria-label={t.mbtiTitle}>
+          {/* 오른쪽 — 보기 칸 · 이전 / 다음 */}
+          <section className="fgc-aside">
+            {kind === 'interests' && (
+              <div className="fge-qgrid fgc-grid" data-layout="8" role="group" aria-label={t.q1Title}>
+                {CAREER_INTERESTS.map(({ id, icon }, i) => {
+                  const Icon = ICONS[icon]
+                  const on = picks.includes(id)
+                  return (
+                    <button key={id} type="button" aria-pressed={on} className="fge-qcard"
+                      onClick={() => setPicks((list) => (on ? list.filter((a) => a !== id) : [...list, id]))}>
+                      <span className="fge-key">{KEYS[i]}</span>
+                      <Icon strokeWidth={1.4} aria-hidden="true" />
+                      <b>{keepDot(t.interests[id])}</b>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {kind === 'mbti' && (
+              <div className="fge-qgrid fgc-grid" data-layout="mbti" role="radiogroup" aria-label={t.mbtiTitle}>
                 {MBTI_TYPES.map((type) => (
-                  <button key={type} type="button" role="radio" aria-checked={mbti === type} data-on={mbti === type || undefined} onClick={() => setMbti(mbti === type ? null : type)}>{type}</button>
+                  <button key={type} type="button" role="radio" aria-checked={mbti === type} className="fge-qcard fgc-type" onClick={() => setMbti(mbti === type ? null : type)}>{type}</button>
                 ))}
               </div>
-              <p className="fgc-mbti-note" key={mbti ?? 'none'}>
-                {mbti ? mbtiLetters(mbti).slice(0, 2).map((letter) => t.mbtiLetters[letter]).join(' · ') : '모르면 아래 「잘 모르겠어요」를 눌러 넘어가요'}
-              </p>
-            </>
-          )}
+            )}
 
-          {kind === 'question' && (
-            <div className="fgc-options" role="radiogroup" aria-label={situation!.title.join(' ')} data-count={situation!.options.length}>
-              {situation!.options.map((option, i) => {
-                const Icon = ICONS[option.icon]
-                const on = answers[at] === i
-                return (
-                  <button key={i} type="button" role="radio" aria-checked={on} className="fgc-option" data-on={on || undefined}
-                    onClick={() => setAnswers((list) => list.map((value, n) => (n === at ? i : value)))}>
-                    <span className="fgc-icon"><Icon size={58} strokeWidth={1.7} aria-hidden="true" /></span>
-                    <b>{keepDot(option.label)}</b>
-                    <i className="fgc-radio" aria-hidden="true">{on && <Check size={34} strokeWidth={3.4} />}</i>
-                  </button>
-                )
-              })}
+            {kind === 'question' && (
+              <div className="fge-qgrid fgc-grid" data-layout={situation!.options.length} role="radiogroup" aria-label={situation!.title.join(' ')}>
+                {situation!.options.map((option, i) => {
+                  const Icon = ICONS[option.icon]
+                  const on = answers[at] === i
+                  return (
+                    <button key={i} type="button" role="radio" aria-checked={on} className="fge-qcard"
+                      onClick={() => setAnswers((list) => list.map((value, n) => (n === at ? i : value)))}>
+                      <span className="fge-key">{KEYS[i]}</span>
+                      <Icon strokeWidth={1.4} aria-hidden="true" />
+                      <b>{keepDot(option.label)}</b>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            <div className="fgc-nav">
+              <button type="button" className="fge-btn fge-btn--ghost fgc-back" onClick={back}>
+                <ArrowLeft size={44} strokeWidth={1.5} aria-hidden="true" />{index === 0 ? '사진' : '이전'}
+              </button>
+              <p className="fgc-picked" aria-live="polite">{kind === 'interests' && picks.length > 0 ? t.picked(picks.length) : ''}</p>
+              <button type="button" className="fge-btn fgc-next" disabled={!canNext} onClick={next}>
+                {kind === 'mbti' && !mbti ? t.mbtiSkip : last ? '결과 보기' : '다음'}<Arrow />
+              </button>
             </div>
-          )}
-        </section>
-
-        {/* 맨 아래 한 줄 — 왼쪽 이전 · 가운데 고른 수 · 오른쪽 다음 */}
-        <div className="fgc-bar">
-          <button type="button" className="fg-btn fg-btn--ghost fgc-back" onClick={back}>
-            <ArrowLeft size={40} strokeWidth={2.6} aria-hidden="true" />{index === 0 ? '사진' : '이전'}
-          </button>
-          {kind === 'interests' && <p className="fgc-picked" aria-live="polite">{t.picked(picks.length)}</p>}
-          <button type="button" className="fg-btn fg-btn--primary fgc-next" disabled={!answered} onClick={next}>
-            {kind === 'mbti' && !mbti ? t.mbtiSkip : last ? '결과 보기' : '다음'}<ArrowRight size={40} strokeWidth={2.6} aria-hidden="true" />
-          </button>
+          </section>
         </div>
       </FgStage>
     )
@@ -335,74 +406,44 @@ export function FungroundCareer() {
   if (!result || !combo) return null
   const topCareer = result.careers[0]
   return (
-    <FgStage className="fgc fgc--result" tone={TONE} onHome={home}>
-      <div className="fg-split fgc-result">
-        {/* 왼쪽 — 완료 · 축 태그 · 재미로 보는 풀이 */}
-        <section className="fg-panel fgc-read">
-          <p className="fgc-head">
-            <span className="fgc-done"><i aria-hidden="true"><Check size={26} strokeWidth={3.4} /></i>{t.done}</span>
-            <span className="fgc-tags">
-              {result.axes.slice(0, 2).map((axis) => <span key={axis}>#{t.axes[axis]}</span>)}
-              {mbti && <span data-clue>{mbti}</span>}
-            </span>
-          </p>
+    <FgStage className="fgc fgc--result" program="next" step={3} onHome={home}>
+      <div className="fge-split">
+        {/* 왼쪽 — 찍은 사진(꽉 차게) + 축 조합 라벨 */}
+        <div className="fge-hero fgc-me">
+          {photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photo} alt="찍은 사진" />
+          ) : (
+            <p className="fgc-nophoto" aria-hidden="true">NEXT!</p>
+          )}
+          <span className="fge-label fgc-axes">{t.axes[combo.primary]} × {t.axes[combo.secondary]}</span>
+        </div>
+
+        {/* 오른쪽 — 탐색해 볼 직업 · 재미로 보는 풀이 · 직업 셋 · 작은 첫 도전 · 인쇄하기 / QR로 받기 */}
+        <section className="fge-panel fgc-result">
+          <h1 className="fge-head fgc-rtitle"><u>{t.resultTitle}</u></h1>
 
           <article className="fgc-combo" aria-label="재미로 보는 풀이">
-            {/* 위 — 풀이 제목(왼쪽) · 찍은 사진(오른쪽, 탐험가 카드처럼) */}
-            <div className="fgc-combo-top">
-              <div className="fgc-combo-head">
-                <span className="fg-fun">재미로 보는 풀이예요</span>
-                <h2>{combo.title}</h2>
-                <p className="fgc-combo-axes">{t.axes[combo.primary]} × {t.axes[combo.secondary]}</p>
-              </div>
-              {photo && (
-                <figure className="fgc-me">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photo} alt="찍은 사진" />
-                  <figcaption>탐험가</figcaption>
-                </figure>
-              )}
-            </div>
-            <p className="fgc-combo-body">{combo.body.join(' ')}</p>
+            <p className="fgc-combo-head"><span>재미로 보는 풀이</span><b>{combo.title}</b>{mbti && <em>{mbti}</em>}</p>
+            <p className="fgc-combo-body">{combo.body[0]}</p>
           </article>
-        </section>
-
-        {/* 오른쪽 — 탐색해 볼 직업 셋 · 작은 첫 도전 · 처음으로 */}
-        <section className="fg-panel fgc-picks">
-          <h1 className="fg-title fg-title--md">{t.resultTitle}</h1>
 
           <ol className="fgc-careers">
             {result.careers.map((id, i) => {
-              const career = CAREERS[id]
+              const Icon = CAREER_ICONS[id]
               return (
                 <li key={id}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={axisArt(career.primary)} alt="" draggable={false} />
-                  <div>
-                    <b><em>{String(i + 1).padStart(2, '0')}</em>{t.careers[id].name}</b>
-                    <span>{t.careers[id].desc}</span>
-                  </div>
+                  <i>{two(i + 1)}</i>
+                  <Icon strokeWidth={1.3} aria-hidden="true" />
+                  <b>{keepDot(t.careers[id].name)}</b>
                 </li>
               )
             })}
           </ol>
 
-          <section className="fgc-first">
-            <Lightbulb size={52} strokeWidth={1.8} aria-hidden="true" />
-            <div>
-              <em>{t.firstLabel}</em>
-              <b>{t.careers[topCareer].first}</b>
-            </div>
-          </section>
+          <p className="fgc-first"><span>{t.firstLabel}</span>{t.careers[topCareer].first}</p>
 
-          {/* 맨 아래 — 처음으로 · 사진 인쇄하기(4×6 카드 미리보기 · 휴대폰으로 받기 QR) */}
-          <div className="fgc-bottom">
-            <div className="fgc-pair">
-              <button type="button" className="fg-btn fg-btn--ghost" onClick={home}>처음으로</button>
-              <FgPrintButton printable={printable} className="fg-btn fg-btn--primary" label="사진 인쇄하기" />
-            </div>
-            <p className="fg-note fgc-center">{t.resultFoot}</p>
-          </div>
+          <FgResultButtons printable={printable} />
         </section>
       </div>
     </FgStage>

@@ -1,0 +1,279 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   펀그라운드 별내 데모의 부스 프로그램(DREAM!) — 「FUN GROUND Editorial」 테마(2026-11-16 목업 dream_1~3)
+   ProgramApp 이 펀그라운드 주소(site=funground)일 때만 .pg 에 data-site="funground" 를 단다 — 모든 규칙은 그 아래에서만 걸린다.
+   매장 · 행사 · 다른 데모의 부스 화면(programs.css)은 그대로.
+   기준은 부스 화면 1280×720(src/components/funground/editorial.css 의 1920×1080 크기를 2/3 로).
+   흰 바탕 · 검정 잉크 · 1px 검정 선 · 모서리 4px · 그림자 없음 · 강조색 바이올렛 #8B5CF6(위 글자 흰색) 하나를 아껴 쓴다.
+   글꼴(자체 호스팅 · OFL): 영문 큰 제목 Anton(--pg-f-anton) · 한글 머리말 Black Han Sans · 본문 · 단추 Pretendard(programs.css)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@font-face {
+  font-family: 'PGF Black Han Sans';
+  src: url('/fonts/ui/black-han-sans/400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+.pg[data-site='funground'] {
+  --pgf-accent: #8b5cf6;
+  --pgf-on-accent: #ffffff;
+  --pgf-ink: #111111;
+  --pgf-soft: #6b6b6b;
+  --pgf-off: #bdbdbd;
+  --pgf-display: var(--pg-f-anton), 'Anton', Impact, 'Arial Narrow', sans-serif;
+  --pgf-head: 'PGF Black Han Sans', 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+  --pgf-text: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  /* programs.css 의 공통 부품이 쓰는 변수 — 주 단추는 검정, 선 · 카드는 검정 1~2px */
+  --pg-bg: #ffffff;
+  --pg-bg-image: none;
+  --pg-outer: #111111;
+  --pg-ink: #111111;
+  --pg-muted: #6b6b6b;
+  --pg-accent: #111111;
+  --pg-on-accent: #ffffff;
+  --pg-surface: #ffffff;
+  --pg-line: #111111;
+  --pg-radius: 4px;
+  --pg-display: var(--pgf-display);
+  --pg-head: var(--pgf-head);
+  --pg-photo-border: none;
+  --pg-photo-shadow: none;
+  font-family: var(--pgf-text);
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* ── 위 막대(64 · 아래 1px 선) ── */
+.pg[data-site='funground'] .pgf-top { position: relative; z-index: 3; display: flex; flex: none; align-items: center; gap: 24px; height: 64px; padding: 0 24px 0 28px; border-bottom: 1px solid #111111; background: #ffffff; }
+.pg[data-site='funground'] .pgf-logo { font-family: var(--pgf-display); font-size: 37px; line-height: 1; color: #111111; white-space: nowrap; }
+.pg[data-site='funground'] .pgf-rule { flex: 1; height: 1px; background: #111111; }
+.pg[data-site='funground'] .pgf-steps { display: flex; gap: 30px; margin: 0; padding: 0; list-style: none; }
+.pg[data-site='funground'] .pgf-steps li { position: relative; font-family: var(--pgf-display); font-size: 35px; line-height: 1; color: var(--pgf-off); }
+.pg[data-site='funground'] .pgf-steps li[data-on] { color: #111111; }
+.pg[data-site='funground'] .pgf-steps li[data-on]::after { content: ''; position: absolute; left: -4px; right: -4px; bottom: -9px; height: 5px; background: var(--pgf-accent); }
+.pg[data-site='funground'] .pgf-home { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 132px; height: 43px; padding: 0 18px; border: 0; border-radius: 4px; background: #111111; color: #ffffff; font: 800 20px/1 var(--pgf-text); }
+/* 보이는 단추는 43px, 누르는 곳은 64px */
+.pg[data-site='funground'] .pgf-home::before { content: ''; position: absolute; inset: -11px -6px; }
+.pg[data-site='funground'] .pgf-home:active { background: #333333; }
+
+/* ── 두 칸 · 꽉 찬 사진 ── */
+.pg[data-site='funground'] .pgf-split { display: grid; grid-template-columns: 45% minmax(0, 1fr); height: 100%; }
+.pg[data-site='funground'] .pgf-split > * { min-width: 0; min-height: 0; }
+.pg[data-site='funground'] .pgf-hero { position: relative; overflow: hidden; background: #e9e9e9; border-right: 1px solid #111111; }
+.pg[data-site='funground'] .pgf-hero > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* 옅은 필름 그레인 */
+.pg[data-site='funground'] .pgf-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.09; mix-blend-mode: multiply; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+.pg[data-site='funground'] .pgf-panel { display: flex; flex-direction: column; justify-content: center; gap: 20px; min-height: 0; padding: 40px 56px 44px 52px; }
+
+/* ── 글자 ── */
+.pg[data-site='funground'] .pgf-labelrow { display: flex; align-items: center; gap: 18px; }
+.pg[data-site='funground'] .pgf-labelrow::after { content: ''; flex: 1; height: 1px; background: #111111; }
+.pg[data-site='funground'] .pgf-label { display: inline-block; padding: 6px 13px 4px; background: var(--pgf-accent); color: var(--pgf-on-accent); font: 900 25px/1.15 var(--pgf-text); letter-spacing: -0.02em; white-space: nowrap; }
+.pg[data-site='funground'] .pgf-title { margin: 0; font-family: var(--pgf-display); font-size: 208px; font-weight: 400; line-height: 0.9; color: #111111; white-space: nowrap; }
+.pg[data-site='funground'] .pgf-head { margin: 0; font: 400 53px/1.2 var(--pgf-head); letter-spacing: -0.02em; color: #111111; }
+.pg[data-site='funground'] .pgf-head--lg { font-size: 68px; }
+.pg[data-site='funground'] :is(.pgf-head, .pgf-q) > u { text-decoration: none; background: linear-gradient(var(--pgf-accent), var(--pgf-accent)) left bottom / 100% 8px no-repeat; padding-bottom: 6px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.pg[data-site='funground'] .pgf-lead { margin: 0; font: 600 25px/1.4 var(--pgf-text); color: #111111; }
+.pg[data-site='funground'] .pgf-note { margin: 0; font: 600 17px/1.4 var(--pgf-text); color: var(--pgf-soft); }
+
+/* ── 단추 ── */
+.pg[data-site='funground'] .pgf-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 16px; min-height: 85px; padding: 0 32px; border: 0; border-radius: 4px; background: #111111; color: #ffffff; font: 900 35px/1 var(--pgf-text); letter-spacing: -0.02em; white-space: nowrap; transition: background-color 0.12s ease; }
+.pg[data-site='funground'] .pgf-btn:active { background: #333333; }
+.pg[data-site='funground'] .pgf-btn--wide { width: 100%; justify-content: space-between; padding: 0 38px; }
+.pg[data-site='funground'] .pgf-btn--ghost { border: 2px solid #111111; background: #ffffff; color: #111111; }
+.pg[data-site='funground'] .pgf-btn--ghost:active { background: #ececec; }
+.pg[data-site='funground'] .pgf-btn--sm { min-height: 64px; padding: 0 20px; gap: 8px; font-size: 21px; font-weight: 800; }
+.pg[data-site='funground'] .pgf-arrow { width: 64px; height: 26px; flex: none; }
+.pg[data-site='funground'] .pgf-start .pgf-btn--wide { margin-top: 10px; }
+
+/* ── 첫 화면 ── */
+.pg[data-site='funground'] .pgf-start .pgf-hero > img { object-position: 30% center; }
+.pg[data-site='funground'] .pgf-start .pgf-panel { gap: 22px; }
+
+/* ── 고르기(직업 사진 카드 3×2 · 아래 줄) ── */
+.pg[data-site='funground'] .pgf-options { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100%; padding: 0 22px; }
+.pg[data-site='funground'] .pgf-ohead { display: flex; align-items: center; gap: 28px; padding: 18px 6px 16px; }
+.pg[data-site='funground'] .pgf-omark { flex: none; padding-right: 28px; border-right: 1px solid #111111; font-family: var(--pgf-display); font-weight: 400; font-size: 64px; line-height: 0.95; color: #111111; }
+.pg[data-site='funground'] .pgf-q { margin: 0; font: 400 58px/1.15 var(--pgf-head); letter-spacing: -0.02em; color: #111111; white-space: nowrap; }
+.pg[data-site='funground'] .pgf-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 10px; min-height: 0; }
+.pg[data-site='funground'] .pgf-card { position: relative; display: block; overflow: hidden; min-height: 0; padding: 0; border: 1px solid #111111; border-radius: 4px; background: #111111; color: #ffffff; text-align: left; }
+.pg[data-site='funground'] .pgf-card > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pg[data-site='funground'] .pgf-card > b { position: absolute; left: 0; right: 0; bottom: 0; padding: 30px 18px 12px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.7)); font: 400 37px/1.05 var(--pgf-head); letter-spacing: -0.01em; }
+.pg[data-site='funground'] .pgf-card[aria-checked='true'] { border-color: var(--pgf-accent); box-shadow: inset 0 0 0 5px var(--pgf-accent); }
+.pg[data-site='funground'] .pgf-card[aria-checked='true']::after { content: ''; position: absolute; inset: 0; border: 5px solid var(--pgf-accent); pointer-events: none; }
+.pg[data-site='funground'] .pgf-card:active > img { filter: brightness(0.85); }
+.pg[data-site='funground'] .pgf-check { position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 40px; height: 40px; background: var(--pgf-accent); color: #ffffff; font-style: normal; }
+.pg[data-site='funground'] .pgf-obar { display: flex; align-items: center; gap: 24px; margin-top: 12px; padding: 12px 0 14px; border-top: 1px solid #111111; }
+.pg[data-site='funground'] .pgf-oshot { display: flex; align-items: center; gap: 10px; }
+.pg[data-site='funground'] .pgf-oshot > img { width: 64px; height: 64px; object-fit: cover; border: 1px solid #111111; border-radius: 4px; transform: scaleX(1); }
+.pg[data-site='funground'] .pgf-chiprow { display: flex; align-items: center; gap: 16px; }
+.pg[data-site='funground'] .pgf-chiplabel { font: 400 33px/1 var(--pgf-head); color: #111111; white-space: nowrap; }
+.pg[data-site='funground'] .pgf-chips { display: flex; gap: 10px; }
+.pg[data-site='funground'] .pgf-chip { min-height: 64px; padding: 0 20px; border: 2px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; font: 800 23px/1 var(--pgf-text); white-space: nowrap; }
+.pg[data-site='funground'] .pgf-chip[aria-checked='true'] { background: #111111; color: #ffffff; }
+.pg[data-site='funground'] .pgf-btn--go { flex: 1; min-height: 72px; justify-content: space-between; padding: 0 30px; font-size: 31px; }
+
+/* ── 결과 ── */
+.pg[data-site='funground'] .pgf-result { grid-template-columns: auto minmax(0, 1fr); }
+/* 만든 사진은 4×6 세로(2:3) — 높이를 꽉 채우고 폭은 사진 비율대로(자르지 않는다) */
+.pg[data-site='funground'] .pgf-hero--photo { aspect-ratio: 2 / 3; height: 100%; background: #111111; }
+.pg[data-site='funground'] .pgf-result .pgf-panel { gap: 18px; padding: 36px 48px 36px 48px; }
+.pg[data-site='funground'] .pgf-designs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pg[data-site='funground'] .pgf-design { position: relative; display: flex; align-items: center; gap: 16px; min-height: 64px; padding: 10px 12px; border: 1px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; text-align: left; }
+.pg[data-site='funground'] .pgf-design > img { flex: none; width: 60px; height: 90px; object-fit: cover; border: 1px solid #111111; }
+.pg[data-site='funground'] .pgf-design > span { display: grid; gap: 4px; font: 800 21px/1.25 var(--pgf-text); }
+.pg[data-site='funground'] .pgf-design > span > i { font-family: var(--pgf-display); font-style: normal; font-size: 24px; line-height: 1; }
+.pg[data-site='funground'] .pgf-design[aria-checked='true'] { border-color: var(--pgf-accent); box-shadow: inset 0 0 0 4px var(--pgf-accent); }
+.pg[data-site='funground'] .pgf-design .pgf-check { top: 10px; right: 10px; width: 32px; height: 32px; }
+.pg[data-site='funground'] .pgf-minor { display: flex; gap: 10px; }
+.pg[data-site='funground'] .pgf-minor .pgf-btn { flex: 1; }
+.pg[data-site='funground'] .pgf-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4px; }
+.pg[data-site='funground'] .pgf-actions .pgf-btn { width: 100%; }
+
+/* ═════ 공통 부품(PhotoFlow · ui · SavePanel)을 에디토리얼 모양으로 ═════ */
+
+/* 두 칸 — 여백 없이, 왼쪽은 꽉 찬 카메라 · 사진, 오른쪽은 흰 바탕 글 칸 */
+.pg[data-site='funground'] .pg-split { grid-template-columns: 60% minmax(0, 1fr); gap: 0; padding: 0; }
+.pg[data-site='funground'] .pg-visual { overflow: hidden; border-right: 1px solid #111111; background: #1a1a1a; }
+.pg[data-site='funground'] .pg-panel { justify-content: center; gap: 14px; padding: 30px 40px 32px 36px; border: 0; border-radius: 0; background: #ffffff; }
+
+.pg[data-site='funground'] .pg-head { gap: 10px; }
+.pg[data-site='funground'] .pg-head h2 { font: 400 44px/1.2 var(--pgf-head); letter-spacing: -0.02em; }
+.pg[data-site='funground'] .pg-head h2 span { display: block; }
+.pg[data-site='funground'] .pg-head h2 span:last-child { justify-self: start; width: fit-content; background: linear-gradient(var(--pgf-accent), var(--pgf-accent)) left bottom / 100% 7px no-repeat; padding-bottom: 4px; }
+.pg[data-site='funground'] .pg-head p { font: 600 23px/1.4 var(--pgf-text); color: #111111; }
+.pg[data-site='funground'] .pg-eyebrow { justify-self: start; padding: 5px 11px 3px; background: var(--pgf-accent); color: var(--pgf-on-accent); font: 900 22px/1.2 var(--pgf-text); }
+.pg[data-site='funground'] .pg-muted { font-size: 17px; color: var(--pgf-soft); }
+.pg[data-site='funground'] .pg-creative { padding: 0; border-radius: 0; background: none; color: var(--pgf-soft); font-size: 17px; font-weight: 600; }
+.pg[data-site='funground'] .pg-creative::before { content: ''; }
+.pg[data-site='funground'] .pg-error-text { color: #d63a3a; font-size: 19px; }
+.pg[data-site='funground'] .pg-warn { border-radius: 4px; border: 1px solid #111111; background: #ffffff; color: #111111; font-size: 18px; }
+
+/* 단추 — 주 단추 검정, 보조 흰 바탕 검정 테두리 */
+.pg[data-site='funground'] .pg-btn { min-height: 64px; border-radius: 4px; font-size: 23px; font-weight: 800; box-shadow: none; }
+.pg[data-site='funground'] .pg-btn:active:not(:disabled) { transform: none; filter: brightness(0.85); }
+.pg[data-site='funground'] .pg-btn:disabled { opacity: 1; background: var(--pgf-off); border-color: var(--pgf-off); color: #ffffff; }
+.pg[data-site='funground'] .pg-btn--line:disabled { background: #ffffff; color: var(--pgf-off); }
+.pg[data-site='funground'] .pg-btn--accent { background: #111111; color: #ffffff; }
+.pg[data-site='funground'] .pg-btn--line { border: 2px solid #111111; background: #ffffff; color: #111111; }
+.pg[data-site='funground'] .pg-btn--wide.pg-btn--accent, .pg[data-site='funground'] .pg-btn--shoot { min-height: 80px; font-size: 33px; font-weight: 900; }
+
+/* ── 촬영 ── */
+.pg[data-site='funground'] .pg-capture { gap: 0; }
+.pg[data-site='funground'] .pg-cam { border-radius: 0; box-shadow: none; border: 0; }
+.pg[data-site='funground'] .pg-cam--off { background: #f2f2f2; color: var(--pgf-soft); }
+.pg[data-site='funground'] .pg-cam-ready { left: 20px; top: 20px; padding: 8px 14px; border-radius: 0; background: #111111; font-size: 18px; font-weight: 800; }
+.pg[data-site='funground'] .pg-cam-ready i { background: var(--pgf-accent); border-radius: 0; }
+.pg[data-site='funground'] .pg-cam figcaption, .pg[data-site='funground'] .pg-cam-turn { border-radius: 0; background: #111111; }
+.pg[data-site='funground'] .pg-cam-retake { border-radius: 4px; background: #111111; color: #ffffff; }
+/* 얼굴 자리 — 점선 대신 강조색 모서리 괄호 넷 */
+.pg[data-site='funground'] .pg-guide i { border: 0; border-radius: 0;
+  background:
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) left top / 48px 6px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) left top / 6px 48px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) right top / 48px 6px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) right top / 6px 48px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) left bottom / 48px 6px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) left bottom / 6px 48px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) right bottom / 48px 6px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) right bottom / 6px 48px no-repeat; }
+.pg[data-site='funground'] .pg-guide--group { inset: 9% 7% 7%; border: 0; border-radius: 0;
+  background:
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) left top / 64px 6px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) left top / 6px 64px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) right top / 64px 6px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) right top / 6px 64px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) left bottom / 64px 6px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) left bottom / 6px 64px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) right bottom / 64px 6px no-repeat,
+    linear-gradient(var(--pgf-accent), var(--pgf-accent)) right bottom / 6px 64px no-repeat; }
+/* 카운트 — 카메라 위 숫자는 빼고, 오른쪽에 아주 큰 숫자(.pgf-count) */
+.pg[data-site='funground'] .pg-count { display: none; }
+.pg[data-site='funground'] .pg-flash { border-radius: 0; }
+/* 오른쪽 칸 순서: 머리말 · 동의 · (타이머 | 휴대폰 사진) · 촬영하기 */
+.pg[data-site='funground'] .pg-capture-step .pg-panel { flex-flow: row wrap; align-content: center; }
+.pg[data-site='funground'] .pg-capture-step .pg-panel > * { flex: 1 1 100%; min-width: 0; order: 5; }
+.pg[data-site='funground'] .pg-capture-step .pg-panel > .pg-head { order: 1; }
+.pg[data-site='funground'] .pg-capture-step .pg-panel > .pg-warn, .pg[data-site='funground'] .pg-capture-step .pg-panel > .pg-error-text { order: 2; }
+.pg[data-site='funground'] .pg-capture-step .pg-panel > .pg-consent { order: 3; }
+.pg[data-site='funground'] .pg-capture-step .pg-panel > .pg-timer { order: 4; flex: 1 1 52%; }
+.pg[data-site='funground'] .pg-capture-step .pg-panel > .pg-btn--line { order: 4; flex: 1 1 40%; padding: 0 12px; font-size: 19px; }
+.pg[data-site='funground'] .pg-capture-step .pg-panel > .pg-btn--shoot { order: 6; }
+.pg[data-site='funground'] .pg-capture-step .pg-panel > .pg-muted { order: 7; }
+.pg[data-site='funground'] .pg-capture-step .pg-panel > .pg-stack .pg-btn--line { font-size: 23px; }
+.pg[data-site='funground'] .pg-timer { gap: 8px; }
+.pg[data-site='funground'] .pg-timer button { min-height: 64px; border: 2px solid #111111; border-radius: 4px; background: #ffffff; color: #111111; font-size: 19px; }
+.pg[data-site='funground'] .pg-timer button[aria-checked='true'] { border-color: #111111; background: #111111; color: #ffffff; }
+.pg[data-site='funground'] .pg-consent { align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid #111111; border-radius: 4px; background: #ffffff; font-size: 16px; line-height: 1.4; color: var(--pgf-soft); }
+.pg[data-site='funground'] .pg-consent > span > span { display: block; margin-bottom: 2px; color: #111111; font-size: 21px; font-weight: 800; }
+.pg[data-site='funground'] .pg-consent input { width: 32px; height: 32px; accent-color: var(--pgf-accent); }
+/* 카운트 중 — 오른쪽은 단계 라벨 · 머리말 · 아주 큰 숫자만 */
+.pg[data-site='funground'] .pgf-count { order: 5; flex: 1 1 100%; margin: 0; font-family: var(--pgf-display); font-weight: 400; font-size: 260px; line-height: 0.9; text-align: center; color: #111111; }
+.pg[data-site='funground'] .pgf-counting .pg-panel > :not(.pg-head, .pgf-count) { display: none; }
+.pg[data-site='funground'] .pgf-counting .pg-head p { display: none; }
+
+/* ── 만드는 중 ── */
+.pg[data-site='funground'] .pg-shots { gap: 0; }
+.pg[data-site='funground'] .pg-photo-frame { border-radius: 0; box-shadow: none; border: 0; }
+.pg[data-site='funground'] .pg-scan > i { border-radius: 0; background-image: linear-gradient(180deg, transparent 0%, rgba(139, 92, 246, 0.42) 50%, transparent 100%); }
+/* 도는 원 대신 가는 진행 막대 + 한 줄(진짜 % 를 모르면 흐르는 막대) */
+.pg[data-site='funground'] .pg-progress { justify-items: stretch; gap: 12px; }
+.pg[data-site='funground'] .pg-progress svg, .pg[data-site='funground'] .pg-progress b { display: none; }
+.pg[data-site='funground'] .pg-progress::before { content: ''; display: block; height: 8px; background: linear-gradient(var(--pgf-accent), var(--pgf-accent)) -40% 0 / 40% 100% no-repeat, #d6d6d6; animation: pgf-bar 1.4s linear infinite; }
+@keyframes pgf-bar { 0% { background-position: -70% 0, 0 0; } 100% { background-position: 170% 0, 0 0; } }
+@media (prefers-reduced-motion: reduce) { .pg[data-site='funground'] .pg-progress::before { animation-duration: 4s; } }
+.pg[data-site='funground'] .pg-progress span { font-size: 19px; font-weight: 700; color: var(--pgf-soft); }
+/* 세 단계 — 01 · 02 · 03 번호 줄(가는 선) */
+.pg[data-site='funground'] .pg-stages { grid-template-columns: 1fr; gap: 0; border-top: 1px solid #111111; }
+.pg[data-site='funground'] .pg-stages li { display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid #111111; font-size: 20px; font-weight: 700; color: var(--pgf-off); text-align: left; }
+.pg[data-site='funground'] .pg-stages i { display: inline-flex; align-items: center; width: auto; height: 28px; min-width: 40px; border: 0; border-radius: 0; background: none !important; color: inherit !important; font-family: var(--pgf-display); font-size: 26px; line-height: 1; white-space: nowrap; animation: none !important; }
+.pg[data-site='funground'] .pg-stages i svg { width: 26px; height: 26px; }
+.pg[data-site='funground'] .pg-stages i::before { content: '0'; }
+.pg[data-site='funground'] .pg-stages li[data-state='done'] { color: #111111; }
+.pg[data-site='funground'] .pg-stages li[data-state='done'] i::before { content: none; }
+.pg[data-site='funground'] .pg-stages li[data-state='done'] i svg { color: var(--pgf-accent); }
+.pg[data-site='funground'] .pg-stages li[data-state='active'] { color: #111111; font-weight: 900; }
+.pg[data-site='funground'] .pg-stages li[data-state='active'] i { color: var(--pgf-accent) !important; }
+.pg[data-site='funground'] .pg-error-icon { color: #111111; }
+.pg[data-site='funground'] .pg-generating .pg-panel { gap: 12px; padding-top: 24px; padding-bottom: 24px; }
+.pg[data-site='funground'] .pg-generating .pg-head h2 { font-size: 42px; }
+.pg[data-site='funground'] .pg-generating .pg-head p { font-size: 21px; }
+
+/* ── 저장(03) — 왼쪽 고른 4×6 인화본을 꽉 차게, 오른쪽 QR · 인쇄 두 칸 ── */
+.pg[data-site='funground'] .pg-save { grid-template-columns: auto minmax(0, 1fr); }
+.pg[data-site='funground'] .pg-save .pg-visual { aspect-ratio: 2 / 3; height: 100%; background: #f2f2f2; }
+.pg[data-site='funground'] .pg-print-preview { width: 100%; }
+.pg[data-site='funground'] .pg-print-preview img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; box-shadow: none; }
+.pg[data-site='funground'] .pg-save .pg-panel { gap: 20px; padding: 36px 48px; }
+.pg[data-site='funground'] .pg-save-cards { grid-template-columns: 1fr 1fr; gap: 14px; }
+.pg[data-site='funground'] .pg-card { border: 1px solid #111111; border-radius: 4px; padding: 18px; background: #ffffff; }
+.pg[data-site='funground'] .pg-qr { grid-template-columns: 1fr; justify-items: start; align-content: start; gap: 12px; }
+.pg[data-site='funground'] .pg-qr-code { width: 170px; height: 170px; border-radius: 0; background: #ffffff; }
+.pg[data-site='funground'] .pg-qr-code img { width: 170px; height: 170px; }
+.pg[data-site='funground'] .pg-qr-text { gap: 6px; font-size: 17px; color: #111111; }
+.pg[data-site='funground'] .pg-qr-text b { font-size: 23px; font-weight: 900; }
+.pg[data-site='funground'] .pg-qr-time { color: var(--pgf-soft); font-size: 15px; }
+.pg[data-site='funground'] .pg-print { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.pg[data-site='funground'] .pg-print svg { color: #111111; stroke-width: 1.4; }
+.pg[data-site='funground'] .pg-print b { font-size: 23px; font-weight: 900; }
+.pg[data-site='funground'] .pg-print p { font-size: 17px; color: var(--pgf-soft); }
+.pg[data-site='funground'] .pg-print .pg-btn { width: 100%; margin-top: auto; background: #111111; color: #ffffff; border-color: #111111; font-size: 26px; font-weight: 900; min-height: 72px; }
+.pg[data-site='funground'] .pg-print .pg-btn:disabled { background: var(--pgf-off); border-color: var(--pgf-off); }
+
+/* ── 창(도움말 · 확인 · 휴대폰 사진 · 인쇄 미리보기) ── */
+.pg[data-site='funground'] .pg-modal { background: rgba(17, 17, 17, 0.55); backdrop-filter: none; }
+.pg[data-site='funground'] .pg-modal-card { border: 2px solid #111111; border-radius: 4px; box-shadow: none; padding: 32px; --pg-accent: #111111; --pg-line: #111111; --pg-radius: 4px; }
+.pg[data-site='funground'] .pg-modal-card h3 { font: 400 36px/1.2 var(--pgf-head); letter-spacing: -0.02em; }
+.pg[data-site='funground'] .pg-modal-card p { font-size: 19px; color: #111111; }
+.pg[data-site='funground'] .pg-idle-ring { --pg-accent: var(--pgf-accent); }
+.pg[data-site='funground'] .pg-modal-card:has(.pg-fg-sheet) { width: min(940px, 94%); padding: 32px 36px; }
+.pg[data-site='funground'] .pg-fg-sheet { gap: 36px; align-items: stretch; }
+.pg[data-site='funground'] .pg-fg-sheet-print { height: min(560px, 74vh); max-height: 560px; border-radius: 0; border: 1px solid #111111; box-shadow: none; }
+.pg[data-site='funground'] .pg-fg-sheet-side { align-content: center; gap: 18px; }
+.pg[data-site='funground'] .pg-fg-sheet-side h3 { justify-self: start; font-size: 44px; background: linear-gradient(var(--pgf-accent), var(--pgf-accent)) left bottom / 100% 7px no-repeat; padding-bottom: 6px; }
+.pg[data-site='funground'] .pg-fg-sheet-side > .pg-muted { display: block; font-size: 18px; line-height: 1.45; color: #111111; }
+.pg[data-site='funground'] .pg-fg-sheet-qr { border: 1px solid #111111; border-radius: 4px; padding: 16px; }
+.pg[data-site='funground'] .pg-fg-sheet-qr p { font-size: 16px; color: var(--pgf-soft); }
+.pg[data-site='funground'] .pg-fg-sheet-qr b { font-size: 21px; font-weight: 900; color: #111111; }
+.pg[data-site='funground'] .pg-fg-sheet-actions .pg-btn { min-height: 72px; font-size: 23px; font-weight: 900; }

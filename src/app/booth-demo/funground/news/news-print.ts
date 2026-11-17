@@ -19,9 +19,8 @@ const INNER = W - PAD * 2
 const PAPER = '#f6f1e4'
 const INK = '#1b1a17'
 const SOFT = '#5d574c'
-const RED = '#c4372c'
-const ORANGE = '#ff6b2c'
-const GREEN = '#18a874'
+/** 강조색 — 화면(FUN GROUND Editorial · FUTURE NEWS!)과 같은 빨강 하나. FUN GROUND 글자는 화면 위 막대처럼 검정 */
+const RED = '#ff2e4d'
 /** 사진 칸 아래 끝 · 기사 단 위아래 · 바닥 줄 */
 const PHOTO_BOTTOM = 1272
 const COLS_TOP = 1328
@@ -199,8 +198,8 @@ export async function drawNewsPrint(input: NewsPrintInput): Promise<HTMLCanvasEl
   // 오른쪽 귀: FUN GROUND 별내
   const rx = W - PAD - earW
   ctx.strokeRect(rx, earTop, earW, earH)
-  write('FUN', rx + earW / 2, earTop + 42, S(900, 30), ORANGE, 'center')
-  write('GROUND', rx + earW / 2, earTop + 76, S(900, 30), GREEN, 'center')
+  write('FUN', rx + earW / 2, earTop + 42, S(900, 30), INK, 'center')
+  write('GROUND', rx + earW / 2, earTop + 76, S(900, 30), INK, 'center')
   rule(earTop + 90, 1.5, rx + 22, earW - 44)
   write('별내에서 만든 신문', rx + earW / 2, earTop + 116, S(700, 18), SOFT, 'center')
   // 제호
@@ -422,19 +421,19 @@ export async function drawNewsPrint(input: NewsPrintInput): Promise<HTMLCanvasEl
   // ── 바닥 ──
   rule(FOOT_RULE, 3)
   const fy = FOOT_RULE + 42
-  write('FUN', PAD, fy, S(900, 30), ORANGE)
+  write('FUN', PAD, fy, S(900, 30), INK)
   ctx.font = S(900, 30)
   let fx = PAD + ctx.measureText('FUN').width + 8
-  write('GROUND', fx, fy, S(900, 30), GREEN)
+  write('GROUND', fx, fy, S(900, 30), INK)
   fx += ctx.measureText('GROUND').width + 14
   write(`별내 · FUTURE NEWS! · 찍은 날 ${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`, fx, fy - 2, S(700, 20), SOFT)
-  // 재미로 상상해 보는 미래 신문이에요 — 노란 띠
+  // 재미로 상상해 보는 미래 신문이에요 — 빨간 띠(화면 라벨 띠와 같은 모양)
   ctx.font = S(800, 22)
   const dw = ctx.measureText(NEWS_DISCLAIMER).width + 32
-  ctx.fillStyle = '#ffc83d'
-  roundRect(ctx, W - PAD - dw, fy - 30, dw, 40, 20)
+  ctx.fillStyle = RED
+  roundRect(ctx, W - PAD - dw, fy - 30, dw, 40, 3)
   ctx.fill()
-  write(NEWS_DISCLAIMER, W - PAD - dw / 2, fy - 3, S(800, 22), INK, 'center')
+  write(NEWS_DISCLAIMER, W - PAD - dw / 2, fy - 3, S(800, 22), '#ffffff', 'center')
 
   return canvas
 }

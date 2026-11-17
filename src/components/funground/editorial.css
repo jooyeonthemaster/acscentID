@@ -1,0 +1,156 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   「FUN GROUND Editorial」 테마 — 펀그라운드 데모 화면 공통(2026-11-16 목업 ~/Downloads/펀그라운드별내_UI목업_20261116_에디토리얼)
+   FgStage 에 program 을 넘긴 화면(.fg-stage[data-theme='editorial'])에만 걸린다 — 다른 매장 · 행사 · 데모 화면에는 영향이 없다.
+   기준 1920×1080. 흰 바탕 · 검정 잉크 · 1px 검정 선 · 모서리 4px · 그림자 없음 · 프로그램 강조색 하나(아껴 쓴다).
+   글꼴(모두 자체 호스팅 · OFL): 영문 큰 제목 = Anton(next/font, --pg-f-anton) · 한글 머리말 = Black Han Sans · 본문 · 단추 = Pretendard
+
+   쓰는 법(클래스)
+     .fge-split         두 칸(왼쪽 꽉 찬 그림 45% · 오른쪽 글)        .fge-hero      왼쪽 꽉 찬 사진(옅은 그레인)
+     .fge-panel         오른쪽 글 칸                                 .fge-labelrow  강조색 라벨 띠 + 가는 선(.fge-label)
+     .fge-title         영문 큰 제목(COLOR! …)                      .fge-head      한글 머리말 + 강조색 굵은 밑줄
+     .fge-lead          설명 한 줄                                   .fge-btn       검정 주 단추(--ghost 흰 바탕 테두리)
+     .fge-arrow         단추 오른쪽 가는 화살표(svg 를 넣는다)          .fge-steplabel 「02 / 촬영」 같은 작은 강조색 라벨
+     .fge-progress      질문 진행 막대(li[data-on] = 답한 칸)          .fge-qgrid · .fge-qcard  A · B · C · D 큰 칸(aria-pressed=true 강조색)
+     .fge-photocard     사진 카드(aria-pressed=true 굵은 강조색 테두리 + 체크)   .fge-brackets  카메라 얼굴 자리 모서리 괄호(span 넷)
+     .fge-count         아주 큰 카운트다운 숫자                        .fge-rows      01 · 02 · 03 번호 줄(가는 선으로 나눔)
+     .fge-actions       결과 단추 둘(인쇄하기 · QR로 받기) 늘 같은 자리     .fge-wait      기다림(가는 진행 막대 + 한 줄)
+     .fge-camtag        카메라 위 작은 검정 라벨
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@font-face {
+  font-family: 'FG Pretendard';
+  src: url('/fonts/pretendard/PretendardVariable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'FG Black Han Sans';
+  src: url('/fonts/ui/black-han-sans/400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+.fge-viewport { background: #111111; }
+.fg-stage[data-theme='editorial'] {
+  --fg-ink: #111111;
+  --fg-soft: #6b6b6b;
+  --fg-off: #bdbdbd;
+  --fg-line: #111111;
+  --fg-paper: #ffffff;
+  --fge-display: var(--pg-f-anton), 'Anton', Impact, 'Arial Narrow', sans-serif;
+  --fge-head: 'FG Black Han Sans', 'FG Pretendard', 'Apple SD Gothic Neo', sans-serif;
+  --fge-text: 'FG Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  background: #ffffff;
+  color: #111111;
+  font-family: var(--fge-text);
+  letter-spacing: -0.01em;
+}
+.fg-stage[data-theme='editorial'] .fg-body { background: #ffffff; }
+
+/* ── 위 막대(높이 96 · 아래 1px 선) ── */
+.fge-top { position: relative; z-index: 5; display: flex; flex: none; align-items: center; gap: 36px; height: 96px; padding: 0 40px 0 44px; border-bottom: 1px solid #111111; background: #ffffff; }
+.fge-logo { font-family: var(--fge-display); font-size: 56px; line-height: 1; letter-spacing: 0; color: #111111; white-space: nowrap; }
+.fge-rule { flex: 1; height: 1px; background: #111111; }
+.fge-steps { display: flex; gap: 44px; margin: 0; padding: 0; list-style: none; }
+.fge-steps li { position: relative; font-family: var(--fge-display); font-size: 52px; line-height: 1; color: #bdbdbd; }
+.fge-steps li[data-on] { color: #111111; }
+.fge-steps li[data-on]::after { content: ''; position: absolute; left: -6px; right: -6px; bottom: -14px; height: 7px; background: var(--fg-accent); }
+.fge-home { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 200px; height: 64px; padding: 0 28px; border: 0; border-radius: 4px; background: #111111; color: #ffffff !important; font: 800 30px/1 var(--fge-text) !important; cursor: pointer; }
+/* 보이는 단추는 64px, 누르는 곳은 96px */
+.fge-home::before { content: ''; position: absolute; inset: -16px -8px; }
+.fge-home:active { background: #333333; }
+.fge-home--empty { visibility: hidden; }
+
+/* ── 두 칸 · 꽉 찬 그림 ── */
+.fge-split { display: grid; flex: 1; grid-template-columns: 45% minmax(0, 1fr); min-height: 0; }
+.fge-split--even { grid-template-columns: 50% minmax(0, 1fr); }
+.fge-split > * { min-width: 0; min-height: 0; }
+.fge-hero { position: relative; overflow: hidden; background: #e9e9e9; border-right: 1px solid #111111; }
+.fge-hero > img, .fge-hero > video, .fge-hero > canvas { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* 아주 옅은 필름 그레인 */
+.fge-hero::after, .fge-grain::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.09; mix-blend-mode: multiply; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+.fge-panel { display: flex; flex-direction: column; justify-content: center; gap: 28px; padding: 64px 88px 72px 80px; }
+
+/* ── 글자 ── */
+.fge-labelrow { display: flex; align-items: center; gap: 28px; }
+.fge-labelrow::after { content: ''; flex: 1; height: 1px; background: #111111; }
+.fge-label { display: inline-block; padding: 8px 18px 6px; background: var(--fg-accent); color: var(--fg-on-accent); font: 900 38px/1.15 var(--fge-text); letter-spacing: -0.02em; white-space: nowrap; }
+.fge-title { margin: 0; font-family: var(--fge-display); font-size: 232px; font-weight: 400; line-height: 0.92; letter-spacing: -0.005em; color: #111111; white-space: nowrap; }
+.fge-title--md { font-size: 184px; }
+.fge-head { margin: 0; font: 400 80px/1.18 var(--fge-head); letter-spacing: -0.02em; color: #111111; }
+.fge-head > u, .fge-under { text-decoration: none; background: linear-gradient(var(--fg-accent), var(--fg-accent)) left bottom / 100% 12px no-repeat; padding-bottom: 6px; }
+.fge-head--xl { font-size: 120px; line-height: 1.08; }
+.fge-lead { margin: 0; font: 600 38px/1.4 var(--fge-text); color: #111111; }
+.fge-soft { color: #6b6b6b; }
+.fge-steplabel { display: inline-block; align-self: flex-start; padding: 6px 16px 4px; background: var(--fg-accent); color: var(--fg-on-accent); font: 900 34px/1.2 var(--fge-text); }
+
+/* ── 단추 ── */
+.fge-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 24px; min-height: 128px; padding: 0 48px; border: 0; border-radius: 4px; background: #111111; color: #ffffff !important; font: 900 54px/1 var(--fge-text) !important; letter-spacing: -0.02em; text-decoration: none; cursor: pointer; transition: background-color 0.12s ease; }
+.fge-btn:active { background: #333333; }
+.fge-btn--wide { width: 100%; justify-content: space-between; padding: 0 56px; }
+.fge-btn--ghost { border: 2px solid #111111; background: #ffffff; color: #111111 !important; }
+.fge-btn--ghost:active { background: #ececec; }
+.fge-btn:disabled, .fge-btn[aria-disabled='true'] { background: #bdbdbd; color: #ffffff !important; border-color: #bdbdbd; pointer-events: none; }
+.fge-btn--ghost:disabled { background: #ffffff; color: #bdbdbd !important; }
+.fge-arrow { width: 96px; height: 40px; flex: none; }
+.fge-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.fge-actions > .fge-btn { width: 100%; }
+
+/* ── 촬영 ── */
+.fge-cam { position: relative; overflow: hidden; background: #1a1a1a; border-right: 1px solid #111111; }
+.fge-cam > video, .fge-cam > canvas, .fge-cam > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.fge-camtag { position: absolute; top: 28px; left: 28px; z-index: 2; padding: 10px 18px; background: #111111; color: #ffffff; font: 800 30px/1 var(--fge-text); }
+.fge-brackets { position: absolute; z-index: 2; inset: 18% 26% 14% 26%; pointer-events: none; }
+.fge-brackets > span { position: absolute; width: 72px; height: 72px; border: 0 solid var(--fg-accent); }
+.fge-brackets > span:nth-child(1) { top: 0; left: 0; border-top-width: 8px; border-left-width: 8px; }
+.fge-brackets > span:nth-child(2) { top: 0; right: 0; border-top-width: 8px; border-right-width: 8px; }
+.fge-brackets > span:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 8px; border-left-width: 8px; }
+.fge-brackets > span:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 8px; border-right-width: 8px; }
+.fge-count { margin: 0; font-family: var(--fge-display); font-size: 400px; line-height: 0.9; text-align: center; color: #111111; }
+
+/* ── 질문 ── */
+.fge-progress { display: flex; align-items: center; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.fge-progress > li { flex: 1; height: 12px; background: #d6d6d6; }
+.fge-progress > li[data-on] { background: var(--fg-accent); }
+.fge-progress-count { flex: none !important; height: auto !important; background: none !important; margin-left: 24px; font-family: var(--fge-display); font-size: 48px; line-height: 1; color: #111111; }
+.fge-qgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.fge-qcard { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; min-height: 280px; padding: 28px 24px; border: 2px solid #111111; border-radius: 4px; background: #ffffff; color: #111111 !important; font: 900 46px/1.2 var(--fge-text) !important; text-align: center; cursor: pointer; }
+.fge-qcard > .fge-key { position: absolute; top: 18px; left: 24px; font-family: var(--fge-display); font-size: 56px; line-height: 1; }
+.fge-qcard svg { width: 120px; height: 120px; stroke-width: 1.4; }
+.fge-qcard[aria-pressed='true'], .fge-qcard[aria-checked='true'] { border-color: var(--fg-accent); background: var(--fg-accent); color: var(--fg-on-accent) !important; }
+.fge-qcard:active { background: #f1f1f1; }
+.fge-photocard { position: relative; display: block; overflow: hidden; border: 2px solid #111111; border-radius: 4px; background: #111111; color: #ffffff !important; cursor: pointer; padding: 0; }
+.fge-photocard > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.fge-photocard > b { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 20px 14px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.72)); font: 900 42px/1.1 var(--fge-text); text-align: left; }
+.fge-photocard[aria-pressed='true'], .fge-photocard[aria-checked='true'] { outline: 8px solid var(--fg-accent); outline-offset: -8px; }
+.fge-photocard[aria-pressed='true']::after, .fge-photocard[aria-checked='true']::after { content: ''; position: absolute; top: 16px; right: 16px; width: 52px; height: 52px; background: var(--fg-accent) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12.5l4.5 4.5L19 7.5'/></svg>") center / 38px no-repeat; }
+.fg-stage[data-program='color'] .fge-photocard[aria-pressed='true']::after, .fg-stage[data-program='fortune'] .fge-photocard[aria-pressed='true']::after { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12.5l4.5 4.5L19 7.5'/></svg>"); }
+
+/* ── 결과 ── */
+.fge-rows { margin: 0; padding: 0; list-style: none; border-top: 1px solid #111111; }
+.fge-rows > li { display: grid; grid-template-columns: 96px auto minmax(0, 1fr); align-items: baseline; gap: 24px; padding: 18px 0; border-bottom: 1px solid #111111; font: 600 36px/1.35 var(--fge-text); }
+.fge-rows > li > i { font-family: var(--fge-display); font-style: normal; font-size: 44px; line-height: 1; }
+.fge-rows > li > b { font-weight: 900; white-space: nowrap; }
+
+/* ── 기다림 ── */
+.fge-wait { display: flex; flex-direction: column; gap: 24px; }
+.fge-bar { position: relative; height: 12px; overflow: hidden; background: #d6d6d6; }
+.fge-bar > i { position: absolute; inset: 0 auto 0 0; width: 40%; background: var(--fg-accent); animation: fge-bar 1.6s ease-in-out infinite; }
+@keyframes fge-bar { 0% { left: -40%; } 100% { left: 100%; } }
+@media (prefers-reduced-motion: reduce) { .fge-bar > i { animation-duration: 4s; } }
+
+/* ── 인쇄 미리보기 · QR 창(FgResultSheet) — 같은 선 · 단추 모양 ── */
+.fg-stage[data-theme='editorial'] .fg-sheet { background: rgba(17, 17, 17, 0.55); }
+.fg-stage[data-theme='editorial'] .fg-sheet-card { border: 2px solid #111111; border-radius: 4px; background: #ffffff; box-shadow: none; padding: 56px 64px; gap: 64px; }
+.fg-stage[data-theme='editorial'] .fg-sheet-preview img { border-radius: 2px; border: 1px solid #111111; box-shadow: none; }
+.fg-stage[data-theme='editorial'] .fg-sheet-preview figcaption { color: #6b6b6b; font-family: var(--fge-text); }
+.fg-stage[data-theme='editorial'] .fg-sheet-side .fg-kicker { display: inline-block; align-self: flex-start; padding: 6px 16px 4px; background: var(--fg-accent); color: var(--fg-on-accent); font: 900 32px/1.2 var(--fge-text); letter-spacing: 0; }
+.fg-stage[data-theme='editorial'] .fg-sheet-title { font: 400 76px/1.15 var(--fge-head); background: linear-gradient(var(--fg-accent), var(--fg-accent)) left bottom / 100% 10px no-repeat; padding-bottom: 8px; align-self: flex-start; }
+.fg-stage[data-theme='editorial'] .fg-sheet-note { color: #111111; font: 600 32px/1.45 var(--fge-text); }
+.fg-stage[data-theme='editorial'] .fg-sheet-qr { border: 1px solid #111111; border-radius: 4px; box-shadow: none; }
+.fg-stage[data-theme='editorial'] .fg-sheet-qr-code { border-radius: 0; background: #f2f2f2; }
+.fg-stage[data-theme='editorial'] .fg-sheet-qr-text b { font-family: var(--fge-text); }
+.fg-stage[data-theme='editorial'] .fg-sheet-actions .fg-btn { min-height: 120px; border-radius: 4px; box-shadow: none; font: 900 44px/1 var(--fge-text) !important; }
+.fg-stage[data-theme='editorial'] .fg-sheet-actions .fg-btn--primary { background: #111111; color: #ffffff !important; }
+.fg-stage[data-theme='editorial'] .fg-sheet-actions .fg-btn--ghost { border: 2px solid #111111; background: #ffffff; color: #111111 !important; }
+.fg-stage[data-theme='editorial'] .fg-sheet-fine { color: #6b6b6b; }

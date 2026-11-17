@@ -16,6 +16,7 @@ import { PrintCard, QrCard, usePrint, useSavedLink } from './SavePanel'
 import { Creative, Modal, OptionGroups, PanelHead, Progress, Split, Stages, useElapsed } from './ui'
 import { loadImage } from './video'
 import { FUNGROUND_SITE, fungroundWebcamOnly, isFungroundSite } from '@/lib/funground/demo'
+import { FgeOptions, FgeResult, useFgEditorial, type FgeArt } from './funground-editorial'
 
 type Step = 'capture' | 'options' | 'generating' | 'result' | 'save'
 type Shot = HTMLCanvasElement | HTMLImageElement
@@ -31,10 +32,17 @@ export function PhotoFlow({ ctx }: { ctx: FlowCtx }) {
   const [choices, setChoices] = useState(() => defaultChoices(program))
   const [result, setResult] = useState<{ image: HTMLImageElement; prints: [string, string]; comment?: string } | null>(null)
   const [design, setDesign] = useState<0 | 1>(0)
+  // 펀그라운드 데모(DREAM!)의 에디토리얼 화면(funground-editorial.tsx) — 아니면 null, 아래 화면은 모두 예전 그대로
+  const fge = useFgEditorial(program)
+  /** 에디토리얼 결과 화면의 「인쇄하기」로 저장 화면에 왔는가 — 오자마자 인쇄(펀그라운드 브라우저는 인쇄 미리보기 창) */
+  const [printNow, setPrintNow] = useState(false)
 
   // ctx 의 함수는 화면 틀의 상태 설정 함수라 바뀌지 않는다 — ctx 객체(매번 새로 만듦)가 아니라 함수에 묶는다
   const { setStep: showStep, setDirty } = ctx
-  useEffect(() => { showStep(step === 'capture' ? 1 : step === 'options' ? 2 : 3) }, [step, showStep])
+  // 위 막대 단계 — 에디토리얼은 시작 · 하기 · 결과 세 묶음(촬영 · 고르기 · 만드는 중 = 02, 결과 · 저장 = 03)
+  useEffect(() => {
+    showStep(fge ? (step === 'result' || step === 'save' ? 3 : 2) : step === 'capture' ? 1 : step === 'options' ? 2 : 3)
+  }, [step, showStep, fge])
   useEffect(() => { setDirty(step !== 'capture' || shots.some(Boolean)) }, [step, shots, setDirty])
 
   const setShot = (i: number, shot: Shot | null) => {
@@ -50,9 +58,16 @@ export function PhotoFlow({ ctx }: { ctx: FlowCtx }) {
   return (
     <>
       {step === 'capture' && (
-        <CaptureStep ctx={ctx} shots={shots} shotUrls={shotUrls} setShot={setShot} onNext={() => setStep('options')} />
+        <CaptureStep ctx={ctx} shots={shots} shotUrls={shotUrls} setShot={setShot} onNext={() => setStep('options')} fge={fge} />
       )}
-      {step === 'options' && (
+      {step === 'options' && fge && (
+        <FgeOptions
+          program={program} art={fge} shotUrl={shotUrls[0]} choices={choices}
+          onChange={(g, o) => setChoices((c) => ({ ...c, [g]: o }))}
+          onRetake={() => setStep('capture')} onGo={() => setStep('generating')}
+        />
+      )}
+      {step === 'options' && !fge && (
         <Split
           className="pg-options"
           visual={<ShotsVisual urls={shotUrls} program={program.id} />}
@@ -71,9 +86,20 @@ export function PhotoFlow({ ctx }: { ctx: FlowCtx }) {
           ctx={ctx} shots={shots as Shot[]} shotUrls={shotUrls as string[]} choices={choices} labels={labels}
           onDone={(r) => { setResult(r); setDesign(0); setStep('result'); ctx.onResult() }}
           onStyle={() => setStep('options')}
+          fge={fge}
         />
       )}
-      {step === 'result' && result && (
+      {step === 'result' && result && fge && (
+        <FgeResult
+          program={program} art={fge} image={result.image.src} prints={result.prints} comment={result.comment}
+          design={design} onDesign={setDesign} label={Object.values(labels)[0] ?? program.name}
+          onRetake={() => { setResult(null); shots.forEach((_, i) => setShot(i, null)); setStep('capture') }}
+          onStyle={() => setStep('options')}
+          onPrint={() => { setPrintNow(true); setStep('save') }}
+          onQr={() => { setPrintNow(false); setStep('save') }}
+        />
+      )}
+      {step === 'result' && result && !fge && (
         <Split className="pg-result" visual={<PrintPreview src={result.prints[design]} />}>
           <PanelHead title={program.result.title} sub={program.result.sub} />
           {result.comment && <p className="pg-comment"><span aria-hidden="true">“</span>{result.comment}<span aria-hidden="true">”</span></p>}
@@ -95,7 +121,7 @@ export function PhotoFlow({ ctx }: { ctx: FlowCtx }) {
           <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={() => setStep('save')}>저장하고 인쇄하기<span aria-hidden="true">→</span></button>
         </Split>
       )}
-      {step === 'save' && result && <SaveStep ctx={ctx} image={result.prints[design]} />}
+      {step === 'save' && result && <SaveStep ctx={ctx} image={result.prints[design]} printNow={fge ? printNow : false} />}
     </>
   )
 }
@@ -125,12 +151,14 @@ function PrintPreview({ src }: { src: string }) {
 
 // ───────────────────────── 촬영 ─────────────────────────
 
-export function CaptureStep({ ctx, shots, shotUrls, setShot, onNext }: {
+export function CaptureStep({ ctx, shots, shotUrls, setShot, onNext, fge }: {
   ctx: FlowCtx
   shots: (Shot | null)[]
   shotUrls: (string | null)[]
   setShot: (i: number, shot: Shot | null) => void
   onNext: () => void
+  /** 펀그라운드 에디토리얼(단계 라벨 · 카운트 중 오른쪽 큰 숫자) — 없으면 예전 그대로 */
+  fge?: FgeArt | null
 }) {
   const { program } = ctx
   const need = program.capture.shots
@@ -239,12 +267,13 @@ export function CaptureStep({ ctx, shots, shotUrls, setShot, onNext }: {
   }
 
   return (
-    <Split className="pg-capture-step" visual={visual}>
+    <Split className={`pg-capture-step${fge && count !== null ? ' pgf-counting' : ''}`} visual={visual}>
       <PanelHead
         title={done ? '사진을 확인해 주세요' : need > 1 ? `${active === 0 ? '첫 번째' : '두 번째'} 사람을 찍어 주세요` : program.capture.title}
         sub={done ? '마음에 들면 다음으로, 아니면 다시 찍을 수 있어요' : program.capture.hint}
-        eyebrow={need > 1 ? `${shots.filter(Boolean).length} / ${need}` : undefined}
+        eyebrow={need > 1 ? `${shots.filter(Boolean).length} / ${need}` : fge ? '02 / 촬영' : undefined}
       />
+      {fge && count !== null && <b className="pgf-count" aria-hidden="true">{count || '찰칵'}</b>}
       {faceWarning && <p className="pg-warn" role="alert"><AlertTriangle size={18} aria-hidden="true" />{faceWarning}</p>}
       {error && <p className="pg-error-text" role="alert">{error}</p>}
       {!done ? (
@@ -260,7 +289,7 @@ export function CaptureStep({ ctx, shots, shotUrls, setShot, onNext }: {
           ) : (
             <label className="pg-consent">
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} disabled={count !== null} />
-              <span>사진 촬영과 AI 사진 생성에 동의해요. 찍은 사진은 생성에만 쓰고, 저장을 누른 결과만 7일 보관해요.</span>
+              <span><span>사진 촬영과 AI 사진 생성에 동의해요.</span> 찍은 사진은 생성에만 쓰고, 저장을 누른 결과만 7일 보관해요.</span>
             </label>
           )}
           <button type="button" className="pg-btn pg-btn--accent pg-btn--shoot" onClick={shoot} disabled={count !== null || camera.state !== 'ready' || !consent}>
@@ -332,7 +361,7 @@ export function PhoneSheet({ ctx, need, onClose, onPhotos }: { ctx: FlowCtx; nee
 
 // ───────────────────────── 생성 ─────────────────────────
 
-function Generate({ ctx, shots, shotUrls, choices, labels, onDone, onStyle }: {
+function Generate({ ctx, shots, shotUrls, choices, labels, onDone, onStyle, fge }: {
   ctx: FlowCtx
   shots: Shot[]
   shotUrls: string[]
@@ -340,6 +369,7 @@ function Generate({ ctx, shots, shotUrls, choices, labels, onDone, onStyle }: {
   labels: Record<string, string>
   onDone: (r: { image: HTMLImageElement; prints: [string, string]; comment?: string }) => void
   onStyle: () => void
+  fge?: FgeArt | null
 }) {
   const { program } = ctx
   const [stage, setStage] = useState(0)
@@ -404,7 +434,7 @@ function Generate({ ctx, shots, shotUrls, choices, labels, onDone, onStyle }: {
 
   return (
     <Split className="pg-generating" visual={<div className="pg-scan"><ShotsVisual urls={shotUrls} program={program.id} /><i aria-hidden="true" /></div>}>
-      <PanelHead title={program.generating.title} sub={program.generating.sub} />
+      <PanelHead title={program.generating.title} sub={program.generating.sub} eyebrow={fge ? '02 / 만드는 중' : undefined} />
       <Progress caption={`${elapsed}초 지남 · 보통 20~40초 걸려요`} />
       <Stages labels={program.generating.stages} active={stage} />
       <Creative text={program.creative} />
@@ -415,7 +445,12 @@ function Generate({ ctx, shots, shotUrls, choices, labels, onDone, onStyle }: {
 
 // ───────────────────────── 저장 ─────────────────────────
 
-export function SaveStep({ ctx, image }: { ctx: FlowCtx; image: string }) {
+export function SaveStep({ ctx, image, printNow = false }: {
+  ctx: FlowCtx
+  image: string
+  /** 펀그라운드 에디토리얼 결과 화면의 「인쇄하기」로 왔으면 바로 인쇄(브라우저는 인쇄 미리보기 창) — 그 밖에는 늘 false */
+  printNow?: boolean
+}) {
   const { program } = ctx
   const make = useCallback(async () => savePhoto(await ctx.getTicket(), image), [ctx, image])
   const saved = useSavedLink(make, true)
@@ -424,7 +459,16 @@ export function SaveStep({ ctx, image }: { ctx: FlowCtx; image: string }) {
   useEffect(() => { if (saved.link) { markShot({ downloaded: true }); setDirty(false) } }, [saved.link, markShot, setDirty])
   // 펀그라운드 데모를 노트북 · 폰 브라우저로 열면(프린터 없음) 인쇄하기 = 인쇄 미리보기 창 + 같은 QR(인쇄 창 대신, 2026-11-14 사용자 지시)
   const [previewOnly] = useState(() => isFungroundSite() && printer.browser)
-  const [preview, setPreview] = useState(false)
+  const [preview, setPreview] = useState(() => printNow && previewOnly)
+  const printedNow = useRef(false)
+  useEffect(() => {
+    if (!printNow || printedNow.current) return
+    printedNow.current = true
+    if (previewOnly) markShot({ printed: true })
+    else void printer.print()
+    // 저장 화면에 들어올 때 한 번만
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   return (
     <Split className="pg-save" visual={<PrintPreview src={image} />}>
       <PanelHead title={program.save.title} sub={program.save.sub} />

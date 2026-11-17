@@ -5,9 +5,16 @@
 // 행사용 노트북 링크(데모 표시 없음)는 예전 그대로다.
 
 import { useSyncExternalStore } from 'react'
+import { isFungroundSite } from '@/lib/funground/demo'
 
 const subscribeNever = () => () => {}
 const readDemo = () => new URLSearchParams(window.location.search).has('demo')
 
 /** 주소에 demo 가 붙었는가 — 서버에서 그릴 때는 아님(붙은 뒤 한 번 읽는다) */
 export const useDemoLink = () => useSyncExternalStore(subscribeNever, readDemo, () => false)
+
+/**
+ * 펀그라운드 데모(/booth-demo/funground)에서 연 주소인가(site=funground) — 퍼스널 컬러 · 직업 탐색을 「FUN GROUND Editorial」 테마로(FgPcFrame).
+ * 같은 노트북 링크를 행사에서 쓸 때(표시 없음)는 예전 화면 그대로다.
+ */
+export const useFungroundLink = () => useSyncExternalStore(subscribeNever, isFungroundSite, () => false)

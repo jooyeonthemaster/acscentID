@@ -1,18 +1,13 @@
-// 펀그라운드 사주 카드(SAJU! · FORTUNE!) — 4×6 포토 프린터로 뽑는 컬러 카드(1200×1800, JPEG)를 캔버스로 그린다.
-// 들어가는 것: 글자 로고(FUN GROUND 별내 — 로고가 오기 전 자리) · 프로그램 이름 · 찍은 사진 · 나의 일간(제목 + 첫 문장) · 만세력 네 기둥 ·
-// 2027년 한 줄 · 공부 · 친구 · 진로 · 꿈 · 마음 한 줄씩 · 행운 · 날짜 · 「재미로 보는 풀이예요」.
+// 펀그라운드 사주 카드(FORTUNE!) — 4×6 포토 프린터로 뽑는 카드(1200×1800, JPEG)를 캔버스로 그린다.
+// 모양(2026-11-16): 화면과 같은 「FUN GROUND Editorial」 — 흰 바탕 · 검정 선 · 강조색 하나(#FF7A1A) · 영문 큰 제목 Anton · 한글 머리말 Black Han Sans · 본문 Pretendard.
+// 들어가는 것: FUN GROUND 글자 로고(로고가 오기 전 자리) · 날짜 · 카드 이름 · FORTUNE! · 생일 한 줄 · 찍은 사진(+ 오행 라벨) · 나의 일간 제목 ·
+// 만세력 네 기둥 · 01 2027년 · 02~06 공부 · 친구 · 진로 · 꿈 · 마음 한 줄씩 · 행운 · 「재미로 보는 풀이예요」.
 // 글은 결과 화면과 같은 문장(FgSajuResult)의 제목만 쓴다. 줄은 띄어쓰기에서만 나눈다(keep-all).
 // 사진은 이 기기에서 찍은 것 그대로 — AI 에 보내지 않는다. 사진이 없으면(카메라 실패 · 「사진 없이 계속」) 일간 한자로 채운다.
-// 글꼴: 화면 글꼴(Wanted Sans, next/font 이름 그대로) · 한자는 Noto Serif KR — 그리기 전에 쓸 글자로 document.fonts.load 해 둔다.
-// 브라우저 전용(document · canvas).
+// 글꼴: 화면이 이미 받은 글꼴(editorial.css 의 FG Pretendard · FG Black Han Sans, next/font Anton 변수) · 한자는 Noto Serif KR —
+// 그리기 전에 쓸 글자로 document.fonts.load 해 둔다. 브라우저 전용(document · canvas).
 
-import type { Element } from '@/lib/saju'
-import { FG_ELEMENT_HANJA, FG_TOPICS, FG_YEAR, FG_YEAR_GANJI, type FgSajuResult } from './saju-reading'
-
-/** 화면 · 카드가 함께 쓰는 사주 색 */
-export const FG_SAJU_TONE = '#1f5a45'
-/** 오행 색 — 만세력 글자 · 막대 */
-export const FG_ELEMENT_COLOR: Record<Element, string> = { 목: '#2f9e5b', 화: '#e5533d', 토: '#d39a1c', 금: '#8a93a6', 수: '#2f6fd6' }
+import { FG_ELEMENT_HANJA, FG_ELEMENT_WORD, FG_TOPICS, FG_YEAR, type FgSajuResult } from './saju-reading'
 
 /** 4×6 인쇄(300dpi 근처) */
 export const SAJU_CARD_W = 1200
@@ -22,11 +17,11 @@ export const SAJU_PHOTO_ASPECT = 4 / 5
 
 const W = SAJU_CARD_W
 const H = SAJU_CARD_H
-const M = 60
-const INK = '#17213a'
-const SOFT = '#56607a'
-const PAPER = '#fff8ef'
-const YELLOW = '#ffc83d'
+const M = 64
+const INK = '#111111'
+const SOFT = '#6b6b6b'
+const PAPER = '#ffffff'
+const ACCENT = '#ff7a1a'
 
 export interface SajuCardInput {
   result: FgSajuResult
@@ -40,34 +35,27 @@ export interface SajuCardInput {
   root?: globalThis.Element | null
 }
 
-/** 흰색과 섞은 옅은 색(color-mix 대신) */
-function tint(hex: string, amount: number): string {
-  const n = parseInt(hex.slice(1), 16)
-  const mix = (c: number) => Math.round(c * amount + 255 * (1 - amount))
-  return `rgb(${mix(n >> 16)}, ${mix((n >> 8) & 255)}, ${mix(n & 255)})`
-}
-/** 검정과 섞은 짙은 색 */
-function shade(hex: string, amount: number): string {
-  const n = parseInt(hex.slice(1), 16)
-  const mix = (c: number) => Math.round(c * amount)
-  return `rgb(${mix(n >> 16)}, ${mix((n >> 8) & 255)}, ${mix(n & 255)})`
-}
-
-/** 화면이 쓰는 본문 글꼴(next/font 가 만든 이름 포함) · 한자 글꼴 */
+/** 화면이 쓰는 글꼴 이름(next/font 가 만든 Anton 이름 포함) · 한자 글꼴 */
 function fontFamilies(root?: globalThis.Element | null) {
   const from = root ?? document.querySelector('.fg-stage') ?? document.body
-  const sans = getComputedStyle(from).fontFamily || "'Apple SD Gothic Neo', sans-serif"
+  const style = getComputedStyle(from)
+  const sans = "'FG Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif"
+  const head = "'FG Black Han Sans', 'FG Pretendard', 'Apple SD Gothic Neo', sans-serif"
+  const antonVar = style.getPropertyValue('--pg-f-anton').trim()
+  const display = `${antonVar ? `${antonVar}, ` : ''}'Anton', Impact, 'Arial Narrow', sans-serif`
   const serifVar = getComputedStyle(document.body).getPropertyValue('--font-noto-serif-kr').trim()
   const serif = `${serifVar ? `${serifVar}, ` : ''}'Noto Serif KR', 'Apple SD Gothic Neo', serif`
-  return { sans, serif }
+  return { sans, head, display, serif }
 }
 
 /** 쓸 글자로 글꼴을 받아 둔다(한자 글꼴은 글자 범위마다 나뉘어 있어 쓸 글자를 넘겨야 받는다) */
-async function loadFonts(sans: string, serif: string, sample: string, hanja: string) {
+async function loadFonts(f: ReturnType<typeof fontFamilies>, sample: string, hanja: string) {
   try {
     await Promise.all([
-      ...[600, 700, 800].map((w) => document.fonts.load(`${w} 32px ${sans}`, sample)),
-      document.fonts.load(`900 60px ${serif}`, hanja),
+      ...[600, 700, 800, 900].map((w) => document.fonts.load(`${w} 32px ${f.sans}`, sample)),
+      document.fonts.load(`400 72px ${f.head}`, sample),
+      document.fonts.load(`400 72px ${f.display}`, 'FUNGROUNDFORTUNE!0123456789'),
+      document.fonts.load(`900 60px ${f.serif}`, hanja),
     ])
     await document.fonts.ready
   } catch { /* 기본 글꼴로 그린다 */ }
@@ -109,17 +97,20 @@ const dateOf = (d: Date) => `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2
 export async function renderSajuCard({ result, photo, calendar, printedAt = new Date(), root }: SajuCardInput): Promise<string> {
   const { chart, reading } = result
   const ai = result.engine === 'ai'
-  const { sans, serif } = fontFamilies(root)
+  const fonts = fontFamilies(root)
   const dm = reading.dayMaster
-  const dmColor = FG_ELEMENT_COLOR[dm.element]
-  const birthLine = `${calendar === 'lunar' ? chart.lunarLabel : chart.solarLabel} · ${chart.zodiac}띠`
-  const hanja = [dm.hanja, FG_YEAR_GANJI.hanja, ...Object.values(FG_ELEMENT_HANJA), ...chart.pillars.flatMap(({ pillar }) => (pillar ? [pillar.ganHanja, pillar.jiHanja] : []))].join('')
+  const birthLine = `${calendar === 'lunar' ? chart.lunarLabel : chart.solarLabel} · ${chart.zodiac}띠${chart.isThreePillar ? ' · 시간 모름' : ''}`
+  const rows = [
+    { label: `${FG_YEAR}년`, title: reading.year2027.title },
+    ...FG_TOPICS.map((t) => ({ label: t.label, title: reading.topics[t.key].title })),
+  ]
+  const hanja = [dm.hanja, ...Object.values(FG_ELEMENT_HANJA), ...chart.pillars.flatMap(({ pillar }) => (pillar ? [pillar.ganHanja, pillar.jiHanja] : []))].join('')
   const sample = [
-    birthLine, dm.title, reading.year2027.title, ...FG_TOPICS.flatMap((t) => [t.label, reading.topics[t.key].title]),
-    reading.lucky.color, reading.lucky.item, reading.lucky.habit,
-    'FUN GROUND 별내 SAJU! FORTUNE! 사주 카드 AI 포춘 나의 일간 만세력 흐름 행운 색 물건 습관 재미로 보는 풀이예요 시간 모름 0123456789.()·', hanja,
+    birthLine, dm.title, ...rows.flatMap((r) => [r.label, r.title]), reading.lucky.color, reading.lucky.item, reading.lucky.habit,
+    `${FG_ELEMENT_WORD[dm.element]}의 기운 나의 일간 만세력 시 날 달 해 나 모름 행운 색 물건 습관 AI 포춘 카드 재미로 보는 풀이예요 별내 0123456789.()·—`,
+    `${dm.gan}${dm.element}`, ...chart.pillars.flatMap(({ pillar }) => (pillar ? [pillar.gan, pillar.ji, pillar.ganElement, pillar.jiElement] : [])),
   ].join(' ')
-  const [image] = await Promise.all([photo ? loadImage(photo).catch(() => null) : Promise.resolve(null), loadFonts(sans, serif, sample, hanja)])
+  const [image] = await Promise.all([photo ? loadImage(photo).catch(() => null) : Promise.resolve(null), loadFonts(fonts, sample, hanja)])
 
   const canvas = document.createElement('canvas')
   canvas.width = W
@@ -130,68 +121,62 @@ export async function renderSajuCard({ result, photo, calendar, printedAt = new 
   ctx.fillStyle = PAPER
   ctx.fillRect(0, 0, W, H)
 
-  const font = (weight: number, size: number, family = sans) => { ctx.font = `${weight} ${size}px ${family}` }
+  const font = (weight: number | string, size: number, family = fonts.sans) => { ctx.font = `${weight} ${size}px ${family}` }
   const fill = (color: string) => { ctx.fillStyle = color }
-  const round = (x: number, y: number, w: number, h: number, r: number, color: string) => {
-    fill(color); ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill()
-  }
-  /** 폭에 들어가게 글자 크기를 줄여 한 줄로(최소 크기에서도 넘치면 줄을 나눈다) — 쓴 높이를 돌려준다 */
-  const fitLine = (text: string, x: number, y: number, maxW: number, size: number, weight: number, { min = Math.round(size * 0.78), color = INK, align = 'left' as CanvasTextAlign, lead = 1.22, maxLines = 2 } = {}) => {
+  const rule = (x: number, y: number, w: number, h = 1, color = INK) => { fill(color); ctx.fillRect(x, y, w, h) }
+  /** 폭에 들어가게 글자 크기를 줄여 쓴다(최소 크기에서도 넘치면 줄을 나눈다) — 쓴 높이를 돌려준다 */
+  const fitLine = (text: string, x: number, y: number, maxW: number, size: number, weight: number | string, { min = Math.round(size * 0.78), color = INK, lead = 1.22, maxLines = 1, family = fonts.sans } = {}) => {
     let s = size
-    font(weight, s)
-    while (s > min && ctx.measureText(text).width > maxW) { s -= 1; font(weight, s) }
+    font(weight, s, family)
+    while (s > min && ctx.measureText(text).width > maxW) { s -= 1; font(weight, s, family) }
     const lines = wrapKeepAll(ctx, text, maxW).slice(0, maxLines)
     fill(color)
-    ctx.textAlign = align
-    lines.forEach((line, i) => ctx.fillText(line, align === 'center' ? x + maxW / 2 : align === 'right' ? x + maxW : x, y + i * Math.round(s * lead)))
-    ctx.textAlign = 'left'
-    return lines.length * Math.round(s * lead)
+    lines.forEach((line, i) => ctx.fillText(line, x, y + i * Math.round(s * lead)))
+    return { height: lines.length * Math.round(s * lead), size: s, width: Math.max(...lines.map((l) => ctx.measureText(l).width)) }
   }
-  const shadowed = (draw: () => void) => {
-    ctx.save(); ctx.shadowColor = 'rgba(23, 33, 58, 0.12)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8; draw(); ctx.restore()
+  /** 강조색 라벨 띠 — 쓴 폭을 돌려준다 */
+  const label = (text: string, x: number, y: number, size: number, padX = 20, h = Math.round(size * 1.6)) => {
+    font(900, size)
+    const w = ctx.measureText(text).width + padX * 2
+    fill(ACCENT); ctx.fillRect(x, y, w, h)
+    fill(INK); ctx.fillText(text, x + padX, y + (h - size) / 2 + 1)
+    return w
   }
 
-  // ───────── 머리 띠: 글자 로고 · 프로그램 이름 · 날짜 ─────────
-  const BAND = 250
-  fill(FG_SAJU_TONE)
-  ctx.fillRect(0, 0, W, BAND)
-  const glow = ctx.createRadialGradient(W * 0.88, BAND, 10, W * 0.88, BAND, 520)
-  glow.addColorStop(0, 'rgba(255, 200, 61, 0.28)')
-  glow.addColorStop(1, 'rgba(255, 200, 61, 0)')
-  fill(glow as unknown as string)
-  ctx.fillRect(0, 0, W, BAND)
-  font(800, 40)
-  ctx.letterSpacing = '4px'
-  fill('#fff')
-  ctx.fillText('FUN GROUND', M, 48)
-  const brandW = ctx.measureText('FUN GROUND').width
-  ctx.letterSpacing = '0px'
-  font(800, 36)
-  fill(YELLOW)
-  ctx.fillText('별내', M + brandW + 14, 51)
-  font(800, 124)
-  ctx.letterSpacing = '-4px'
-  fill(YELLOW)
-  const word = 'FORTUNE!'
-  ctx.fillText(word, M - 4, 104)
-  const wordW = ctx.measureText(word).width
-  ctx.letterSpacing = '0px'
-  font(800, 40)
-  fill('#fff')
-  ctx.fillText(ai ? 'AI 포춘 카드' : '포춘 카드', M + wordW + 22, 132)
-  font(600, 28)
-  fill('rgba(255, 255, 255, 0.78)')
-  ctx.fillText(birthLine, M + wordW + 22, 184)
+  // ───────── 머리: FUN GROUND · 날짜 / 카드 이름 띠 / FORTUNE! / 생일 한 줄 ─────────
+  font(400, 56, fonts.display)
+  fill(INK)
+  ctx.fillText('FUN GROUND', M, 52)
+  font(700, 28)
+  fill(SOFT)
+  ctx.textAlign = 'right'
+  ctx.fillText(`별내 · ${dateOf(printedAt)}`, W - M, 70)
+  ctx.textAlign = 'left'
+  rule(M, 136, W - M * 2, 2)
 
-  // ───────── 사진(왼쪽 4:5) · 일간 · 만세력(오른쪽) ─────────
-  const TOP = BAND + 32
-  const PH_W = 510
+  const bandW = label(ai ? 'AI 포춘 카드' : '포춘 카드', M, 168, 34)
+  rule(M + bandW + 24, 168 + 27, W - M * 2 - bandW - 24)
+
+  // 영문 큰 제목 — 폭에 맞춰(긴 쪽이 넘치지 않게)
+  {
+    let s = 248
+    font(400, s, fonts.display)
+    while (s > 160 && ctx.measureText('FORTUNE!').width > W - M * 2) { s -= 4; font(400, s, fonts.display) }
+    ctx.textBaseline = 'alphabetic'
+    fill(INK)
+    ctx.fillText('FORTUNE!', M - 4, 440)
+    ctx.textBaseline = 'top'
+  }
+  font(700, 32)
+  fill(INK)
+  ctx.fillText(birthLine, M, 462)
+
+  // ───────── 사진(왼쪽 4:5 + 오행 라벨) · 나의 일간 · 만세력(오른쪽) ─────────
+  const TOP = 528
+  const PH_W = 500
   const PH_H = Math.round(PH_W / SAJU_PHOTO_ASPECT)
-  const RX = M + PH_W + 32
-  const RW = W - M - RX
-  shadowed(() => round(M - 10, TOP - 10, PH_W + 20, PH_H + 20, 40, '#fff'))
   ctx.save()
-  ctx.beginPath(); ctx.roundRect(M, TOP, PH_W, PH_H, 30); ctx.clip()
+  ctx.beginPath(); ctx.rect(M, TOP, PH_W, PH_H); ctx.clip()
   if (image) {
     // 가운데 기준으로 칸을 꽉 채운다
     const scale = Math.max(PH_W / image.naturalWidth, PH_H / image.naturalHeight)
@@ -199,185 +184,107 @@ export async function renderSajuCard({ result, photo, calendar, printedAt = new 
     const dh = image.naturalHeight * scale
     ctx.drawImage(image, M + (PH_W - dw) / 2, TOP + (PH_H - dh) / 2, dw, dh)
   } else {
-    fill(tint(dmColor, 0.18))
+    fill(INK)
     ctx.fillRect(M, TOP, PH_W, PH_H)
-    fill(dmColor)
+    fill(PAPER)
     ctx.textAlign = 'center'
-    font(900, 300, serif)
+    font(900, 320, fonts.serif)
     ctx.fillText(dm.hanja, M + PH_W / 2, TOP + PH_H / 2 - 190)
     ctx.textAlign = 'left'
   }
   ctx.restore()
-  // 사진 귀퉁이 일간 도장(사진이 없으면 칸 전체가 일간 한자라 뺀다)
-  if (image) {
-    const r = 70
-    const cx = M + PH_W - r + 16
-    const cy = TOP + PH_H - r + 16
-    fill('#fff'); ctx.beginPath(); ctx.arc(cx, cy, r + 10, 0, Math.PI * 2); ctx.fill()
-    fill(dmColor); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill()
-    fill('#fff')
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    font(900, 84, serif)
-    ctx.fillText(dm.hanja, cx, cy + 4)
-    ctx.textBaseline = 'top'
-    ctx.textAlign = 'left'
-  }
+  label(`${FG_ELEMENT_WORD[dm.element]}의 기운`, M + 20, TOP + PH_H - 20 - 62, 36, 18, 62)
 
-  // 나의 일간
-  const HERO_H = 262
-  shadowed(() => round(RX, TOP, RW, HERO_H, 34, tint(dmColor, 0.16)))
-  {
-    const x = RX + 34
-    const w = RW - 68
-    font(800, 28)
-    fill(shade(dmColor, 0.7))
-    ctx.fillText(`나의 일간 · ${dm.gan}${dm.element}(${dm.hanja}${FG_ELEMENT_HANJA[dm.element]})`, x, TOP + 32)
-    const titleH = fitLine(dm.title, x, TOP + 78, w, 50, 800, { min: 40, lead: 1.18, maxLines: 2 })
-    // 일간 이야기 첫 문장 — 칸에 들어가는 줄까지만
-    const first = dm.text.split(/(?<=[.!?。])\s+/)[0] ?? ''
-    const textTop = TOP + 78 + titleH + 12
-    font(600, 26)
-    const room = Math.floor((TOP + HERO_H - 24 - textTop) / 36)
-    const lines = wrapKeepAll(ctx, first, w)
-    if (room > 0 && lines.length <= room) {
-      fill(shade(dmColor, 0.55))
-      lines.forEach((line, i) => ctx.fillText(line, x, textTop + i * 36))
-    }
-  }
+  const RX = M + PH_W + 40
+  const RW = W - M - RX
+  font(800, 28)
+  fill(SOFT)
+  ctx.fillText(`나의 일간 · ${dm.gan}${dm.element}(${dm.hanja}${FG_ELEMENT_HANJA[dm.element]})`, RX, TOP)
+  const title = fitLine(dm.title, RX, TOP + 46, RW, 76, 400, { min: 56, lead: 1.12, maxLines: 2, family: fonts.head })
+  rule(RX, TOP + 46 + title.height + 4, Math.min(RW, title.width), 12, ACCENT)
 
-  // 만세력
-  const CH_TOP = TOP + HERO_H + 22
-  const CH_H = PH_H - HERO_H - 22
-  shadowed(() => round(RX, CH_TOP, RW, CH_H, 34, '#fff'))
+  // 만세력 — 네 칸(시 · 날 · 달 · 해), 날 기둥(나)은 강조색
   {
-    font(800, 32)
-    fill(INK)
-    ctx.fillText('나의 만세력', RX + 30, CH_TOP + 26)
-    if (chart.isThreePillar) {
-      const tw = ctx.measureText('나의 만세력').width
-      font(700, 24); fill(SOFT); ctx.fillText('시간 모름', RX + 30 + tw + 14, CH_TOP + 34)
-    }
-    const gap = 10
-    const innerX = RX + 22
-    const innerW = RW - 44
-    const colW = (innerW - gap * 3) / 4
-    const top = CH_TOP + 80
-    const colH = CH_TOP + CH_H - 22 - top
-    const glyph = Math.min(colW - 18, (colH - 52 - 10) / 2)
-    chart.pillars.forEach(({ key, label, pillar }, i) => {
-      const x = innerX + i * (colW + gap)
-      const me = key === 'day'
-      round(x, top, colW, colH, 22, me ? tint(FG_SAJU_TONE, 0.14) : '#f6f1e8')
-      if (me) { ctx.save(); ctx.lineWidth = 5; ctx.strokeStyle = FG_SAJU_TONE; ctx.beginPath(); ctx.roundRect(x + 2.5, top + 2.5, colW - 5, colH - 5, 20); ctx.stroke(); ctx.restore() }
+    const top = TOP + 46 + title.height + 44
+    const bottom = TOP + PH_H
+    const colW = RW / 4
+    const labelH = 50
+    const cellH = (bottom - top - labelH) / 2
+    rule(RX, top, RW)
+    chart.pillars.forEach(({ key, label: name, pillar }, i) => {
+      const x = RX + i * colW
+      if (key === 'day') { fill(ACCENT); ctx.fillRect(x, top, colW, bottom - top) }
       ctx.textAlign = 'center'
-      font(800, 22)
-      fill(me ? FG_SAJU_TONE : SOFT)
-      ctx.fillText(me ? '나 · 날' : label, x + colW / 2, top + 14)
-      const gx = x + (colW - glyph) / 2
+      font(800, 26)
+      fill(INK)
+      ctx.fillText(key === 'day' ? '나 · 날' : name.replace('태어난 ', ''), x + colW / 2, top + 13)
       if (pillar) {
-        ;([[pillar.ganHanja, `${pillar.gan} · ${pillar.ganElement}`, pillar.ganElement], [pillar.jiHanja, `${pillar.ji} · ${pillar.jiElement}`, pillar.jiElement]] as const).forEach(([h, k, el], n) => {
-          const gy = top + 50 + n * (glyph + 10)
-          round(gx, gy, glyph, glyph, 18, FG_ELEMENT_COLOR[el])
-          fill('#fff')
-          font(900, Math.round(glyph * 0.5), serif)
-          ctx.fillText(h, x + colW / 2, gy + glyph * 0.12)
-          font(800, 18)
-          ctx.fillText(k, x + colW / 2, gy + glyph * 0.7)
+        ;([[pillar.ganHanja, `${pillar.gan} · ${pillar.ganElement}`], [pillar.jiHanja, `${pillar.ji} · ${pillar.jiElement}`]] as const).forEach(([h, k], n) => {
+          const cy = top + labelH + n * cellH
+          const g = Math.min(76, cellH * 0.56)
+          font(900, g, fonts.serif)
+          fill(INK)
+          ctx.fillText(h, x + colW / 2, cy + (cellH - g - 30) / 2)
+          font(700, 22)
+          ctx.fillText(k, x + colW / 2, cy + (cellH - g - 30) / 2 + g + 8)
         })
       } else {
-        ctx.save(); ctx.setLineDash([10, 8]); ctx.lineWidth = 4; ctx.strokeStyle = '#c9bfae'
-        ctx.beginPath(); ctx.roundRect(gx, top + 50, glyph, glyph * 2 + 10, 18); ctx.stroke(); ctx.restore()
-        font(800, 24); fill(SOFT)
-        ctx.fillText('모름', x + colW / 2, top + 50 + glyph - 10)
+        font(800, 26)
+        fill(SOFT)
+        ctx.fillText('모름', x + colW / 2, top + labelH + cellH - 13)
       }
       ctx.textAlign = 'left'
     })
+    // 가는 선 격자
+    ctx.strokeStyle = INK
+    ctx.lineWidth = 1
+    ctx.strokeRect(RX + 0.5, top + 0.5, RW - 1, bottom - top - 1)
+    for (let i = 1; i < 4; i += 1) rule(RX + i * colW, top, 1, bottom - top)
+    rule(RX, top + labelH, RW)
   }
 
-  // ───────── 2027년 흐름 ─────────
+  // ───────── 01 2027년 · 02~06 공부 · 친구 · 진로 · 꿈 · 마음 ─────────
   let y = TOP + PH_H + 32
   {
-    const h = 146
-    shadowed(() => round(M, y, W - M * 2, h, 34, '#fff'))
-    const grad = ctx.createLinearGradient(M, y, W - M, y + h)
-    grad.addColorStop(0.55, 'rgba(255, 230, 220, 0)')
-    grad.addColorStop(1, 'rgba(255, 214, 196, 0.9)')
-    fill(grad as unknown as string)
-    ctx.beginPath(); ctx.roundRect(M, y, W - M * 2, h, 34); ctx.fill()
-    font(800, 28)
-    fill('#c0442f')
-    ctx.fillText(`${FG_YEAR}년 나의 흐름 · ${FG_YEAR_GANJI.label}`, M + 36, y + 26)
-    fitLine(reading.year2027.title, M + 36, y + 72, W - M * 2 - 72, 46, 800, { min: 34, maxLines: 1 })
-    y += h + 22
-  }
-
-  // ───────── 공부 · 친구 · 진로 · 꿈 · 마음 ─────────
-  {
-    const rowH = 70
-    const h = 24 + FG_TOPICS.length * rowH + 12
-    shadowed(() => round(M, y, W - M * 2, h, 34, '#fff'))
-    FG_TOPICS.forEach((t, i) => {
-      const ry = y + 20 + i * rowH
-      if (i) { fill('#efe8dc'); ctx.fillRect(M + 36, ry - 4, W - M * 2 - 72, 2) }
-      round(M + 30, ry + 8, 120, 52, 26, tint(FG_SAJU_TONE, 0.12))
-      font(800, 28)
-      fill(FG_SAJU_TONE)
-      ctx.textAlign = 'center'
-      ctx.fillText(t.label, M + 90, ry + 18)
-      ctx.textAlign = 'left'
-      fitLine(reading.topics[t.key].title, M + 176, ry + 15, W - M * 2 - 176 - 30, 36, 800, { min: 26, maxLines: 1 })
+    const rowH = 66
+    rule(M, y, W - M * 2, 2)
+    rows.forEach((r, i) => {
+      const ry = y + i * rowH
+      if (i) rule(M, ry, W - M * 2)
+      font(400, 40, fonts.display)
+      fill(INK)
+      ctx.fillText(pad2(i + 1), M, ry + 12)
+      font(900, 32)
+      ctx.fillText(r.label, M + 92, ry + 18)
+      font(600, 32)
+      ctx.fillText('—', M + 250, ry + 18)
+      fitLine(r.title, M + 304, ry + 18, W - M - (M + 304), 32, 600, { min: 24 })
     })
-    y += h + 22
+    y += rows.length * rowH
+    rule(M, y, W - M * 2)
   }
 
-  // ───────── 행운 ─────────
+  // ───────── 행운 한 줄 ─────────
   {
-    const luckyColor = FG_ELEMENT_COLOR[reading.lucky.element]
-    const gap = 16
-    const colW = (W - M * 2 - gap * 3 - 150) / 3
-    const h = 134
-    shadowed(() => round(M, y, 150, h, 30, luckyColor))
-    fill('#fff')
-    ctx.textAlign = 'center'
-    font(800, 26)
-    ctx.fillText('나의 행운', M + 75, y + 30)
-    font(900, 52, serif)
-    ctx.fillText(FG_ELEMENT_HANJA[reading.lucky.element], M + 75, y + 66)
-    ctx.textAlign = 'left'
-    ;[['색', reading.lucky.color], ['물건', reading.lucky.item], ['습관', reading.lucky.habit]].forEach(([label, value], i) => {
-      const x = M + 150 + gap + i * (colW + gap)
-      shadowed(() => round(x, y, colW, h, 30, tint(luckyColor, 0.14)))
-      let tx = x + 24
-      if (i === 0) {
-        fill('#fff'); ctx.beginPath(); ctx.arc(x + 44, y + 44, 22, 0, Math.PI * 2); ctx.fill()
-        fill(reading.lucky.swatch); ctx.beginPath(); ctx.arc(x + 44, y + 44, 17, 0, Math.PI * 2); ctx.fill()
-        tx = x + 78
-      }
-      font(800, 24)
-      fill(SOFT)
-      ctx.fillText(label, tx, y + 30)
-      // 가장 작은 글자로도 한 줄에 안 들어가면 두 줄 자리로 올린다(fitLine 이 먼저 크기를 줄인다)
-      font(800, 24)
-      const twoLines = ctx.measureText(value).width > colW - 44
-      fitLine(value, x + 22, twoLines ? y + 64 : y + 76, colW - 44, 30, 800, { min: 24, lead: 1.2, maxLines: 2 })
-    })
-    y += h + 28
-  }
-
-  // ───────── 끝: 재미로 보는 풀이예요 · 날짜 ─────────
-  {
-    font(800, 32)
-    const label = '재미로 보는 풀이예요'
-    const w = ctx.measureText(label).width + 52
-    const by = Math.min(y, H - 40 - 60)
-    round(M, by, w, 60, 30, YELLOW)
+    y += 22
+    font(900, 30)
     fill(INK)
-    ctx.fillText(label, M + 26, by + 13)
-    font(700, 26)
-    fill(SOFT)
+    ctx.fillText('행운', M, y + 8)
+    const sx = M + 92
+    fill(reading.lucky.swatch); ctx.fillRect(sx, y + 6, 36, 36)
+    ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(sx + 0.5, y + 6.5, 35, 35)
+    fitLine(`${reading.lucky.color} · ${reading.lucky.item} · ${reading.lucky.habit}`, sx + 56, y + 8, W - M - (sx + 56), 30, 700, { min: 22 })
+  }
+
+  // ───────── 끝: 재미로 보는 풀이예요 · FUN GROUND 별내 ─────────
+  {
+    const fy = H - 60 - 50
+    rule(M, fy - 24, W - M * 2, 2)
+    label('재미로 보는 풀이예요', M, fy, 30, 18, 50)
+    font(400, 34, fonts.display)
+    fill(INK)
     ctx.textAlign = 'right'
-    ctx.fillText(`FUN GROUND 별내 · ${dateOf(printedAt)}`, W - M, by + 18)
+    ctx.fillText('FUN GROUND', W - M, fy + 8)
     ctx.textAlign = 'left'
   }
 
