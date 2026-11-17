@@ -124,7 +124,9 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
     return () => stops.forEach((stop) => stop())
   }, [subject, program.id])
 
-  const { setStep: showStep, setDirty } = ctx
+  const { setStep: showStep, setDirty, report } = ctx
+  // 영상판 — 단계가 바뀌면 장면을, 결과 · 저장에서는 고른 인화물을 족자에 얹게 알린다
+  useEffect(() => { report?.(step, (step === 'result' || step === 'save') && made ? made.prints[design] : null) }, [report, step, made, design])
   useEffect(() => { showStep(step === 'birth' || step === 'capture' ? 1 : step === 'topic' || step === 'generating' ? 2 : 3) }, [step, showStep])
   useEffect(() => { setDirty(step !== 'birth' && step !== 'capture' ? true : shots.some(Boolean) || Boolean(birth)) }, [step, shots, birth, setDirty])
 

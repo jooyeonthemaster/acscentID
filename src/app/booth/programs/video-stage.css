@@ -1,0 +1,48 @@
+/* 부스 영상판(&lab=video, video-stage.tsx) — 무대(1280×720) 뒤에 영상을 깔고, 오른쪽 패널을 어두운 유리판으로.
+   영상 속 인물 · 족자가 화면 왼쪽 60% 에 있으니 왼쪽 그림 칸(pg-visual)은 비워 두고(촬영만 카메라를 보인다), 손님 인화물은 영상 속 족자 위에 얹는다.
+   움직임은 prefers-reduced-motion 에 묶지 않는다(행사 기기 설정과 상관없이 같은 화면). */
+
+.vs { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #0d0b09; pointer-events: none; }
+.vs-v { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.vs-v:not([data-cut]):not(.vs-move) { animation: vs-first 1.2s ease-out both; }
+@keyframes vs-first { from { opacity: 0; } }
+/* 연결 영상 — 지금 반복 영상 위로 0.3초에 겹쳐 온다 */
+.vs-move { z-index: 1; animation: vs-move-in .3s ease-out both; }
+@keyframes vs-move-in { from { opacity: 0; } }
+/* 족자에 얹는 손님 인화물 — 먹이 번지듯 가운데서 퍼지며 나타난다 */
+.vs-frame { position: absolute; z-index: 2; object-fit: cover; box-shadow: 0 0 0 1px rgba(80, 60, 30, .25), 0 6px 18px rgba(0, 0, 0, .18); filter: sepia(.08) saturate(.95);
+  -webkit-mask-image: radial-gradient(circle at 50% 45%, #000 0 var(--ink, 0%), transparent calc(var(--ink, 0%) + 18%)); mask-image: radial-gradient(circle at 50% 45%, #000 0 var(--ink, 0%), transparent calc(var(--ink, 0%) + 18%));
+  animation: vs-ink 1.4s .2s cubic-bezier(.3, .6, .3, 1) both; }
+@property --ink { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+@keyframes vs-ink { from { --ink: 0%; } to { --ink: 140%; } }
+/* 족자를 걷기 시작하면(연결 영상 0.4초쯤) 그림이 비단에 스며들 듯 사라진다 */
+.vs-frame[data-leaving] { animation: vs-leave .45s .3s ease-in forwards; --ink: 140%; }
+@keyframes vs-leave { to { opacity: 0; filter: sepia(.08) saturate(.95) blur(2px); } }
+
+/* 무대 — 영상이 맨 아래, 제목줄 · 본문은 위 */
+.pg[data-video] .pg-stage { background: #0d0b09; }
+.pg[data-video] .pg-stage::before { z-index: 3; }
+.pg[data-video] .pg-top, .pg[data-video] .pg-body { z-index: 1; }
+.pg[data-video] .pg-top { background: linear-gradient(rgba(10, 8, 6, .55), rgba(10, 8, 6, 0)); }
+
+/* 본문 — 왼쪽 그림 칸은 비우고(영상), 오른쪽 패널은 어두운 유리판 */
+.pg[data-video] .pg-split { grid-template-columns: minmax(0, 6fr) minmax(0, 4fr); gap: 28px; padding: 6px 28px 24px; }
+.pg[data-video] .pg-split > .pg-visual > * { visibility: hidden; }
+/* 밝은 화실 영상 위에서도 글이 읽히게 — 짙은 유리판(규칙은 [data-kind] 까지 붙여 모노 테마 규칙보다 앞서게) */
+.pg[data-video][data-kind] .pg-panel { padding: 20px 24px; gap: 12px; border-radius: 6px; background: rgba(12, 10, 8, .8); border: 1px solid rgba(255, 244, 222, .14);
+  backdrop-filter: blur(20px) saturate(1.1); -webkit-backdrop-filter: blur(20px) saturate(1.1); box-shadow: 0 24px 60px rgba(0, 0, 0, .4); }
+.pg[data-video][data-kind] .pg-start { grid-template-columns: minmax(0, 6fr) minmax(0, 4fr); }
+.pg[data-video][data-kind] .pg-start .pg-visual { background: none; box-shadow: none; padding: 0; }
+.pg[data-video][data-kind] .pg-start .pg-panel { gap: 10px; }
+.pg[data-video] .pg-wordmark--xl { font-size: 92px; }
+
+/* 촬영 — 카메라만 보인다. 영상 속 화판 자리(왼쪽 칸 오른쪽)에 한지 액자로 */
+.pg[data-video] .pg-capture-step > .pg-visual > * { visibility: visible; }
+.pg[data-video] .pg-capture-step > .pg-visual { justify-content: flex-end; }
+.pg[data-video] .pg-capture-step .pg-capture { width: 52%; max-height: 100%; }
+.pg[data-video] .pg-capture-step .pg-cam { border-color: #efe6d4; box-shadow: 0 24px 60px rgba(0, 0, 0, .45); }
+
+/* 결과 — 패널이 한 화면에 들어오게 조금 촘촘히 */
+.pg[data-video][data-kind] .pg-reading-result .pg-panel { gap: 10px; padding-top: 16px; padding-bottom: 16px; }
+.pg[data-video][data-kind] .pg-reading-result .pg-design img { max-height: 128px; width: auto; }
+.pg[data-video][data-kind] .pg-reading-result .pg-creative { font-size: 12px; padding-top: 8px; }

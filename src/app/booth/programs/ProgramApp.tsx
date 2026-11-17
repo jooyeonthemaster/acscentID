@@ -27,6 +27,7 @@ import { ReadingFlow } from './ReadingFlow'
 import { Modal, Wordmark } from './ui'
 import { AsvStart, AsvTopBar } from './AsvParts'
 import { FgeStart, FgeTopBar, useFgEditorial } from './funground-editorial'
+import { preloadVideoPlan, useLab, VIDEO_PLANS, VideoStage } from './video-stage'
 import './programs.css'
 import './asv.css'
 import './funground-editorial.css'
@@ -56,6 +57,12 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
   const scale = useStageScale()
   // 펀그라운드 데모(주소 site=funground)의 DREAM! — 「FUN GROUND Editorial」 테마(funground-editorial.tsx · .css). 그 밖에는 null 이라 예전 화면 그대로
   const fge = useFgEditorial(program)
+  // 영상판(&lab=video) — 관상 등 영상 계획이 있는 프로그램만(video-stage.tsx). 아니면 undefined 라 예전 화면 그대로
+  const lab = useLab()
+  const plan = lab === 'video' ? VIDEO_PLANS[program.id] : undefined
+  const [flowView, setFlowView] = useState<{ step: string; overlay: string | null }>({ step: '', overlay: null })
+  const report = useCallback((step: string, overlay: string | null) => setFlowView((v) => (v.step === step && v.overlay === overlay ? v : { step, overlay })), [])
+  useEffect(() => { if (plan) preloadVideoPlan(plan) }, [plan])
   const screenSettings = useScreenBackgrounds('booth')
   const { baseSettings, synced } = screenSettings
   const passRequired = !demo && boothPassRequired(baseSettings)
@@ -79,7 +86,7 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
 
   /** 다음 손님 — 흐름을 새로 싣고 표·기록을 버린다 */
   const home = useCallback(() => {
-    setScreen('start'); setSession((n) => n + 1); setStep(1)
+    setScreen('start'); setSession((n) => n + 1); setStep(1); setFlowView({ step: '', overlay: null })
     setBusy(false); setDirty(false); setConfirmExit(false); setIdlePrompt(false); setHelp(false)
     ticketRef.current = null; shotRef.current = null
   }, [])
@@ -110,8 +117,9 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
   const markShot = useCallback((patch: { printed?: boolean; downloaded?: boolean }) => { if (!demo) markProgramShot(shotRef.current, patch) }, [demo])
 
   const ctx = useMemo<FlowCtx>(() => ({
-    program, demo, getTicket, home, requestHome, setBusy, setDirty, setStep, onResult, markShot,
-  }), [program, demo, getTicket, home, requestHome, onResult, markShot])
+    program, demo, getTicket, home, requestHome, setBusy, setDirty, setStep, onResult, markShot, report: plan ? report : undefined,
+  }), [program, demo, getTicket, home, requestHome, onResult, markShot, plan, report])
+  const scene = !plan ? null : screen === 'flow' ? plan.steps[flowView.step] ?? plan.firstFlow : plan.start
 
   // 무입력 — 진행 화면에서 45초 손이 없으면 확인 창(30초 뒤 처음으로). 생성·녹화·업로드 중에는 묻지 않는다
   useEffect(() => {
@@ -135,8 +143,9 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
   }
 
   return (
-    <div className={`pg ${FONT_VARS}${program.kind === 'strip' ? ' asv' : ''}`} data-program={program.id} data-kind={program.kind} data-site={fge ? 'funground' : undefined}>
+    <div className={`pg ${FONT_VARS}${program.kind === 'strip' ? ' asv' : ''}`} data-program={program.id} data-kind={program.kind} data-site={fge ? 'funground' : undefined} data-video={plan ? '' : undefined}>
       <div className="pg-stage" style={{ '--pg-scale': scale } as CSSProperties}>
+        {plan && scene && <VideoStage plan={plan} scene={scene} overlay={flowView.overlay} />}
         {/* ANSAN(띠지 kind)은 축제 공식 웹사이트 디자인(AsvParts · asv.css) */}
         {program.kind === 'strip'
           ? <AsvTopBar program={program} flow={screen === 'flow'} step={step} onHome={requestHome} onHelp={() => setHelp(true)} />

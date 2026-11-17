@@ -23,6 +23,8 @@ export interface FlowCtx {
   /** 결과가 나왔다(매장 통계 1건) */
   onResult: () => void
   markShot: (patch: { printed?: boolean; downloaded?: boolean }) => void
+  /** 영상판(&lab=video, video-stage.tsx) — 흐름 단계와 결과 인화물을 알린다(장면 · 족자에 얹을 그림). 영상판이 아니면 없다 */
+  report?: (step: string, overlay: string | null) => void
 }
 
 export interface AlbumPhoto { name: string; url: string; token: string }
