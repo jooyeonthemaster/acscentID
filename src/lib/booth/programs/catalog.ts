@@ -704,7 +704,7 @@ export const PROGRAMS: ProgramDef[] = [
     result: { title: '2027 새해 관상 이야기', sub: '인화할 디자인을 골라 주세요' },
     save: { title: '새해 카드를 가져가세요', sub: '4×6 사진으로 인화하고 휴대폰에도 받을 수 있어요' },
     creative: '관상에서 착안한 재미로 보는 창작 이야기예요. 얼굴 생김새로 성격 · 운명을 판정하지 않아요',
-    intro: '/assets/kiosk-expansion/face.webp', script: '2027 丁未年', designs: ['새해 카드', '정미년 연하장'],
+    intro: '/assets/kiosk-expansion/face.webp', script: '2027 丁未年', designs: ['WHITE · 컬러', 'BLACK · 흑백'],
     card: { tag: 'FACE!', desc: '한 컷 찍고 주제를 고르면 오늘의 표정에서 착안한 새해 덕담을 사진과 함께 4×6 으로.', color: '#b3261e', badges: ['AI 글', '사진 그대로', '4×6 인화'] },
   },
   {
@@ -717,7 +717,7 @@ export const PROGRAMS: ProgramDef[] = [
     result: { title: '2027 정미년 사주 이야기', sub: '인화할 디자인을 골라 주세요' },
     save: { title: '새해 카드를 가져가세요', sub: '4×6 사진으로 인화하고 휴대폰에도 받을 수 있어요' },
     creative: '재미로 보는 사주 이야기예요. 생년월일은 이야기를 만드는 데만 쓰고 저장하지 않아요',
-    intro: '/assets/booth-programs/nh/saju-intro.svg', script: '2027 丁未年', designs: ['새해 카드', '정미년 연하장'],
+    intro: '/assets/booth-programs/nh/saju-intro.svg', script: '2027 丁未年', designs: ['WHITE · 컬러', 'BLACK · 흑백'],
     card: { tag: 'SAJU!', desc: '생년월일과 한 컷으로, 만세력에서 본 2027 정미년 흐름과 행운의 색을 사진과 함께 4×6 으로.', color: '#8a1c1c', badges: ['AI 글', '만세력', '4×6 인화'] },
   },
   {
@@ -730,7 +730,7 @@ export const PROGRAMS: ProgramDef[] = [
     result: { title: '2027 새해 손금 이야기', sub: '인화할 디자인을 골라 주세요' },
     save: { title: '새해 카드를 가져가세요', sub: '4×6 사진으로 인화하고 휴대폰에도 받을 수 있어요' },
     creative: '손금에서 착안한 재미로 보는 창작 이야기예요. 실제 손금 선을 읽지 않아요',
-    intro: '/assets/kiosk-expansion/palm.webp', script: '2027 丁未年', designs: ['새해 카드', '정미년 연하장'],
+    intro: '/assets/kiosk-expansion/palm.webp', script: '2027 丁未年', designs: ['WHITE · 컬러', 'BLACK · 흑백'],
     card: { tag: 'PALM!', desc: '얼굴 옆에 손바닥을 펴고 한 컷 — 손을 펼친 모양에서 착안한 새해 덕담을 사진과 함께 4×6 으로.', color: '#3b4a7a', badges: ['AI 글', '사진 그대로', '4×6 인화'] },
   },
 ]

@@ -194,3 +194,83 @@
 .ex-nh-scales .ex-question { margin-bottom:18px; }
 .ex-nh-kinds { grid-template-columns:repeat(2,minmax(0,1fr)); }
 .ex-nh-kinds .ex-choice:first-child { grid-column:1 / -1; }
+
+/* ═══ 연말 시상식 AI 소믈리에(sommelier-nh) — 모노 갤러리(2026-11-17 사용자 선택, 포토부스 새해 이야기와 같은 말투) ═══
+   검정 바탕 · 흰 종이 카드 · 가는 세리프 숫자(Cormorant Garamond) · 노란 버튼 하나만 색. 560×996 안에서 넘치지 않게.
+   --kx-accent 는 ExperienceApp 이 체험 색으로 줄 안에 넣으므로 이 모드만 !important 로 흰색(글 강조) — 노랑은 버튼에만 따로 */
+@font-face { font-family: 'nh-serif'; src: url('/fonts/cormorant-garamond/CormorantGaramond-latin.woff2') format('woff2'); font-weight: 300 700; font-display: swap; }
+@font-face { font-family: 'nh-serif'; src: url('/fonts/cormorant-garamond/CormorantGaramond-italic-latin.woff2') format('woff2'); font-weight: 300; font-style: italic; font-display: swap; }
+.kx-root[data-expansion='sommelier-nh'] {
+  --kx-bg: #121212; --kx-paper: #1b1b1b; --kx-ink: #f3f0ea; --kx-soft: #8e8a83; --kx-line: #34322f; --kx-accent: #f3f0ea !important; --kx-on-accent: #141414;
+  --kx-accent-soft: #262523; --kx-frame: #55524d; --kx-radius: 3px; --kx-card-radius: 3px;
+  --nh-yellow: #f2c230; --nh-paper: #f6f3ec; --nh-paper-ink: #161616; --nh-serif: 'nh-serif', 'Times New Roman', serif;
+  background: var(--kx-bg); color: var(--kx-ink); font-variant-numeric: lining-nums;
+}
+.kx-root[data-expansion='sommelier-nh'] * { font-variant-numeric: lining-nums; }
+.kx-root[data-expansion='sommelier-nh'] .ex-top { border-bottom-color: var(--kx-line); }
+.kx-root[data-expansion='sommelier-nh'] .ex-nav { color: var(--kx-soft); font-weight: 600; }
+.kx-root[data-expansion='sommelier-nh'] .ex-mark { font-family: var(--nh-serif); font-weight: 400; font-size: 32px; letter-spacing: 0; color: var(--kx-ink); }
+.kx-root[data-expansion='sommelier-nh'] .ex-eyebrow { font-family: var(--nh-serif); font-style: italic; font-weight: 300; font-size: 18px; letter-spacing: .01em; color: var(--kx-soft); }
+.kx-root[data-expansion='sommelier-nh'] .ex-title { font-weight: 300; font-size: 32px; letter-spacing: -.04em; }
+.kx-root[data-expansion='sommelier-nh'] .ex-subtitle { font-size: 15px; }
+.kx-root[data-expansion='sommelier-nh'] .ex-button { border-radius: var(--kx-radius); border-color: var(--nh-yellow); background: var(--nh-yellow); color: #141414; font-weight: 700; }
+.kx-root[data-expansion='sommelier-nh'] .ex-button--secondary { background: transparent; border: 1px solid #55524d; color: var(--kx-ink); }
+.kx-root[data-expansion='sommelier-nh'] .ex-panel { background: transparent; border-color: var(--kx-line); border-radius: var(--kx-radius); }
+.kx-root[data-expansion='sommelier-nh'] .ex-panel h3 { font-weight: 500; }
+.kx-root[data-expansion='sommelier-nh'] .ex-note { color: var(--kx-soft); }
+.kx-root[data-expansion='sommelier-nh'] .ex-tags span { background: transparent; border: 1px solid var(--kx-line); color: var(--kx-soft); font-weight: 500; }
+/* 시작 — 큰 가는 세리프 워드마크 · 흰 종이 카드에 그림 */
+.kx-root[data-expansion='sommelier-nh'] .ex-start { gap: 18px; }
+.kx-root[data-expansion='sommelier-nh'] .ex-start-top { color: var(--kx-soft); font-weight: 600; }
+.kx-root[data-expansion='sommelier-nh'] .ex-wordmark { font-family: var(--nh-serif); font-weight: 300; font-size: 124px; letter-spacing: -.01em; color: var(--kx-ink); border-bottom: 1px solid var(--kx-line); }
+.kx-root[data-expansion='sommelier-nh'] .ex-start h2 { font-weight: 300; font-size: 26px; letter-spacing: -.04em; }
+.kx-root[data-expansion='sommelier-nh'] .ex-hero { border-radius: 0; background: var(--nh-paper); padding: 14px 14px 40px; box-shadow: 0 24px 50px rgba(0, 0, 0, .5); max-height: 360px; }
+.kx-root[data-expansion='sommelier-nh'] .ex-hero img { mix-blend-mode: normal; }
+.kx-root[data-expansion='sommelier-nh'] .ex-hero::after { content: 'Tasting · 2027'; position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; font-family: var(--nh-serif); font-style: italic; font-weight: 300; font-size: 18px; color: var(--nh-paper-ink); }
+.kx-root[data-expansion='sommelier-nh'] .ex-start-copy { font-size: 15px; }
+.kx-root[data-expansion='sommelier-nh'] .ex-start-steps { color: var(--kx-soft); font-weight: 600; }
+.kx-root[data-expansion='sommelier-nh'] .ex-start-foot { color: #5c5955; }
+/* 고르기 — 흰 종이 카드 · 고른 것은 노란 테 */
+.kx-root[data-expansion='sommelier-nh'] .ex-choice { border: 0; border-radius: var(--kx-radius); background: var(--nh-paper); color: var(--nh-paper-ink); min-height: 88px; }
+.kx-root[data-expansion='sommelier-nh'] .ex-choice b { font-weight: 600; }
+.kx-root[data-expansion='sommelier-nh'] .ex-choice small { color: #6d6963; }
+.kx-root[data-expansion='sommelier-nh'] .ex-choice-check { border-color: #b9b4ab; }
+.kx-root[data-expansion='sommelier-nh'] .ex-choice[data-selected] { background: var(--nh-paper); border: 0; box-shadow: inset 0 0 0 3px var(--nh-yellow); }
+.kx-root[data-expansion='sommelier-nh'] .ex-choice[data-selected] .ex-choice-check { background: var(--nh-yellow); border-color: var(--nh-yellow); color: #141414; }
+/* 맛 슬라이더 — 가는 선 · 흰 손잡이 · 큰 가는 숫자 */
+.kx-root[data-expansion='sommelier-nh'] .ex-nh-scales .ex-question { margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--kx-line); }
+.kx-root[data-expansion='sommelier-nh'] .ex-nh-scales .ex-question h2 { font-weight: 400; font-size: 22px; margin-bottom: 2px; }
+.kx-root[data-expansion='sommelier-nh'] .ex-nh-scales .ex-question .ex-note { margin-bottom: 0; }
+.kx-root[data-expansion='sommelier-nh'] .ex-nh-scales .ex-panel { border: 0; padding: 0 2px; }
+.kx-root[data-expansion='sommelier-nh'] .ex-question input[type='range'] { height: 2px; background: #55524d; margin: 26px 0 24px; }
+.kx-root[data-expansion='sommelier-nh'] .ex-question input[type='range']::-webkit-slider-thumb { width: 34px; height: 34px; border: 0; background: var(--kx-ink); box-shadow: 0 0 0 6px rgba(243, 240, 234, .12); }
+.kx-root[data-expansion='sommelier-nh'] .ex-question input[type='range']::-moz-range-thumb { width: 28px; height: 28px; border: 0; background: var(--kx-ink); }
+.kx-root[data-expansion='sommelier-nh'] .ex-range-label { color: #5c5955; font-family: var(--nh-serif); font-size: 18px; }
+.kx-root[data-expansion='sommelier-nh'] .ex-range-label output { font-family: var(--nh-serif); font-weight: 300; font-size: 48px; line-height: 1; color: var(--kx-ink); }
+/* 결과 — 흰 종이 카드에 번호 · 이름(직원이 2m 밖에서 읽는다) */
+.kx-root[data-expansion='sommelier-nh'] .ex-pour { grid-template-columns: auto 1fr auto; gap: 16px; padding: 18px 18px 18px 20px; border: 0; border-radius: var(--kx-radius); background: var(--nh-paper); color: var(--nh-paper-ink); box-shadow: 0 20px 44px rgba(0, 0, 0, .5); }
+.kx-root[data-expansion='sommelier-nh'] .ex-pour-no { min-width: 0; padding: 0; background: none; color: var(--nh-paper-ink); align-items: flex-start; }
+.kx-root[data-expansion='sommelier-nh'] .ex-pour-no small { font-family: var(--nh-serif); font-style: italic; font-weight: 300; font-size: 17px; color: #6d6963; }
+.kx-root[data-expansion='sommelier-nh'] .ex-pour-no b { font-family: var(--nh-serif); font-weight: 400; font-size: 92px; line-height: .9; letter-spacing: -.02em; }
+.kx-root[data-expansion='sommelier-nh'] .ex-pour-name h2 { color: var(--nh-paper-ink); font-weight: 500; font-size: 23px; }
+.kx-root[data-expansion='sommelier-nh'] .ex-pour-name p { font-family: var(--nh-serif); font-style: italic; font-size: 16px; color: #6d6963; }
+.kx-root[data-expansion='sommelier-nh'] .ex-pour-name span { color: var(--nh-paper-ink); border: 1px solid var(--nh-paper-ink); border-radius: 2px; font-weight: 600; }
+.kx-root[data-expansion='sommelier-nh'] .ex-pour-bottle { color: var(--nh-paper-ink); }
+.kx-root[data-expansion='sommelier-nh'] .ex-result-intro { border-color: var(--kx-line); }
+.kx-root[data-expansion='sommelier-nh'] .ex-result-intro h2 { font-weight: 300; }
+.kx-root[data-expansion='sommelier-nh'] .ex-metric b { font-family: var(--nh-serif); font-weight: 400; }
+/* 결과 — 한 화면에(스크롤 없이): 번호 카드 · AI 한마디 · 맛 막대 넷. 자세한 내용은 영수증 · 휴대폰 카드에 */
+.ex-nh-result { display: flex; flex-direction: column; gap: 18px; }
+.ex-nh-note { display: grid; gap: 8px; padding-top: 16px; border-top: 1px solid var(--kx-line); }
+.ex-nh-note h3 { font-size: 19px; font-weight: 500; line-height: 1.45; color: var(--kx-ink); }
+.ex-nh-note p { font-size: 15px; line-height: 1.7; color: #c9c5bd; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.ex-nh-note ul { display: grid; gap: 4px; }
+.ex-nh-note li { font-size: 14px; line-height: 1.55; color: var(--kx-soft); padding-left: 14px; position: relative; }
+.ex-nh-note li::before { content: ''; position: absolute; left: 0; top: .7em; width: 6px; height: 1px; background: var(--kx-soft); }
+.ex-nh-taste { display: grid; gap: 10px; padding-top: 16px; border-top: 1px solid var(--kx-line); margin: 0; }
+.ex-nh-taste div { display: grid; grid-template-columns: 52px 1fr 40px; align-items: center; gap: 12px; }
+.ex-nh-taste dt { font-size: 14px; color: var(--kx-soft); }
+.ex-nh-taste dd { margin: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.ex-nh-taste dd i { height: 6px; background: #34322f; }
+.ex-nh-taste dd i[data-on] { background: var(--kx-ink); }
+.ex-nh-taste span { font-family: var(--nh-serif, serif); font-size: 20px; text-align: right; color: var(--kx-ink); }

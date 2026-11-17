@@ -7,13 +7,14 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, RotateCcw, Wine } from 'lucide-react'
-import { applyAiAnalysis } from '@/lib/kiosk/expansion/ai'
+import { AI_SECTION, applyAiAnalysis } from '@/lib/kiosk/expansion/ai'
+import type { ExperienceResult } from '@/lib/kiosk/expansion/types'
 import { PHOTO_PLANS, readingLine, type PhotoReading } from '@/lib/kiosk/expansion/photo'
 import { findNhWine, NH_DEFAULT_ANSWERS, NH_KINDS, NH_SCALES, nhCandidateSummary, recommendNhWine, type NhAnswers, type NhBundle, type PourCounts } from '@/lib/kiosk/expansion/nh-sommelier'
 import { useAiJob } from './ai-client'
 import { AiWait } from './AiStep'
-import { PhotoNote, PhotoStep } from './PhotoStep'
-import { ChoiceTile, ExpansionFrame, ExpansionStart, PrimaryButton, ResultPanel, TakeActions } from './shared'
+import { PhotoStep } from './PhotoStep'
+import { ChoiceTile, ExpansionFrame, ExpansionStart, PourBadge, PrimaryButton, TakeActions } from './shared'
 
 const ID = 'sommelier-nh' as const
 type Page = 'start' | 'photo' | 'taste' | 'kind' | 'ai' | 'result'
@@ -25,6 +26,21 @@ function readCounts(): PourCounts {
 }
 function addCount(no: number) {
   try { const counts = readCounts(); counts[no] = (counts[no] ?? 0) + 1; localStorage.setItem(countsKey(), JSON.stringify(counts)) } catch { /* 세지 않는다 */ }
+}
+
+/**
+ * 결과 한 화면(560×996 안, 스크롤 없이) — 따를 와인 카드 · AI 한마디(또는 취향 비교) · 맛 막대 넷.
+ * 자세한 내용(사진에서 읽은 것 · 전체 풀이)은 인쇄하기 영수증과 휴대폰 카드에 그대로 들어간다(TakeActions 는 전체 result 를 쓴다)
+ */
+function CompactResult({ result }: { result: ExperienceResult }) {
+  const ai = result.sections.find((s) => s.title.startsWith(AI_SECTION))
+  const note = ai ?? result.sections.find((s) => s.title === '나의 취향과 비교')
+  const tips = (note?.items ?? []).filter((x) => !x.startsWith('사진에서:')).slice(0, 2)
+  return <div className="ex-nh-result">
+    {result.pour && <PourBadge pour={result.pour} />}
+    {note && <section className="ex-nh-note"><h3>{ai ? note.title.replace(`${AI_SECTION} · `, '') : note.title}</h3><p>{note.body}</p>{tips.length > 0 && <ul>{tips.map((t) => <li key={t}>{t}</li>)}</ul>}</section>}
+    <dl className="ex-nh-taste">{(result.metrics ?? []).map((m) => <div key={m.label}><dt>{m.label}</dt><dd aria-label={`${m.value} / ${m.max}`}>{Array.from({ length: m.max }, (_, i) => <i key={i} data-on={i < m.value || undefined} />)}</dd><span>{m.value}</span></div>)}</dl>
+  </div>
 }
 
 export default function SommelierNhMode() {
@@ -78,9 +94,8 @@ export default function SommelierNhMode() {
   </ExpansionFrame>
   if (page === 'ai') return <AiWait id={ID} state={ai.state} onRetry={() => bundle && analyze(bundle)} onSkip={() => { ai.skip(); setPage('result') }} onBack={() => { ai.reset(); setPage('kind') }} />
   if (!result) return <ExpansionFrame title="다시 골라 주세요" actions={<PrimaryButton onClick={() => setPage('taste')}>맛 고르기</PrimaryButton>}><p>답을 바꿨어요. 다시 골라 주세요.</p></ExpansionFrame>
-  return <ExpansionFrame title="오늘의 한 잔" subtitle={done?.analysis && chosen.id === pick ? '사진과 취향을 AI가 함께 보고 골랐어요. 아래 번호를 직원에게 보여 주세요.' : '취향과 사진에서 읽은 값으로 골랐어요(AI 분석 없이). 아래 번호를 직원에게 보여 주세요.'} onBack={() => setPage('kind')} screen={120} actions={<TakeActions result={result} />}>
-    <ResultPanel result={{ ...result, sections: result.sections.slice(0, 2) }} />
-    <PhotoNote result={result} />
-    <div className="ex-stack" style={{ marginTop: 16 }}><PrimaryButton secondary onClick={() => setPage('taste')}><RotateCcw size={20} />맛 다시 고르기</PrimaryButton></div>
+  return <ExpansionFrame title="오늘의 한 잔" subtitle={done?.analysis && chosen.id === pick ? 'AI가 사진과 취향을 보고 골랐어요 · 번호를 직원에게 보여 주세요' : '취향으로 골랐어요(AI 분석 없이) · 번호를 직원에게 보여 주세요'} onBack={() => setPage('kind')} screen={120} actions={<TakeActions result={result} />}>
+    <CompactResult result={result} />
+    <div className="ex-stack" style={{ marginTop: 18 }}><PrimaryButton secondary onClick={() => setPage('taste')}><RotateCcw size={20} />맛 다시 고르기</PrimaryButton></div>
   </ExpansionFrame>
 }

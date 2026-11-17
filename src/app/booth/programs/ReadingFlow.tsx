@@ -22,7 +22,7 @@ import { loadVision, photoCanvas, preloadVision } from '@/app/kiosk/experience/k
 import { toRequestJpeg, type FlowCtx } from './flow'
 import { CaptureStep, SaveStep } from './PhotoFlow'
 import { loadReadingPrintAssets, renderReadingPrint } from './reading-print'
-import { Creative, Modal, OptionGroups, PanelHead, Progress, Split, Stages, useElapsed } from './ui'
+import { Creative, Modal, OptionGroups, PanelHead, Split, Stages, useElapsed } from './ui'
 import { loadImage } from './video'
 
 type Step = 'birth' | 'capture' | 'topic' | 'generating' | 'result' | 'save'
@@ -253,7 +253,12 @@ function Generate({ ctx, shot, shotUrl, subject, birth, topic, reading, onDone, 
   return (
     <Split className="pg-generating" visual={<div className="pg-scan"><Photo url={shotUrl} /><i aria-hidden="true" /></div>}>
       <PanelHead title={program.generating.title} sub={program.generating.sub} />
-      <Progress caption={`${elapsed}초 지남 · 보통 5~10초 걸려요`} />
+      {/* 모노 갤러리 대기 — 지난 초(실제 값)를 크게, 가는 선이 오간다(가짜 % 없음) */}
+      <div className="pg-reading-wait" role="status" aria-live="polite">
+        <p className="pg-reading-elapsed">{elapsed}<span>초</span></p>
+        <i className="pg-reading-line" aria-hidden="true" />
+        <p>보통 5~10초 걸려요</p>
+      </div>
       <Stages labels={program.generating.stages} active={stage} />
       <Creative text={READING_NOTICE} />
     </Split>

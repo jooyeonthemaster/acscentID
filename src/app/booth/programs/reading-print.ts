@@ -1,8 +1,9 @@
 'use client'
 
 // 「2027 정미년 새해 이야기」(관상 · 사주 · 손금) 4×6 인화 원판 두 가지 — 찍은 사진 + AI 새해 이야기를 기기 안에서 합성한다(그림 생성 없음).
-//   ① 새해 카드 — 한지 미색 · 먹 · 주홍 낙관 · 금색 띠
-//   ② 정미년 연하장 — 붉은 바탕(정 丁 = 불 · 미 未 = 양) · 금색 이중 테두리 · 아치 사진
+// 화면과 같은 「모노 갤러리」 말투(2026-11-17 사용자 선택 — 국내 셀프 사진관 모노맨션 · 인생네컷 계열): 흑 · 백 · 미색 + 노랑 한 점, 가는 세리프 숫자, 얇은 한글.
+//   ① WHITE — 미색 종이 · 컬러 사진 · 사진 둘레에 가는 검은 선(액자 속 인화) · 검정 정사각 도장(丁未)
+//   ② BLACK — 검정 바탕 · 흰 종이 카드에 흑백 사진 · 흰 글 · 노란 가는 선 하나
 // 사진 칸은 글 길이를 먼저 재고 남은 높이를 준다(글이 길어도 넘치지 않게). 얼굴이 있으면 얼굴을 가운데로 자른다.
 // 화면 미리보기 = 폰 저장 = 인쇄 원판(같은 JPEG). 브랜드 커스텀을 켜면 맨 아래에 로고 · 한 줄(src/lib/nh-awards/brand.ts).
 
@@ -19,32 +20,31 @@ export interface ReadingPrintInput {
   focus: { x: number; y: number } | null
   story: ReadingStory
   saju?: SajuView
-  /** 관상: 고른 주제 이름 / 손금: 손 모양 / 사주: 띠 */
+  /** 관상: 고른 주제 · 표정 / 손금: 손 모양 / 사주: 띠 · 일간 */
   tag?: string
-  /** 얼굴 옆 손바닥까지 담는 넓은 사진(손금) — 연하장의 아치를 넓게 */
+  /** 얼굴 옆 손바닥까지 담는 넓은 사진(손금) — 사진 칸을 조금 낮고 넓게 */
   wide?: boolean
 }
 
 type Ctx = CanvasRenderingContext2D
 
-/** 저장소 원본 글꼴(한글 전체) — next/font 판은 라틴만이라 캔버스에서 한글이 기본 글꼴로 나온다(print-designs.ts 와 같은 까닭) */
-const FONTS: [family: string, url: string][] = [
-  ['nh-head', '/fonts/ui/black-han-sans/400.woff2'],
-  ['nh-hand', '/fonts/ui/nanum-pen/400.woff2'],
+/** 저장소 원본 글꼴 — 영문 숫자 · 워드마크는 Cormorant Garamond(가는 세리프), 한자는 LXGW WenKai TC, 한글은 Pretendard 가변(programs.css) */
+const FONTS: [family: string, url: string, desc?: FontFaceDescriptors][] = [
+  ['nh-serif', '/fonts/cormorant-garamond/CormorantGaramond-latin.woff2', { weight: '300 700' }],
+  ['nh-serif', '/fonts/cormorant-garamond/CormorantGaramond-italic-latin.woff2', { weight: '300', style: 'italic' }],
   ['nh-hanja', '/fonts/hanja/wenkai-tc-700.woff2'],
 ]
-const HEAD = "'nh-head', 'Pretendard', sans-serif"
-const HAND = "'nh-hand', 'Pretendard', cursive"
+const SERIF = "'nh-serif', 'Times New Roman', serif"
 const HANJA = "'nh-hanja', 'Noto Serif KR', 'AppleMyungjo', 'Batang', serif"
-const BODY = "'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif"
+const SANS = "'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif"
 let fontsReady: Promise<void> | null = null
 const logoCache = new Map<string, HTMLImageElement | null>()
 
 /** 생성을 기다리는 동안 받아 둔다(못 받으면 기본 글꼴) */
 export function loadReadingPrintAssets(programId: string): Promise<void> {
-  fontsReady ??= Promise.all(FONTS.map(async ([family, url]) => {
-    try { const face = new FontFace(family, `url(${url})`); await face.load(); document.fonts.add(face) } catch { /* 기본 글꼴 */ }
-  })).then(() => Promise.all(['800 40px Pretendard', '600 40px Pretendard'].map((s) => document.fonts.load(s, '가A').catch(() => undefined)))).then(() => undefined)
+  fontsReady ??= Promise.all(FONTS.map(async ([family, url, desc]) => {
+    try { const face = new FontFace(family, `url(${url})`, desc); await face.load(); document.fonts.add(face) } catch { /* 기본 글꼴 */ }
+  })).then(() => Promise.all(['200 40px Pretendard', '300 40px Pretendard', '400 40px Pretendard', '500 40px Pretendard', '600 40px Pretendard'].map((s) => document.fonts.load(s, '가A').catch(() => undefined)))).then(() => undefined)
   const logo = eventBrandFor(programId)?.printLogo
   const logoLoad = logo && !logoCache.has(logo) ? new Promise<void>((resolve) => {
     const image = new Image()
@@ -73,204 +73,170 @@ function wrap(ctx: Ctx, text: string, width: number): string[] {
   return lines
 }
 
-function roundRect(ctx: Ctx, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath()
-  ctx.roundRect(x, y, w, h, r)
-}
-/** 아치 — 위 두 모서리를 r 만큼 둥글게(r = w/2 면 반원 지붕). 넓은 사진(손금)은 r 을 줄여 모서리만 둥글게 */
-function arch(ctx: Ctx, x: number, y: number, w: number, h: number, r = w / 2) {
-  ctx.beginPath()
-  ctx.roundRect(x, y, w, h, [Math.min(r, w / 2), Math.min(r, w / 2), 0, 0])
-}
-
-/** 사진을 칸에 꽉 차게(얼굴을 가운데로) */
+/** 사진을 칸에 꽉 차게(얼굴을 위 40% 쯤에) */
 function drawPhoto(ctx: Ctx, pic: ReadingPrintInput['photo'], focus: ReadingPrintInput['focus'], x: number, y: number, w: number, h: number) {
   const iw = pic instanceof HTMLImageElement ? pic.naturalWidth : pic.width
   const ih = pic instanceof HTMLImageElement ? pic.naturalHeight : pic.height
   const scale = Math.max(w / iw, h / ih)
   const sw = w / scale, sh = h / scale
   const fx = (focus?.x ?? 0.5) * iw, fy = (focus?.y ?? 0.45) * ih
-  // 얼굴이 칸의 위 40% 쯤에 오게
   const sx = Math.max(0, Math.min(iw - sw, fx - sw / 2))
   const sy = Math.max(0, Math.min(ih - sh, fy - sh * 0.42))
   ctx.drawImage(pic, sx, sy, sw, sh, x, y, w, h)
 }
 
-interface Palette { bg: string; ink: string; soft: string; accent: string; gold: string; pill: string; pillInk: string }
+/** 칸 안을 흑백으로(사파리 등 ctx.filter 가 없는 곳도 같게 — 화소를 직접 바꾼다) */
+function grayscale(ctx: Ctx, x: number, y: number, w: number, h: number) {
+  const img = ctx.getImageData(x, y, w, h)
+  const d = img.data
+  for (let i = 0; i < d.length; i += 4) {
+    // 살짝 대비를 올린 흑백(밝기 가중치 BT.709)
+    const v = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]
+    const c = Math.max(0, Math.min(255, (v - 128) * 1.08 + 128))
+    d[i] = d[i + 1] = d[i + 2] = c
+  }
+  ctx.putImageData(img, x, y)
+}
 
-/** 글 칸 높이를 재고 그린다 — draw=false 면 재기만 */
-function storyBlock(ctx: Ctx, input: ReadingPrintInput, p: Palette, x: number, y: number, w: number, draw: boolean): number {
+interface Palette { bg: string; ink: string; body: string; mute: string; line: string; accent: string | null }
+
+/** 글 칸 — 높이를 재고(draw=false) 그린다. 왼쪽 맞춤, 굵기 대비(아주 가는 키워드 · 보통 본문)로 위계 */
+function story(ctx: Ctx, input: ReadingPrintInput, p: Palette, x: number, y: number, w: number, draw: boolean): number {
   const s = input.story
   let cy = y
-  const line = (text: string, font: string, color: string, lh: number, align: CanvasTextAlign = 'center') => {
+  const para = (text: string, font: string, color: string, lh: number) => {
     ctx.font = font
     const lines = wrap(ctx, text, w)
-    if (draw) {
-      ctx.fillStyle = color; ctx.textAlign = align
-      lines.forEach((l, i) => ctx.fillText(l, align === 'center' ? x + w / 2 : x, cy + lh * (i + 0.78)))
-    }
+    if (draw) { ctx.fillStyle = color; ctx.textAlign = 'left'; lines.forEach((l, i) => ctx.fillText(l, x, cy + lh * (i + 0.8))) }
     cy += lines.length * lh
   }
-  line(s.keyword, `96px ${HEAD}`, p.accent, 104)
-  cy += 4
-  line(s.title, `800 46px ${BODY}`, p.ink, 58)
+  para(s.keyword, `200 82px ${SANS}`, p.ink, 92)
+  cy += 2
+  para(s.title, `500 30px ${SANS}`, p.ink, 42)
   cy += 22
-  for (const l of s.lines) { line(l, `500 33px ${BODY}`, p.ink, 47); cy += 12 }
-  cy += 8
-  // 행운의 색 · 물건 — 알약 둘
-  const pills = [`행운의 색 · ${s.lucky.color}`, `행운의 물건 · ${s.lucky.item}`]
-  ctx.font = `800 30px ${BODY}`
-  const widths = pills.map((t) => ctx.measureText(t).width + 56)
-  const total = widths.reduce((a, b) => a + b, 0) + 20
+  if (input.saju) cy += pillars(ctx, input.saju, p, x, cy, w, draw) + 24
+  for (const l of s.lines) { para(l, `400 25px ${SANS}`, p.body, 39); cy += 8 }
+  cy += 18
+  // 행운 — 영문 이탤릭 라벨 + 값, 두 칸
+  const half = (w - 24) / 2
   if (draw) {
-    let px = x + (w - total) / 2
-    pills.forEach((t, i) => {
-      roundRect(ctx, px, cy, widths[i], 60, 30); ctx.fillStyle = p.pill; ctx.fill()
-      ctx.fillStyle = p.pillInk; ctx.textAlign = 'center'; ctx.fillText(t, px + widths[i] / 2, cy + 41)
-      px += widths[i] + 20
+    ;[['Lucky color', s.lucky.color], ['Lucky item', s.lucky.item]].forEach(([label, value], i) => {
+      const lx = x + i * (half + 24)
+      ctx.fillStyle = p.accent ?? p.line; ctx.fillRect(lx, cy, half, p.accent ? 2 : 1)
+      ctx.textAlign = 'left'
+      ctx.fillStyle = p.mute; ctx.font = `italic 300 24px ${SERIF}`; ctx.fillText(label, lx, cy + 34)
+      ctx.fillStyle = p.ink; ctx.font = `500 26px ${SANS}`; ctx.fillText(value, lx, cy + 70)
     })
   }
-  cy += 60 + 26
-  line(s.wish, `62px ${HAND}`, p.accent, 66)
+  cy += 92
+  para(`“${s.wish}”`, `300 27px ${SANS}`, p.ink, 40)
   return cy - y
 }
 
-/** 사주 네 기둥(시 · 일 · 월 · 년) — 한자 두 글자씩 */
-function pillarsRow(ctx: Ctx, saju: SajuView, p: Palette, x: number, y: number, w: number, draw: boolean): number {
+/** 사주 네 기둥 — 가는 선 표 */
+function pillars(ctx: Ctx, saju: SajuView, p: Palette, x: number, y: number, w: number, draw: boolean): number {
   const h = 128
-  if (!draw) return h + 18
-  const cols = saju.pillars
-  const cw = (w - 30) / cols.length
-  cols.forEach((col, i) => {
-    const cx = x + i * (cw + 10)
-    roundRect(ctx, cx, y, cw, h, 14)
-    ctx.strokeStyle = p.gold; ctx.lineWidth = 3; ctx.stroke()
+  if (!draw) return h
+  const cw = w / saju.pillars.length
+  ctx.strokeStyle = p.line; ctx.lineWidth = 1
+  ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1)
+  saju.pillars.forEach((col, i) => {
+    const cx = x + i * cw
+    if (i) { ctx.beginPath(); ctx.moveTo(cx + 0.5, y); ctx.lineTo(cx + 0.5, y + h); ctx.stroke() }
     ctx.textAlign = 'center'
-    ctx.fillStyle = p.soft; ctx.font = `700 22px ${BODY}`
-    ctx.fillText(col.label, cx + cw / 2, y + 32)
-    ctx.fillStyle = col.hanja ? p.ink : p.soft; ctx.font = col.hanja ? `62px ${HANJA}` : `600 28px ${BODY}`
-    ctx.fillText(col.hanja ?? '모름', cx + cw / 2, y + (col.hanja ? 104 : 92))
+    ctx.fillStyle = p.mute; ctx.font = `500 18px ${SANS}`; ctx.fillText(col.label, cx + cw / 2, y + 32)
+    ctx.fillStyle = col.hanja ? p.ink : p.mute; ctx.font = col.hanja ? `56px ${HANJA}` : `300 26px ${SANS}`
+    ctx.fillText(col.hanja ?? '모름', cx + cw / 2, y + (col.hanja ? 100 : 92))
   })
-  return h + 18
+  return h
 }
 
-function footer(ctx: Ctx, programId: string, p: Palette, bottom: number): number {
+/** 머리 — 왼쪽 2027 丁未年, 오른쪽 워드마크 · 아래 가는 선 · 프로그램 이름과 꼬리표 */
+function header(ctx: Ctx, program: ProgramDef, input: ReadingPrintInput, p: Palette, x: number, w: number): number {
+  ctx.textAlign = 'left'
+  ctx.fillStyle = p.ink; ctx.font = `300 44px ${SERIF}`; ctx.fillText('2027', x, 112)
+  const yw = ctx.measureText('2027 ').width
+  ctx.font = `36px ${HANJA}`; ctx.fillText('丁未年', x + yw, 110)
+  ctx.textAlign = 'right'; ctx.font = `400 44px ${SERIF}`; ctx.fillText(program.wordmark, x + w, 112)
+  ctx.fillStyle = p.line; ctx.fillRect(x, 136, w, 1)
+  ctx.textAlign = 'left'; ctx.fillStyle = p.mute; ctx.font = `italic 300 26px ${SERIF}`; ctx.fillText('New Year Story', x, 178)
+  const nx = x + ctx.measureText('New Year Story  ').width
+  ctx.font = `500 21px ${SANS}`; ctx.fillText(`· ${program.name}`, nx, 176)
+  if (input.tag) { ctx.textAlign = 'right'; ctx.fillText(input.tag, x + w, 176) }
+  return 212
+}
+
+/** 바닥 — (브랜드) · 재미로 보는 이야기 안내 · 오른쪽 도장. 차지한 높이를 돌려준다 */
+function footer(ctx: Ctx, programId: string, p: Palette, x: number, w: number, bottom: number, stamp: { bg: string; ink: string }, draw: boolean): number {
   const brand = eventBrandFor(programId)
-  let y = bottom
-  ctx.textAlign = 'center'
-  if (brand) {
-    const logo = brand.printLogo ? logoCache.get(brand.printLogo) : null
-    if (logo) {
-      const h = 70, w = Math.min(420, (logo.naturalWidth / logo.naturalHeight) * h)
-      ctx.drawImage(logo, READING_W / 2 - w / 2, y - h, w, h)
-      y -= h + 10
-    }
-    if (brand.line) { ctx.fillStyle = p.ink; ctx.font = `800 26px ${BODY}`; ctx.fillText(brand.line, READING_W / 2, y); y -= 38 }
-  }
-  ctx.fillStyle = p.soft; ctx.font = `500 21px ${BODY}`
-  const lines = wrap(ctx, READING_NOTICE, READING_W - 260)
-  lines.reverse().forEach((l, i) => ctx.fillText(l, READING_W / 2, y - i * 28))
-  return bottom - y + 30
+  ctx.font = `400 18px ${SANS}`
+  const notice = wrap(ctx, READING_NOTICE, w - 130)
+  const logo = brand?.printLogo ? logoCache.get(brand.printLogo) : null
+  const h = 20 + notice.length * 28 + (brand?.line ? 36 : 0) + (logo ? 80 : 0)
+  if (!draw) return Math.max(h, 96)
+  const top = bottom - Math.max(h, 96)
+  ctx.fillStyle = p.line; ctx.fillRect(x, top, w, 1)
+  let y = top + 22
+  ctx.textAlign = 'left'
+  if (logo) { const lh = 64, lw = Math.min(360, (logo.naturalWidth / logo.naturalHeight) * lh); ctx.drawImage(logo, x, y, lw, lh); y += lh + 16 }
+  if (brand?.line) { ctx.fillStyle = p.ink; ctx.font = `600 22px ${SANS}`; ctx.fillText(brand.line, x, y + 22); y += 36 }
+  ctx.fillStyle = p.mute; ctx.font = `400 18px ${SANS}`
+  notice.forEach((l, i) => ctx.fillText(l, x, y + 20 + i * 28))
+  // 丁未 도장 — 정사각 한 점
+  const s = 76, sx = x + w - s, sy = top + 18
+  ctx.fillStyle = stamp.bg; ctx.fillRect(sx, sy, s, s)
+  ctx.fillStyle = stamp.ink; ctx.font = `30px ${HANJA}`; ctx.textAlign = 'center'
+  ctx.fillText('丁', sx + s / 2, sy + 34); ctx.fillText('未', sx + s / 2, sy + 66)
+  return Math.max(h, 96)
 }
 
-// ─────────── ① 새해 카드 ───────────
-const CARD: Palette = { bg: '#f6efe0', ink: '#2a2420', soft: '#7a6e60', accent: '#b3261e', gold: '#c9a24a', pill: '#efe1c2', pillInk: '#5a4630' }
+// ─────────── ① WHITE ───────────
+const WHITE: Palette = { bg: '#f4f1ea', ink: '#161616', body: '#3b3833', mute: '#7a756d', line: '#161616', accent: null }
 
-function card(ctx: Ctx, program: ProgramDef, input: ReadingPrintInput) {
-  const p = CARD
+function white(ctx: Ctx, program: ProgramDef, input: ReadingPrintInput) {
+  const p = WHITE, x = 76, w = READING_W - 152
   ctx.fillStyle = p.bg; ctx.fillRect(0, 0, READING_W, READING_H)
-  // 종이 결
-  for (let i = 0; i < 900; i++) { ctx.fillStyle = `rgba(120,95,60,${Math.random() * 0.05})`; ctx.fillRect(Math.random() * READING_W, Math.random() * READING_H, 2, 2) }
-  // 이중 테두리
-  ctx.strokeStyle = p.accent; ctx.lineWidth = 4; ctx.strokeRect(36, 36, READING_W - 72, READING_H - 72)
-  ctx.lineWidth = 1.5; ctx.strokeRect(50, 50, READING_W - 100, READING_H - 100)
-  // 머리 — 2027 丁未年 · 프로그램 이름
-  ctx.textAlign = 'center'
-  ctx.fillStyle = p.accent; ctx.font = `54px ${HANJA}`
-  ctx.fillText('丁未年', READING_W / 2, 140)
-  ctx.fillStyle = p.ink; ctx.font = `800 30px ${BODY}`
-  ctx.fillText(`2027 · ${program.name}`, READING_W / 2, 190)
-  // 낙관
-  ctx.fillStyle = p.accent; roundRect(ctx, READING_W - 190, 92, 92, 92, 10); ctx.fill()
-  ctx.fillStyle = '#fbeee0'; ctx.font = `46px ${HANJA}`; ctx.fillText('福', READING_W - 144, 156)
-
-  const x = 110, w = READING_W - 220
-  const sajuH = input.saju ? pillarsRow(ctx, input.saju, p, x, 0, w, false) : 0
-  const textH = storyBlock(ctx, input, p, x, 0, w, false)
-  const foot = 110
-  const top = 228
-  const photoH = Math.max(560, READING_H - foot - top - 30 - sajuH - textH - 30)
-  // 사진 — 둥근 모서리 + 금색 테
-  ctx.save(); roundRect(ctx, x, top, w, photoH, 26); ctx.clip()
-  drawPhoto(ctx, input.photo, input.focus, x, top, w, photoH)
-  ctx.restore()
-  roundRect(ctx, x, top, w, photoH, 26); ctx.strokeStyle = p.gold; ctx.lineWidth = 6; ctx.stroke()
-  if (input.tag) {
-    ctx.font = `800 26px ${BODY}`
-    const tw = ctx.measureText(input.tag).width + 40
-    roundRect(ctx, x + 24, top + 24, tw, 50, 25); ctx.fillStyle = 'rgba(42,36,32,0.72)'; ctx.fill()
-    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.fillText(input.tag, x + 24 + tw / 2, top + 59)
-  }
-  let y = top + photoH + 30
-  if (input.saju) y += pillarsRow(ctx, input.saju, p, x, y, w, true)
-  storyBlock(ctx, input, p, x, y, w, true)
-  footer(ctx, program.id, p, READING_H - 74)
+  // 종이 결(아주 옅게)
+  for (let i = 0; i < 700; i++) { ctx.fillStyle = `rgba(90,80,60,${Math.random() * 0.035})`; ctx.fillRect(Math.random() * READING_W, Math.random() * READING_H, 2, 2) }
+  const top = header(ctx, program, input, p, x, w) + 20
+  const foot = footer(ctx, program.id, p, x, w, READING_H - 60, { bg: '#161616', ink: '#f4f1ea' }, false)
+  const textH = story(ctx, input, p, x, 0, w, false)
+  const photoH = Math.max(560, READING_H - 60 - foot - 40 - textH - 48 - top - 12)
+  // 사진 + 둘레 가는 선(10px 띄워서) — 액자 속 인화
+  drawPhoto(ctx, input.photo, input.focus, x + 12, top + 12, w - 24, photoH)
+  ctx.strokeStyle = p.ink; ctx.lineWidth = 1.5; ctx.strokeRect(x + 0.75, top + 0.75, w - 1.5, photoH + 22.5)
+  story(ctx, input, p, x, top + photoH + 24 + 48, w, true)
+  footer(ctx, program.id, p, x, w, READING_H - 60, { bg: '#161616', ink: '#f4f1ea' }, true)
 }
 
-// ─────────── ② 정미년 연하장 ───────────
-const LETTER: Palette = { bg: '#7d1717', ink: '#fff6e6', soft: '#e9c9a8', accent: '#f0cd73', gold: '#d9b45a', pill: 'rgba(240,205,115,0.18)', pillInk: '#f7e2ae' }
+// ─────────── ② BLACK ───────────
+const BLACK: Palette = { bg: '#121212', ink: '#f3f0ea', body: '#c9c5bd', mute: '#8e8a83', line: '#4a4744', accent: '#f2c230' }
 
-function letter(ctx: Ctx, program: ProgramDef, input: ReadingPrintInput) {
-  const p = LETTER
-  const g = ctx.createLinearGradient(0, 0, 0, READING_H)
-  g.addColorStop(0, '#8e1d1d'); g.addColorStop(1, '#5e1010')
-  ctx.fillStyle = g; ctx.fillRect(0, 0, READING_W, READING_H)
-  // 구름 무늬(옅게)
-  ctx.strokeStyle = 'rgba(240,205,115,0.12)'; ctx.lineWidth = 3
-  // 사진 양옆 여백에만(글 칸과 겹치지 않게)
-  for (const [cx, cy, r] of [[150, 300, 60], [1060, 420, 70], [140, 760, 50], [1070, 860, 55]] as const) {
-    for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(cx + k * r * 0.9 - r, cy, r * (k === 1 ? 1 : 0.75), Math.PI, 0); ctx.stroke() }
-  }
-  // 금색 이중 테두리
-  ctx.strokeStyle = p.gold; ctx.lineWidth = 5; ctx.strokeRect(40, 40, READING_W - 80, READING_H - 80)
-  ctx.lineWidth = 2; ctx.strokeRect(58, 58, READING_W - 116, READING_H - 116)
-  // 머리 — 謹賀新年 · 2027 정미년
-  ctx.textAlign = 'center'
-  ctx.fillStyle = p.accent; ctx.font = `64px ${HANJA}`
-  ctx.fillText('謹賀新年', READING_W / 2, 150)
-  ctx.fillStyle = p.soft; ctx.font = `700 28px ${BODY}`
-  ctx.fillText(`2027 · ${program.name}`, READING_W / 2, 198)
-
-  const x = 120, w = READING_W - 240
-  const sajuH = input.saju ? pillarsRow(ctx, input.saju, p, x, 0, w, false) : 0
-  const textH = storyBlock(ctx, input, p, x, 0, w, false)
-  const foot = 110
-  const top = 236
-  const photoH = Math.max(560, READING_H - foot - top - 30 - sajuH - textH - 30)
-  // 아치 사진 — 가운데, 높이에 맞춘 폭
-  const pw = input.wide ? w : Math.min(w, Math.round(photoH * 0.92)), px = (READING_W - pw) / 2
-  const r = input.wide ? 240 : pw / 2
-  ctx.save(); arch(ctx, px, top, pw, photoH, r); ctx.clip()
-  drawPhoto(ctx, input.photo, input.focus, px, top, pw, photoH)
-  ctx.restore()
-  arch(ctx, px, top, pw, photoH, r); ctx.strokeStyle = p.gold; ctx.lineWidth = 8; ctx.stroke()
-  arch(ctx, px - 14, top - 14, pw + 28, photoH + 14, r + 14); ctx.lineWidth = 2; ctx.stroke()
-  // 丁未 금 도장(오른쪽 아래)
-  ctx.fillStyle = p.gold; roundRect(ctx, px + pw - 70, top + photoH - 112, 96, 96, 12); ctx.fill()
-  ctx.fillStyle = '#7d1717'; ctx.font = `40px ${HANJA}`; ctx.textAlign = 'center'
-  ctx.fillText('丁未', px + pw - 22, top + photoH - 50)
-  let y = top + photoH + 30
-  if (input.saju) y += pillarsRow(ctx, input.saju, p, x, y, w, true)
-  storyBlock(ctx, input, p, x, y, w, true)
-  footer(ctx, program.id, p, READING_H - 80)
+function black(ctx: Ctx, program: ProgramDef, input: ReadingPrintInput) {
+  const p = BLACK, x = 76, w = READING_W - 152
+  ctx.fillStyle = p.bg; ctx.fillRect(0, 0, READING_W, READING_H)
+  const top = header(ctx, program, input, p, x, w) + 20
+  const foot = footer(ctx, program.id, p, x, w, READING_H - 60, { bg: '#f2c230', ink: '#141414' }, false)
+  const textH = story(ctx, input, p, x, 0, w, false)
+  const cardH = Math.max(600, READING_H - 60 - foot - 40 - textH - 44 - top)
+  // 흰 종이 카드(아래 여백이 넓은 인화지) 안에 흑백 사진
+  const pad = 24, capH = 58
+  ctx.fillStyle = '#f6f3ec'; ctx.fillRect(x, top, w, cardH)
+  const ph = cardH - pad - capH
+  drawPhoto(ctx, input.photo, input.focus, x + pad, top + pad, w - pad * 2, ph)
+  grayscale(ctx, Math.round(x + pad), Math.round(top + pad), Math.round(w - pad * 2), Math.round(ph))
+  ctx.fillStyle = '#161616'; ctx.textAlign = 'left'; ctx.font = `italic 300 26px ${SERIF}`; ctx.fillText('New Year Story · 2027', x + pad, top + cardH - 20)
+  ctx.textAlign = 'right'; ctx.font = `24px ${HANJA}`; ctx.fillText('丁未年', x + w - pad, top + cardH - 20)
+  story(ctx, input, p, x, top + cardH + 44, w, true)
+  footer(ctx, program.id, p, x, w, READING_H - 60, { bg: '#f2c230', ink: '#141414' }, true)
 }
 
 export function renderReadingPrint(program: ProgramDef, design: 0 | 1, input: ReadingPrintInput): string {
   const canvas = document.createElement('canvas')
   canvas.width = READING_W
   canvas.height = READING_H
-  const ctx = canvas.getContext('2d')!
-  ;(design === 0 ? card : letter)(ctx, program, input)
+  const ctx = canvas.getContext('2d', { willReadFrequently: design === 1 })!
+  ;(design === 0 ? white : black)(ctx, program, input)
   const out = canvas.toDataURL('image/jpeg', 0.92)
   canvas.width = canvas.height = 0
   return out
