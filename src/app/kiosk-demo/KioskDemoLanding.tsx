@@ -47,7 +47,7 @@ const HERO = ['studio-lookalike', 'ai-tarot', 'studio-coord', 'studio-draw', 'st
  * 매장 키오스크를 정면에서 본 모양 — 그림 파일 없이 코드로 그린다(kiosk-demo.css 의 .kd-kiosk).
  * 실물(2026-09 매장 설치)의 특징만 옮겼다: 검은 몸체 · 크게 둥근 윗모서리 · 가운데 위에 집게로 꽂은 웹캠 · 9:16 화면 · 화면 아래 영수증 구멍이 난 패널(아래로 흐려진다).
  */
-function Kiosk({ children, className }: { children: ReactNode; className?: string }) {
+export function Kiosk({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <span className={`kd-kiosk${className ? ` ${className}` : ''}`}>
       <span className="kd-kiosk-cam" aria-hidden="true"><i /></span>

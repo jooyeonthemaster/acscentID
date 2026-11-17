@@ -55,7 +55,7 @@ const HERO_CAPTION: Record<string, { tag: string; name: string; color: string }>
  * 그 아래 가로로 긴 인화물 출구(오른쪽에 회색 받침). 몸체는 바닥까지 이어지므로 아래로 흐려진다.
  * print 가 있으면 출구에서 인화물이 나오는 모습.
  */
-function Booth({ children, print, className }: { children: ReactNode; print?: string; className?: string }) {
+export function Booth({ children, print, className }: { children: ReactNode; print?: string; className?: string }) {
   return (
     <span className={`bd-booth${className ? ` ${className}` : ''}`}>
       <span className="bd-booth-body">

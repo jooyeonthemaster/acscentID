@@ -10,6 +10,10 @@ import { DemoCleanLinkMaker } from '@/components/demo/DemoCleanLinkMaker'
 import { NH_BUILD_LABEL, NH_DEMOS, nhDemoHref, type NhDemo } from '@/lib/nh-awards/demo'
 import { NH_WINES } from '@/lib/kiosk/expansion/nh-wines'
 import { NH_KIND_LABEL } from '@/lib/kiosk/expansion/nh-sommelier'
+import { Kiosk } from '@/app/kiosk-demo/KioskDemoLanding'
+import { Booth } from '@/app/booth-demo/BoothDemoLanding'
+import '@/app/kiosk-demo/kiosk-demo.css'
+import '@/app/booth-demo/booth-demo.css'
 import './nh-landing.css'
 
 const NOTES = [
@@ -26,10 +30,20 @@ const NOTES = [
 function Card({ demo, cleanKey }: { demo: NhDemo; cleanKey?: string }) {
   return (
     <li className="nh-card" data-device={demo.device} style={{ '--nh-tone': demo.color } as CSSProperties}>
+      {/* 실제 기기 정면 그림 안에 데모 첫 화면 — 영업용 랜딩(/kiosk-demo · /booth-demo)과 같은 그림. 부스는 출구에서 4×6 견본이 나온다 */}
       <a className="nh-card-shot" href={nhDemoHref(demo, cleanKey)} target="_blank" rel="noopener" aria-label={`${demo.name} 데모 열기`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={demo.screen} alt={`${demo.name} 화면`} loading="lazy" decoding="async" />
-        <span className="nh-card-device">{demo.device === 'kiosk' ? '키오스크 · 세로' : '포토부스 · 가로'}</span>
+        {demo.device === 'kiosk' ? (
+          <Kiosk className="nh-device">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={demo.screen} alt={`${demo.name} 첫 화면`} width={600} height={1067} loading="lazy" decoding="async" />
+          </Kiosk>
+        ) : (
+          <Booth className="nh-device" print={demo.print}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={demo.screen} alt={`${demo.name} 첫 화면`} width={960} height={540} loading="lazy" decoding="async" />
+          </Booth>
+        )}
+        <span className="nh-card-device">{demo.device === 'kiosk' ? '키오스크 · 세로 화면' : '포토부스 · 가로 화면 + 4×6 인화'}</span>
       </a>
       <div className="nh-card-body">
         <div className="nh-flags">
