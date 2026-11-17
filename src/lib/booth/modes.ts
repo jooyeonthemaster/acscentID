@@ -102,6 +102,16 @@ export const BOOTH_MODES: BoothMode[] = [
     storeEvents: false,
     program: 'ansan-2026',
   },
+  // 연말 시상식(2026-12-15 · 상암) — 부스마다 「2027 정미년 새해 이야기」 하나(관상 · 사주 · 손금 중 고객이 고른 것). 행사장 부스에서 '이 부스만'으로 고른다.
+  // 모드 id = 프로그램 id 라 BoothScreen 이 그대로 프로그램 화면을 고른다. 이용권 없이(pass-policy). docs/nh-awards-demo.md
+  ...PROGRAMS.filter((p) => p.kind === 'reading').map((p): BoothMode => ({
+    id: p.id,
+    label: `연말 시상식 · ${p.wordmark} ${p.name}`,
+    note: '2026.12.15 · 상암 · 사진 + AI 새해 이야기(글) · 4×6 인화 · QR',
+    brandLine: `${p.wordmark} · NEW YEAR PHOTO`,
+    storeEvents: false,
+    program: p.id,
+  })),
   // 프로그램 모드 — 행사 전용 프로그램(event)은 위에 행사 모드로 따로 둔다
   // 특정 고객 전용(site — 펀그라운드 QUEST! · MVP!)은 운영 모드에 넣지 않는다 — 데모 주소(/booth?mode=quest&demo=1&site=funground)로만 연다
   ...PROGRAMS.filter((p) => !p.event && !p.site).map((p): BoothMode => ({

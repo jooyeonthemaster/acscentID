@@ -1,0 +1,59 @@
+/* 연말 시상식 AI 체험존 데모 랜딩 — 한지 미색 · 먹 · 주홍 · 금색 띠(포토부스 새해 이야기 화면과 같은 색) */
+.nh-landing {
+  --nh-bg: #f5eedf; --nh-paper: #fffaf0; --nh-ink: #2a2420; --nh-soft: #74675a; --nh-line: #e2d3b6; --nh-accent: #b3261e; --nh-gold: #c9a24a;
+  min-height: 100vh; background: var(--nh-bg); color: var(--nh-ink);
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  padding: 0 16px 48px; word-break: keep-all;
+}
+.nh-landing * { box-sizing: border-box; }
+.nh-alert { max-width: 1120px; margin: 16px auto 0; padding: 12px 16px; border-radius: 10px; background: #fff3d6; color: #6b4a00; font-weight: 700; }
+.nh-hero { max-width: 1120px; margin: 0 auto; padding: 56px 0 28px; border-bottom: 1px solid var(--nh-line); }
+.nh-kicker { margin: 0; color: var(--nh-accent); font-weight: 800; letter-spacing: .04em; font-size: 15px; }
+.nh-hero h1 { margin: 12px 0 14px; font-size: clamp(30px, 5vw, 48px); line-height: 1.2; letter-spacing: -.02em; font-weight: 900; }
+.nh-lead { margin: 0; max-width: 720px; font-size: 18px; line-height: 1.6; color: var(--nh-soft); }
+.nh-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 24px 0 0; padding: 0; list-style: none; }
+.nh-facts li { display: grid; gap: 4px; padding: 14px 16px; border-radius: 12px; background: var(--nh-paper); border: 1px solid var(--nh-line); }
+.nh-facts b { font-size: 20px; font-weight: 900; color: var(--nh-accent); }
+.nh-facts span { font-size: 14px; color: var(--nh-soft); }
+.nh-section { max-width: 1120px; margin: 0 auto; padding: 36px 0 8px; }
+.nh-section-head h2 { margin: 0; font-size: 26px; font-weight: 900; }
+.nh-section-head p { margin: 6px 0 0; color: var(--nh-soft); font-size: 16px; line-height: 1.5; }
+.nh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; margin: 18px 0 0; padding: 0; list-style: none; }
+.nh-grid--kiosk { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+.nh-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 16px; background: var(--nh-paper); border: 1px solid var(--nh-line); box-shadow: 0 10px 26px rgba(90, 60, 30, .08); }
+.nh-card-shot { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9; background: linear-gradient(160deg, #2a2420, #4a3d33); overflow: hidden; }
+.nh-card[data-device='kiosk'] .nh-card-shot { aspect-ratio: 16 / 11; }
+.nh-card-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.nh-card[data-device='kiosk'] .nh-card-shot img { width: auto; height: 94%; object-fit: contain; border-radius: 10px; box-shadow: 0 8px 22px rgba(0, 0, 0, .4); }
+.nh-card-device { position: absolute; left: 12px; top: 12px; padding: 4px 10px; border-radius: 99px; background: rgba(0, 0, 0, .55); color: #fff; font-size: 12px; font-weight: 800; }
+.nh-card-body { display: flex; flex-direction: column; gap: 8px; padding: 18px 18px 20px; flex: 1; }
+.nh-flags { display: flex; gap: 6px; }
+.nh-flag { padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 800; border: 1.5px solid currentColor; }
+.nh-flag[data-build='adapted'] { color: #6b4a00; background: #fff3d6; }
+.nh-flag[data-build='new'] { color: #fff; background: var(--nh-accent); border-color: var(--nh-accent); }
+.nh-flag[data-build='existing'] { color: #2f5e43; background: #e3f1e8; }
+.nh-tag { margin: 4px 0 0; font-family: Impact, 'Arial Narrow', sans-serif; font-size: 26px; color: var(--nh-tone, var(--nh-accent)); letter-spacing: .01em; }
+.nh-card h3 { margin: 0; font-size: 22px; font-weight: 900; }
+.nh-desc { margin: 0; font-size: 15px; line-height: 1.6; }
+.nh-from { margin: 0; font-size: 13px; color: var(--nh-soft); line-height: 1.5; }
+.nh-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 6px 0 4px; }
+.nh-meta div { padding: 8px 10px; border-radius: 10px; background: #f6efe1; }
+.nh-meta dt { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--nh-soft); font-weight: 700; }
+.nh-meta dd { margin: 4px 0 0; font-size: 14px; font-weight: 800; }
+.nh-open { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; margin-top: auto; border-radius: 12px; background: var(--nh-tone, var(--nh-accent)); color: #fff; font-weight: 800; font-size: 16px; text-decoration: none; }
+.nh-open:focus-visible, .nh-card-shot:focus-visible { outline: 3px solid var(--nh-gold); outline-offset: 2px; }
+.nh-wines { padding: 18px; border-radius: 16px; background: var(--nh-paper); border: 1px solid var(--nh-line); }
+.nh-wines ol { display: grid; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+.nh-wines li { display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--nh-line); }
+.nh-wines li:last-child { border-bottom: 0; }
+.nh-wines b { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #6b2941; color: #fff; font-family: Impact, 'Arial Narrow', sans-serif; font-size: 18px; font-weight: 400; }
+.nh-wines span { display: grid; font-size: 14px; font-weight: 800; line-height: 1.35; }
+.nh-wines small { font-size: 12px; font-weight: 600; color: var(--nh-soft); }
+.nh-notes h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 20px; font-weight: 900; }
+.nh-notes ul { margin: 12px 0 0; padding-left: 20px; display: grid; gap: 8px; color: var(--nh-soft); font-size: 15px; line-height: 1.6; }
+.nh-foot { max-width: 1120px; margin: 32px auto 0; padding-top: 18px; border-top: 1px solid var(--nh-line); }
+@media (max-width: 760px) {
+  .nh-hero { padding-top: 36px; }
+  .nh-facts, .nh-grid--kiosk, .nh-meta { grid-template-columns: minmax(0, 1fr); }
+  .nh-grid { grid-template-columns: minmax(0, 1fr); }
+}

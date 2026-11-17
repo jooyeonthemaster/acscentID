@@ -41,7 +41,8 @@ export const KIOSK_DEMOS: KioskDemo[] = [
   { mode: 'studio-voice', tag: 'VOICE!', name: '보이스 체험', desc: '목소리를 녹음해 다람쥐 · 거인 · 외계인 같은 여덟 가지 필터로 들어 봅니다.', needs: ['mic'], group: 'studio', color: '#187b8d' },
   { mode: 'studio-career', tag: 'NEXT!', name: '미래 직업 탐색', desc: '질문 여덟 개와 관상 사진을 AI가 함께 보고 탐색해 볼 직업과 가이드를 인쇄해 줍니다.', needs: ['touch', 'camera', 'analysis'], group: 'housing', color: '#315ca8' },
   { mode: 'studio-makeup', tag: 'MAKEUP!', name: '버추얼 메이크업', desc: '내 얼굴에 립 · 아이 · 블러셔 · 헤어 색을 올려 보고 머리 모양도 바꿔 봅니다.', needs: ['camera', 'ai'], group: 'studio', color: '#754f70' },
-  ...EXPANSION_IDS.map((id): KioskDemo => ({ mode:`studio-${id}`, tag:EXPANSION_META[id].tag, name:EXPANSION_META[id].name, desc:EXPANSION_META[id].note, color:EXPANSION_META[id].color,
+  // 연말 시상식 소믈리에(sommelier-nh)는 그 고객의 데모(/booth-demo/nh)에서만 연다 — 영업용 랜딩에는 넣지 않는다
+  ...EXPANSION_IDS.filter((id) => id !== 'sommelier-nh').map((id): KioskDemo => ({ mode:`studio-${id}`, tag:EXPANSION_META[id].tag, name:EXPANSION_META[id].name, desc:EXPANSION_META[id].note, color:EXPANSION_META[id].color,
     // 체험 18종은 사진 한 장으로 시작하고 AI 가 분석한다. 6종(+ 2036 우리 집의 나)은 사진으로 새 그림까지 만든다(AI 생성)
     // 주거복지 내비게이터·성향 테스트는 사진 없이 질문만(NO_PHOTO_IDS)
     needs: (NO_PHOTO_IDS as readonly string[]).includes(id) ? ['touch', 'analysis'] : ['camera', usesImage(id) ? 'ai' : 'analysis', ...(['product','heritage','vision-wall'].includes(id) ? ['display' as const] : [])],

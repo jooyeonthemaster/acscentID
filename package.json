@@ -17,6 +17,7 @@
     "test:bank-deposit": "esbuild src/lib/bank-deposit/__tests__/alert.test.ts --bundle --platform=node --format=cjs --packages=external --outfile=.test-build/bank-deposit/alert.test.cjs --log-level=warning && node --test .test-build/bank-deposit/alert.test.cjs",
     "test:funground-color": "esbuild src/lib/funground/__tests__/color-texts.test.ts --bundle --platform=node --format=cjs --packages=external --outfile=.test-build/funground-color/color-texts.test.cjs --log-level=warning && node --test .test-build/funground-color/color-texts.test.cjs",
     "test:funground-saju": "esbuild src/lib/funground/__tests__/saju-reading.test.ts --bundle --platform=node --format=cjs --packages=external --outfile=.test-build/funground-saju/saju-reading.test.cjs --log-level=warning && node --test .test-build/funground-saju/saju-reading.test.cjs",
+    "test:nh-awards": "esbuild src/lib/kiosk/expansion/__tests__/nh-sommelier.test.ts src/lib/booth/programs/__tests__/reading.test.ts --bundle --platform=node --format=cjs --outdir=.test-build/nh-awards --outbase=src --out-extension:.js=.cjs --log-level=warning && node --test .test-build/nh-awards/lib",
     "test:funground-news": "esbuild src/lib/funground/__tests__/news-template.test.ts --bundle --platform=node --format=cjs --packages=external --outfile=.test-build/funground-news/news-template.test.cjs --log-level=warning && node --test .test-build/funground-news/news-template.test.cjs"
   },
   "dependencies": {

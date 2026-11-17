@@ -15,7 +15,14 @@ export type KxReceiptBlock =
   /** 조향 레시피 — 영수증에서 한눈에 보이게 굵은 테두리 상자 안에 크게(향료 번호·이름·비율·용량, 베이스, 안내) */
   | { kind: 'recipe'; label: string; name: string; notes: { no: string; name: string; grams: string; detail: string }[]; base: string; note: string }
 
+/** 맨 위 따를 와인(연말 시상식 소믈리에) — 체험 워드마크보다 먼저, 가장 크게. 현장 직원이 영수증 맨 위만 보고 따른다 */
+export interface KxReceiptLead { no: number; name: string; en: string; kind: string; label: string }
+
 export interface KxReceipt {
+  /** 맨 위 번호 · 이름 상자 — 있으면 머리(워드마크)를 작게 */
+  lead?: KxReceiptLead
+  /** 영수증 맨 아래 행사 표기(브랜드 커스텀을 켠 행사만, src/lib/nh-awards/brand.ts) */
+  brand?: { line: string; logo: string | null }
   /** 큰 글자(NAIL! · CARD! …) */
   tag: string
   title: string
@@ -67,9 +74,27 @@ export async function renderKxReceipt(receipt: KxReceipt, qr: KxReceiptQr | null
   const rule = (thick = 2, gap = 14) => { ctx.fillRect(M, y, inner, thick); y += thick + gap }
   const dashes = (gap = 14) => { for (let x = M; x < W - M; x += 10) ctx.fillRect(x, y, 6, 2); y += 2 + gap }
 
+  // 따를 와인 — 검은 띠(무엇인지) + 아주 큰 번호 + 이름(굵게) + 영문 · 종류. 굵은 테두리 한 덩어리
+  if (receipt.lead) {
+    const lead = receipt.lead, top = y, x0 = M, x1 = W - M
+    ctx.fillRect(x0, y, inner, 46)
+    ctx.fillStyle = '#fff'; ctx.font = `900 25px ${family}`; ctx.textAlign = 'center'
+    ctx.fillText(lead.label, W / 2, y + 10)
+    ctx.fillStyle = INK
+    y += 46 + 6
+    ctx.font = `900 150px Impact, 'Arial Narrow', ${family}`; ctx.textAlign = 'center'
+    ctx.fillText(`No.${lead.no}`, W / 2, y)
+    y += 156
+    text(lead.name, 36, 900, { center: true, gap: 4 })
+    text(lead.en, 18, 600, { center: true, gap: 2 })
+    text(lead.kind, 21, 800, { center: true, gap: 8 })
+    const h = y - top + 4
+    ctx.fillRect(x0, top, inner, 5); ctx.fillRect(x0, top + h - 5, inner, 5); ctx.fillRect(x0, top, 5, h); ctx.fillRect(x1 - 5, top, 5, h)
+    y += 22
+  }
   // 머리 — 체험 모드는 브랜드·회사명을 찍지 않는다(2026-10-28 사용자 지시): 체험 워드마크부터
   y += 6
-  text(receipt.tag, 68, 900, { center: true, font: `Impact, 'Arial Narrow', ${family}`, gap: 0 })
+  text(receipt.tag, receipt.lead ? 44 : 68, 900, { center: true, font: `Impact, 'Arial Narrow', ${family}`, gap: 0 })
   text(receipt.title, 27, 800, { center: true, gap: receipt.subtitle ? 0 : 6 })
   if (receipt.subtitle) text(receipt.subtitle, 19, 600, { center: true, gap: 6 })
   text(stamp, 16, 600, { center: true, gap: 10 })
@@ -163,6 +188,15 @@ export async function renderKxReceipt(receipt: KxReceipt, qr: KxReceiptQr | null
   }
   rule(1, 12)
   if (receipt.foot) text(receipt.foot, 16, 500, { center: true, gap: 4 })
+  if (receipt.brand) {
+    const logo = receipt.brand.logo ? await loadImage(receipt.brand.logo).catch(() => null) : null
+    if (logo) {
+      const width = Math.min(220, inner), height = Math.round(width * logo.naturalHeight / logo.naturalWidth)
+      ctx.drawImage(ditherForThermal(logo, width, height, 175), Math.round((W - width) / 2), y + 8)
+      y += height + 16
+    }
+    if (receipt.brand.line) text(receipt.brand.line, 18, 800, { center: true, gap: 4 })
+  }
   y += 46
 
   const out = document.createElement('canvas')

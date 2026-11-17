@@ -156,5 +156,7 @@ export function isFungroundSite(): boolean {
  */
 export function fungroundWebcamOnly(): boolean {
   if (typeof window === 'undefined') return false
-  return isFungroundSite() && new URLSearchParams(window.location.search).get('camera') !== 'dslr'
+  const camera = new URLSearchParams(window.location.search).get('camera')
+  // 다른 고객 데모(연말 시상식 /booth-demo/nh)도 같은 까닭으로 주소에 camera=webcam 을 붙여 웹캠만 쓴다
+  return camera === 'webcam' || (isFungroundSite() && camera !== 'dslr')
 }

@@ -182,8 +182,10 @@ export async function generateParsed<T>(opts: {
   temperature: number
   lang: KioskLang
   parse: (responseText: string) => T
+  /** 기본 텍스트 모델(OPENROUTER_TEXT_MODEL) 대신 — 짧은 글을 빨리 받아야 하는 곳(포토부스 새해 이야기)만 */
+  model?: string
 }): Promise<T> {
-  const model = getModelWithConfig({ maxOutputTokens: MAX_OUTPUT_TOKENS, temperature: opts.temperature })
+  const model = getModelWithConfig({ maxOutputTokens: MAX_OUTPUT_TOKENS, temperature: opts.temperature, model: opts.model })
   const deadline = Date.now() + DEADLINE_MS
   let lastError = ''
   let lastInvalid = false

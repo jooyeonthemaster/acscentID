@@ -10,8 +10,9 @@ const CameraModes = dynamic(() => import('./CameraModes'), { ssr:false })
 const ParticipantModes = dynamic(() => import('./ParticipantModes'), { ssr:false })
 const InteractiveModes = dynamic(() => import('./InteractiveModes'), { ssr:false })
 const HousingModes = dynamic(() => import('./HousingModes'), { ssr:false })
+const SommelierNhMode = dynamic(() => import('./SommelierNhMode'), { ssr:false })
 
 export default function ExpansionMode() {
   const { id } = useKx()
-  return <div className="ex-shell">{id === 'housing-scent' || id === 'housing-mate' || id === 'housing-home' ? <HousingModes id={id} /> : id === 'lookalike' || id === 'palm' || id === 'face' ? <CameraModes id={id} /> : id === 'team' || id === 'couple' ? <ParticipantModes id={id} /> : id === 'science' || id === 'product' || id === 'vision-wall' || id === 'heritage' ? <InteractiveModes id={id} /> : <PreferenceMode id={id as PreferenceId} />}</div>
+  return <div className="ex-shell">{id === 'sommelier-nh' ? <SommelierNhMode /> : id === 'housing-scent' || id === 'housing-mate' || id === 'housing-home' ? <HousingModes id={id} /> : id === 'lookalike' || id === 'palm' || id === 'face' ? <CameraModes id={id} /> : id === 'team' || id === 'couple' ? <ParticipantModes id={id} /> : id === 'science' || id === 'product' || id === 'vision-wall' || id === 'heritage' ? <InteractiveModes id={id} /> : <PreferenceMode id={id as PreferenceId} />}</div>
 }

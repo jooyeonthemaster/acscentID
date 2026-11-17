@@ -7,6 +7,7 @@ import { NO_PHOTO_IDS } from './housing'
 import { RECEIPT_ROOM_ART } from './housing-art'
 import { noteDetail, noteGrams, RECIPE_COUNTER } from './recipe'
 import { EXPANSION_META, type ExpansionId, type ExperienceResult } from './types'
+import { eventBrandFor } from '../../nh-awards/brand'
 
 const MAX_SECTIONS = 4
 /** 체험 대표 그림 대신 영수증에 찍는 그림(감열지에 잘 나오는 선화) */
@@ -30,7 +31,8 @@ export function expansionReceipt(id: ExpansionId, result: ExperienceResult, art:
     notes: recipe.notes.map((n) => ({ no: n.no, name: n.name, grams: noteGrams(n), detail: noteDetail(n) })),
     base: `+ 퍼퓸 베이스 ${recipe.baseMl}ml`, note: RECIPE_COUNTER,
   }] : []
-  blocks.push(picture, { kind: 'text', text: result.summary })
+  // 따를 와인(시상식 소믈리에)은 맨 위 번호 상자가 그림을 대신한다 — 영수증을 짧게(줄 선 손님이 빨리 받게)
+  blocks.push(...(result.pour ? [] : [picture]), { kind: 'text', text: result.summary })
   if (result.tags.length) blocks.push({ kind: 'text', text: result.tags.map((tag) => `#${tag}`).join('  '), small: true, bold: true })
   if (recipe) {
     // 넣은 이유는 작게(상자 아래) — 상자에는 숫자만
@@ -48,5 +50,8 @@ export function expansionReceipt(id: ExpansionId, result: ExperienceResult, art:
   if (result.footnote) blocks.push({ kind: 'rule' }, { kind: 'text', text: result.footnote, small: true })
   // 사진을 쓰지 않는 체험(주거복지 내비게이터·성향 테스트)은 사진 이야기 대신 입력 이야기
   const noPhoto = (NO_PHOTO_IDS as readonly string[]).includes(id)
-  return { tag: meta.tag, title: result.title, subtitle: result.subtitle ?? meta.name, blocks, foot: noPhoto ? `${meta.name} · 입력한 내용은 저장하지 않아요` : art ? `${meta.name} · AI가 새로 만든 그림만 인쇄했어요 · 촬영 사진은 저장하지 않아요` : `${meta.name} · 촬영 사진은 저장하거나 인쇄하지 않아요` }
+  // 따를 와인(시상식 소믈리에) — 영수증 맨 위에 번호 · 이름을 크게
+  const lead = result.pour ? { no: result.pour.no, name: result.pour.name, en: result.pour.en, kind: result.pour.kind, label: '오늘의 시음 와인' } : undefined
+  const brand = eventBrandFor(id)
+  return { ...(lead ? { lead } : {}), ...(brand ? { brand: { line: brand.line, logo: brand.receiptLogo } } : {}), tag: meta.tag, title: result.title, subtitle: result.subtitle ?? meta.name, blocks, foot: noPhoto ? `${meta.name} · 입력한 내용은 저장하지 않아요` : art ? `${meta.name} · AI가 새로 만든 그림만 인쇄했어요 · 촬영 사진은 저장하지 않아요` : `${meta.name} · 촬영 사진은 저장하거나 인쇄하지 않아요` }
 }

@@ -67,6 +67,9 @@ export function middleware(request: NextRequest) {
     // 펀그라운드 별내 견적 데모(랜딩 · 서명판 · 세로 시작 화면 · 전용 화면) — src/lib/funground/demo.ts
     pathname === '/booth-demo/funground' ||
     pathname.startsWith('/booth-demo/funground/') ||
+    // 연말 시상식 AI 체험존 데모(랜딩 · 서명판) — src/lib/nh-awards/demo.ts
+    pathname === '/booth-demo/nh' ||
+    pathname.startsWith('/booth-demo/nh/') ||
     pathname.startsWith('/kiosk-display/') ||
     pathname === '/coupon/claim' ||
     pathname === '/coupon/register' ||

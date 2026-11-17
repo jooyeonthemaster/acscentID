@@ -129,8 +129,21 @@ function RecipePanel({ recipe }: { recipe: ScentRecipe }) {
   </section>
 }
 
+/** 따를 와인 — 번호와 이름을 크게(현장 직원이 화면만 보고 바로 따른다). 병 사진이 없으면 종류 색의 병 그림 */
+export function PourBadge({ pour }: { pour: NonNullable<ExperienceResult['pour']> }) {
+  return <section className="ex-pour" aria-label={`오늘의 시음 와인 ${pour.no}번 ${pour.name}`} style={{ ['--pour' as string]: pour.color }}>
+    <div className="ex-pour-no"><small>오늘의 시음 와인</small><b>No.{pour.no}</b></div>
+    <div className="ex-pour-name"><h2>{pour.name}</h2><p>{pour.en}</p><span>{pour.kind}</span></div>
+    <div className="ex-pour-bottle" aria-hidden="true">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {pour.bottle ? <img src={pour.bottle} alt="" /> : <svg viewBox="0 0 40 120"><path d="M15 4h10v30c0 6 10 12 10 26v54c0 2-2 4-4 4H9c-2 0-4-2-4-4V60c0-14 10-20 10-26z" fill="currentColor" /><rect x="8" y="66" width="24" height="26" rx="2" fill="#fff" opacity=".85" /></svg>}
+    </div>
+  </section>
+}
+
 export function ResultPanel({ result }: { result: ExperienceResult }) {
   return <article className="ex-result" data-result={result.id}>
+    {result.pour && <PourBadge pour={result.pour} />}
     {result.art && <figure className="ex-result-art" data-wide={result.art.wide || undefined}>
       {/* 준비된 결과 그림(성향 캐릭터 등) — 글자 없는 그림 */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -152,6 +165,8 @@ export async function renderExperienceCard(id: ExpansionId, result: ExperienceRe
   const [, measure] = makeCanvas(900, 100)
   const blocks: { text: string; size: number; weight: number; color: string; gap: number }[] = [
     { text: meta.tag + '  /  ' + meta.name, size: 26, weight: 800, color: meta.color, gap: 20 },
+    // 따를 와인 — 카드 맨 위에 번호를 크게
+    ...(result.pour ? [{ text: `오늘의 시음 와인  No.${result.pour.no}`, size: 64, weight: 800, color: meta.color, gap: 6 }, { text: result.pour.en, size: 24, weight: 600, color: '#625C61', gap: 16 }] : []),
     { text: result.title, size: 48, weight: 800, color: meta.color, gap: 14 },
     ...(result.subtitle ? [{ text: result.subtitle, size: 26, weight: 600, color: '#625C61', gap: 16 }] : []),
     { text: result.summary, size: 28, weight: 500, color: '#302E32', gap: 20 },

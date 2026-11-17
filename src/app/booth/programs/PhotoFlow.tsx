@@ -125,7 +125,7 @@ function PrintPreview({ src }: { src: string }) {
 
 // ───────────────────────── 촬영 ─────────────────────────
 
-function CaptureStep({ ctx, shots, shotUrls, setShot, onNext }: {
+export function CaptureStep({ ctx, shots, shotUrls, setShot, onNext }: {
   ctx: FlowCtx
   shots: (Shot | null)[]
   shotUrls: (string | null)[]
@@ -255,7 +255,10 @@ function CaptureStep({ ctx, shots, shotUrls, setShot, onNext }: {
           </div>
           <label className="pg-consent">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} disabled={count !== null} />
-            <span>사진 촬영과 AI 사진 생성에 동의해요. 찍은 사진은 생성에만 쓰고, 저장을 누른 결과만 7일 보관해요.</span>
+            {program.kind === 'reading'
+              // 새해 이야기(관상 · 사주 · 손금) — 그림은 만들지 않고 글만 AI 가 쓴다. 사주는 사진을 AI 에 보내지 않는다(카드에만)
+              ? <span>사진 촬영과 AI 새해 이야기 만들기에 동의해요. {program.reading?.birth ? '사진은 새해 카드에만 들어가고 AI에 보내지 않아요.' : '찍은 사진은 이야기를 쓰는 데만 쓰고 저장하지 않아요.'} 결과 카드는 QR로 받을 때만 7일 보관해요.</span>
+              : <span>사진 촬영과 AI 사진 생성에 동의해요. 찍은 사진은 생성에만 쓰고, 저장을 누른 결과만 7일 보관해요.</span>}
           </label>
           <button type="button" className="pg-btn pg-btn--accent pg-btn--shoot" onClick={shoot} disabled={count !== null || camera.state !== 'ready' || !consent}>
             <Camera size={30} />{count !== null ? `${count || '찰칵'}…` : (program.capture.people === 2 && need === 1) || program.capture.group ? '함께 촬영하기' : '촬영하기'}
@@ -409,7 +412,7 @@ function Generate({ ctx, shots, shotUrls, choices, labels, onDone, onStyle }: {
 
 // ───────────────────────── 저장 ─────────────────────────
 
-function SaveStep({ ctx, image }: { ctx: FlowCtx; image: string }) {
+export function SaveStep({ ctx, image }: { ctx: FlowCtx; image: string }) {
   const { program } = ctx
   const make = useCallback(async () => savePhoto(await ctx.getTicket(), image), [ctx, image])
   const saved = useSavedLink(make, true)

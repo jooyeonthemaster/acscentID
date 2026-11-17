@@ -1,5 +1,5 @@
 import type { ScentRecipe } from './recipe'
-export const EXPANSION_IDS = ["sommelier","cocktail","barista","taste-dna","style-profiler","coord","lookalike","science","palm","aura","product","team","vision-wall","heritage","travel","scent","face","couple","housing-scent","housing-home","housing-mate"] as const
+export const EXPANSION_IDS = ["sommelier","cocktail","barista","taste-dna","style-profiler","coord","lookalike","science","palm","aura","product","team","vision-wall","heritage","travel","scent","face","couple","housing-scent","housing-home","housing-mate","sommelier-nh"] as const
 export type ExpansionId = (typeof EXPANSION_IDS)[number]
 export const isExpansionId = (id: string): id is ExpansionId => (EXPANSION_IDS as readonly string[]).includes(id)
 export const EXPANSION_META = {
@@ -172,6 +172,15 @@ export const EXPANSION_META = {
     "note": "여덟 가지 질문 → 주거 성향 캐릭터 · 잘 맞는 이웃 · 그 성향의 시그니처 조향 레시피",
     "category": "주거복지",
     "hero": "/assets/kiosk-expansion/housing-mate.webp"
+  },
+  // 연말 시상식(2026-12-15) AI 소믈리에 — 소믈리에의 후보를 실제 시음 와인 10병(nh-wines.ts)으로. 데이터·규칙은 nh-sommelier.ts, 화면은 SommelierNhMode.tsx
+  "sommelier-nh": {
+    "name": "AI 소믈리에",
+    "tag": "SIP!",
+    "color": "#6B2941",
+    "note": "사진 + 단맛·산미·바디·종류 → AI가 오늘의 시음 와인 10병 중 한 병을 골라 번호로 알려 줘요",
+    "category": "식음료",
+    "hero": "/assets/kiosk-expansion/sommelier.webp"
   }} as const
 export type PreferenceId = 'sommelier' | 'cocktail' | 'barista' | 'taste-dna' | 'style-profiler' | 'coord' | 'aura' | 'travel' | 'scent'
 export type Answers = Record<string, string | string[] | number>
@@ -183,6 +192,8 @@ export interface ResultSection { title: string; body: string; items?: string[] }
 export interface ResultMetric { label: string; value: number; max: number; color?: string }
 /** recipe — 조향 레시피(주거복지대전 3종, recipe.ts). 있으면 화면·카드·영수증이 레시피 칸을 먼저 그린다
  *  art — 결과를 대표하는 그림(성향 캐릭터 등, AI 합성이 아닌 준비된 그림). 결과 카드 머리와 영수증 그림에 쓴다 */
-export interface ExperienceResult { id: string; title: string; subtitle?: string; summary: string; tags: string[]; sections: ResultSection[]; metrics?: ResultMetric[]; palette?: string[]; footnote?: string; recipe?: ScentRecipe; art?: { src: string; caption: string; wide?: boolean } }
+/** pour — 따를 와인 한 병(연말 시상식 소믈리에). 있으면 화면·카드·영수증 맨 위에 번호와 이름을 크게 — 현장 직원이 보고 바로 따른다 */
+export interface ResultPour { no: number; name: string; en: string; kind: string; color: string; bottle: string | null }
+export interface ExperienceResult { id: string; title: string; subtitle?: string; summary: string; tags: string[]; sections: ResultSection[]; metrics?: ResultMetric[]; palette?: string[]; footnote?: string; recipe?: ScentRecipe; art?: { src: string; caption: string; wide?: boolean }; pour?: ResultPour }
 export interface AnswerSummary { key: string; label: string; value: string; step: number }
 export interface RecommendationBundle { primary: ExperienceResult; alternatives: ExperienceResult[]; summary: AnswerSummary[] }

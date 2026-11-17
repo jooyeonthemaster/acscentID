@@ -5,8 +5,9 @@ import { BOOTH_MODES, findBoothMode } from './modes'
 import { readDeviceBoothToken } from './device-mode'
 
 /** 저장값이 없을 때 이용권 없이 쓰는 모드 — 여기 없는 모드(매장 wow, 프로그램 14종)는 이용권 필요.
- *  주거복지대전 3종은 무료 공공 행사용이라 행사 모드처럼 기본 무료(STORE ADMIN 에서 바꿀 수 있다). ANSAN(과학축제, 무료 입장)도 */
-const PASS_FREE_BY_DEFAULT = new Set(['kwave-2026', 'housing-movein', 'housing-cover', 'housing-2046', 'ansan-2026'])
+ *  주거복지대전 3종은 무료 공공 행사용이라 행사 모드처럼 기본 무료(STORE ADMIN 에서 바꿀 수 있다). ANSAN(과학축제, 무료 입장)도.
+ *  연말 시상식 새해 이야기 3종(nh-*)도 무료 행사라 기본 무료 */
+const PASS_FREE_BY_DEFAULT = new Set(['kwave-2026', 'housing-movein', 'housing-cover', 'housing-2046', 'ansan-2026', 'nh-face', 'nh-saju', 'nh-palm'])
 
 /** 저장할 수 있는 모드별 값의 수 — 모드 수보다 넉넉히(예전 10개 제한은 모드가 16개가 되며 설정 전체를 버리게 됐다) */
 const PASS_SETTINGS_MAX = Math.max(64, BOOTH_MODES.length * 2)

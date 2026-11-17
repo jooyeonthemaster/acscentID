@@ -16,14 +16,17 @@ export const PROGRAM_IDS = [
   'quest', 'mvp',
   // 펀그라운드 A안 DREAM! 꿈의 직업 포토(2026-11-14) — 옷 · 배경만 바꾸는 사진형이라 Seedream($0.018)
   'dream',
+  // 연말 시상식(2026-12-15) 「2027 정미년 새해 이야기」 — 관상 · 사주 · 손금. AI 는 글만, 4×6 은 기기 안 합성(kind 'reading', docs/nh-awards-demo.md)
+  'nh-face', 'nh-saju', 'nh-palm',
 ] as const
 export type ProgramId = (typeof PROGRAM_IDS)[number]
 
 /**
  * photo: AI 사진 한 장 → 4×6 인화·QR / mv: 15초 촬영 영상 편집 / movie: 휴대폰 사진 5~20장 → 슬라이드 영상
  * strip: 한 컷 → 지금 + AI 세 장 = 2×6 사진 네 컷(4×6 한 장에 사진 둘, 프린터 2인치 자르기) — ANSAN 타임캡슐
+ * reading: 한 컷(+ 생년월일) → AI 가 새해 이야기 글 → 찍은 사진 + 글을 기기 안에서 4×6 으로 합성(그림 생성 없음) — 연말 시상식 관상 · 사주 · 손금
  */
-export type ProgramKind = 'photo' | 'mv' | 'movie' | 'strip'
+export type ProgramKind = 'photo' | 'mv' | 'movie' | 'strip' | 'reading'
 
 export interface ProgramOption {
   id: string
@@ -89,6 +92,8 @@ export interface ProgramDef {
    * 프로그램 모드 목록 · 영업용 데모 랜딩(/booth-demo)에는 넣지 않고, 생성은 그 고객의 모델 표(src/lib/booth/image-models.ts)를 쓴다
    */
   site?: 'funground'
+  /** reading 흐름 — subject: 무엇을 찍나(손금은 얼굴 옆에 손바닥), birth: 촬영 전에 생년월일(사주) */
+  reading?: { subject: 'face' | 'palm'; birth?: boolean }
 }
 
 const intro = (id: ProgramId) => `/assets/booth-programs/${id}.webp`
@@ -676,6 +681,57 @@ export const PROGRAMS: ProgramDef[] = [
     creative: '꿈을 미리 그려 보는 상상 사진이에요 — AI가 만든 창작 이미지예요',
     intro: intro('dream'), script: 'Dream it, wear it', designs: ['꿈의 직업 포스터', '꿈의 명함'],
     card: { tag: 'DREAM!', desc: '천문학자 · 셰프 · 수의사 · 과학자 · 소방관 · 게임 개발자 — 얼굴은 그대로, 꿈의 직업 옷과 일터로.', color: '#1f8fd0', badges: ['AI 생성', '1~4인', '4×6 인화'] },
+  },
+  // ───── 연말 시상식(2026-12-15) 「2027 정미년 새해 이야기」 — 부스마다 하나(event: 운영 모드는 modes.ts 행사 항목, 랜딩은 /booth-demo/nh) ─────
+  // 키오스크 studio-face · studio-palm, 펀그라운드 FORTUNE! 을 부스 흐름으로. 글은 AI(10초 안에 못 받으면 미리 쓴 문장), 그림은 찍은 사진 그대로(src/lib/booth/programs/reading.ts)
+  {
+    id: 'nh-face', kind: 'reading', event: true, reading: { subject: 'face' }, name: '새해 관상 이야기', wordmark: 'FACE!',
+    headline: '오늘의 표정으로 읽는\n2027 새해 이야기', lead: '한 컷 찍고 주제를 고르면, 관상에서 착안한 새해 덕담을 사진과 함께 인화해 드려요',
+    steps: ['촬영', '주제 고르기', '새해 카드'], startCta: '새해 이야기 듣기',
+    capture: { title: '정면을 보고\n편하게 웃어 주세요', hint: '얼굴과 어깨가 가이드 안에 들어오게 서 주세요', people: 1, shots: 1 },
+    options: {
+      title: '어떤 새해 이야기를\n듣고 싶으세요?', sub: '고른 주제와 오늘의 표정으로 이야기를 지어요', cta: '새해 이야기 만들기',
+      groups: [
+        { id: 'topic', label: '새해 이야기 주제', look: 'tiles', options: [
+          { id: 'work', label: '일과 성장', sub: '새해에 키우고 싶은 일', swatch: 'linear-gradient(160deg,#f3e3c3,#c9a24a)' },
+          { id: 'people', label: '사람과 인연', sub: '함께하는 사람들', swatch: 'linear-gradient(160deg,#f8dcd2,#d9826b)' },
+          { id: 'rest', label: '쉼과 여유', sub: '나를 돌보는 시간', swatch: 'linear-gradient(160deg,#e3ecdf,#7fa58a)' },
+          { id: 'challenge', label: '새로운 도전', sub: '처음 해 볼 일', swatch: 'linear-gradient(160deg,#f6d3c6,#b3261e)' },
+        ] },
+      ],
+    },
+    generating: { title: '새해 이야기를\n짓고 있어요', sub: '오늘의 표정과 고른 주제로 덕담을 쓰고 있어요', stages: ['사진 확인', '이야기 쓰는 중', '새해 카드 완성'] },
+    result: { title: '2027 새해 관상 이야기', sub: '인화할 디자인을 골라 주세요' },
+    save: { title: '새해 카드를 가져가세요', sub: '4×6 사진으로 인화하고 휴대폰에도 받을 수 있어요' },
+    creative: '관상에서 착안한 재미로 보는 창작 이야기예요. 얼굴 생김새로 성격 · 운명을 판정하지 않아요',
+    intro: '/assets/kiosk-expansion/face.webp', script: '2027 丁未年', designs: ['새해 카드', '정미년 연하장'],
+    card: { tag: 'FACE!', desc: '한 컷 찍고 주제를 고르면 오늘의 표정에서 착안한 새해 덕담을 사진과 함께 4×6 으로.', color: '#b3261e', badges: ['AI 글', '사진 그대로', '4×6 인화'] },
+  },
+  {
+    id: 'nh-saju', kind: 'reading', event: true, reading: { subject: 'face', birth: true }, name: '정미년 사주 이야기', wordmark: 'SAJU!',
+    headline: '생년월일로 펼치는\n2027 정미년 이야기', lead: '생년월일을 넣고 한 컷 찍으면, 만세력으로 본 새해 흐름을 사진과 함께 인화해 드려요',
+    steps: ['생년월일', '촬영', '새해 카드'], startCta: '사주 이야기 듣기',
+    capture: { title: '새해 카드에 들어갈\n사진을 찍어요', hint: '얼굴과 어깨가 가이드 안에 들어오게 서 주세요', people: 1, shots: 1 },
+    options: { title: '', sub: '', cta: '', groups: [] },
+    generating: { title: '정미년 이야기를\n펼치는 중이에요', sub: '만세력으로 사주를 세우고 새해 이야기를 쓰고 있어요', stages: ['사주 세우기', '이야기 쓰는 중', '새해 카드 완성'] },
+    result: { title: '2027 정미년 사주 이야기', sub: '인화할 디자인을 골라 주세요' },
+    save: { title: '새해 카드를 가져가세요', sub: '4×6 사진으로 인화하고 휴대폰에도 받을 수 있어요' },
+    creative: '재미로 보는 사주 이야기예요. 생년월일은 이야기를 만드는 데만 쓰고 저장하지 않아요',
+    intro: '/assets/booth-programs/nh/saju-intro.svg', script: '2027 丁未年', designs: ['새해 카드', '정미년 연하장'],
+    card: { tag: 'SAJU!', desc: '생년월일과 한 컷으로, 만세력에서 본 2027 정미년 흐름과 행운의 색을 사진과 함께 4×6 으로.', color: '#8a1c1c', badges: ['AI 글', '만세력', '4×6 인화'] },
+  },
+  {
+    id: 'nh-palm', kind: 'reading', event: true, reading: { subject: 'palm' }, name: '새해 손금 이야기', wordmark: 'PALM!',
+    headline: '손바닥을 펼치면\n새해 이야기가 열려요', lead: '얼굴 옆으로 손바닥을 펴고 한 컷 — 손을 펼친 모양에서 착안한 새해 덕담을 사진과 함께 인화해 드려요',
+    steps: ['손 펴고 촬영', '이야기 쓰기', '새해 카드'], startCta: '손바닥 펼치기',
+    capture: { title: '얼굴 옆으로\n손바닥을 활짝 펴 주세요', hint: '손바닥이 카메라를 보게, 손가락까지 화면 안에 들어오게 해 주세요', people: 1, shots: 1 },
+    options: { title: '', sub: '', cta: '', groups: [] },
+    generating: { title: '손 위에 새해 이야기를\n쓰고 있어요', sub: '손을 펼친 모양에서 착안한 덕담을 쓰고 있어요', stages: ['손 모양 확인', '이야기 쓰는 중', '새해 카드 완성'] },
+    result: { title: '2027 새해 손금 이야기', sub: '인화할 디자인을 골라 주세요' },
+    save: { title: '새해 카드를 가져가세요', sub: '4×6 사진으로 인화하고 휴대폰에도 받을 수 있어요' },
+    creative: '손금에서 착안한 재미로 보는 창작 이야기예요. 실제 손금 선을 읽지 않아요',
+    intro: '/assets/kiosk-expansion/palm.webp', script: '2027 丁未年', designs: ['새해 카드', '정미년 연하장'],
+    card: { tag: 'PALM!', desc: '얼굴 옆에 손바닥을 펴고 한 컷 — 손을 펼친 모양에서 착안한 새해 덕담을 사진과 함께 4×6 으로.', color: '#3b4a7a', badges: ['AI 글', '사진 그대로', '4×6 인화'] },
   },
 ]
 

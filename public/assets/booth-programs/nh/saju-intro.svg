@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1448 1086" width="1448" height="1086">
+  <!-- 연말 시상식 SAJU! 시작 화면 소개 그림 — 한지 · 먹 산 · 붉은 해 · 丁未 · 네 기둥(글자 없는 장식 그림, 코드로 그림 · 2026-11-17) -->
+  <defs>
+    <radialGradient id="paper" cx="50%" cy="40%" r="75%"><stop offset="0" stop-color="#fbf5e8"/><stop offset="1" stop-color="#eadbbd"/></radialGradient>
+    <radialGradient id="sun" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#d9442f"/><stop offset=".75" stop-color="#b3261e"/><stop offset="1" stop-color="#b3261e" stop-opacity="0"/></radialGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4038" stop-opacity=".55"/><stop offset="1" stop-color="#4a4038" stop-opacity=".05"/></linearGradient>
+    <linearGradient id="ink2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2420" stop-opacity=".75"/><stop offset="1" stop-color="#2a2420" stop-opacity=".1"/></linearGradient>
+  </defs>
+  <rect width="1448" height="1086" fill="url(#paper)"/>
+  <circle cx="1080" cy="300" r="190" fill="url(#sun)"/>
+  <g fill="none" stroke="#c9a24a" stroke-width="5" stroke-linecap="round" opacity=".7">
+    <path d="M140 250c40-40 110-40 140 0 30-40 100-40 130 0"/><path d="M860 520c40-40 110-40 140 0 30-40 100-40 130 0"/><path d="M180 520c30-30 80-30 105 0 25-30 75-30 100 0"/>
+  </g>
+  <path d="M0 760 C140 600 260 560 380 660 C470 520 560 470 680 610 C780 500 880 470 1000 600 C1120 520 1250 540 1448 690 L1448 1086 L0 1086Z" fill="url(#ink)"/>
+  <path d="M0 880 C180 760 320 740 470 840 C600 740 760 720 900 830 C1040 760 1220 760 1448 860 L1448 1086 L0 1086Z" fill="url(#ink2)"/>
+  <g font-family="'Noto Serif CJK KR','Noto Serif KR','AppleMyungjo','Batang','Malgun Gothic',serif" text-anchor="middle">
+    <g transform="translate(724 210)">
+      <rect x="-210" y="-110" width="420" height="220" rx="18" fill="#fffaf0" stroke="#c9a24a" stroke-width="6"/>
+      <text y="52" font-size="150" font-weight="700" fill="#b3261e">丁未</text>
+    </g>
+    <g font-size="96" font-weight="700" fill="#2a2420">
+      <g transform="translate(364 520)"><rect x="-80" y="-150" width="160" height="300" rx="16" fill="#fffaf0" fill-opacity=".92" stroke="#c9a24a" stroke-width="4"/><text y="-30">時</text><text y="96" fill="#b3261e">○</text></g>
+      <g transform="translate(604 520)"><rect x="-80" y="-150" width="160" height="300" rx="16" fill="#fffaf0" fill-opacity=".92" stroke="#c9a24a" stroke-width="4"/><text y="-30">日</text><text y="96" fill="#b3261e">○</text></g>
+      <g transform="translate(844 520)"><rect x="-80" y="-150" width="160" height="300" rx="16" fill="#fffaf0" fill-opacity=".92" stroke="#c9a24a" stroke-width="4"/><text y="-30">月</text><text y="96" fill="#b3261e">○</text></g>
+      <g transform="translate(1084 520)"><rect x="-80" y="-150" width="160" height="300" rx="16" fill="#fffaf0" fill-opacity=".92" stroke="#c9a24a" stroke-width="4"/><text y="-30">年</text><text y="96" fill="#b3261e">○</text></g>
+    </g>
+    <g transform="translate(1160 930)"><rect x="-62" y="-62" width="124" height="124" rx="12" fill="#b3261e"/><text y="34" font-size="92" font-weight="700" fill="#fbeee0">福</text></g>
+  </g>
+</svg>

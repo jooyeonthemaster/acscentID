@@ -4,6 +4,7 @@
 
 import { catalogForPrompt, normalizeId, PREFER_COUNT, validateRecipe, type RawRecipe } from './recipe'
 import { EXPANSION_META, isExpansionId, type ExpansionId, type ExperienceResult } from './types'
+import { outsideWineMention } from './nh-sommelier'
 
 export interface AiCandidate { id: string; title: string; summary: string }
 export interface AiRequest {
@@ -76,6 +77,7 @@ const MODE: Record<ExpansionId, { role: string; rules: string[] }> = {
   couple: { role: '데이트 플래너. 두 사람 사진의 분위기와 각자 고른 답변을 보고 함께 해 볼 데이트를 제안한다.', rules: ['누가 누구인지 추측하지 않는다. 관계의 성공·궁합을 판정하지 않는다.'] },
   'housing-scent': { role: '홈 프래그런스 조향사. 손님이 답한 우리 집 환경(집 형태·함께 사는 사람·햇빛·고민·머무는 곳·원하는 분위기·피하고 싶은 향)을 읽고, 그 집에 가장 잘 맞는 블렌드를 짠다.', rules: ['집의 고민(습기·냄새 등)을 향으로 해결·제거·살균한다고 말하지 않는다. 기분과 분위기를 바꾸는 향으로 말한다.', '건강·수면·치료 효과를 말하지 않는다.', '행사장에 있는 부스·시설·이벤트·경품을 지어내지 않는다(손님이 보는 화면과 영수증에 적힌 것만 말한다).'] },
   'housing-home': { role: '미래 주거 조향사. 손님이 고른 10년 뒤 집 장면과 사진 속 분위기(표정·옷 색)로 그 집에서 보낼 하루를 그리고, 그 집에 어울리는 블렌드를 짠다.', rules: ['특정 정책·상품·회사·가격을 말하지 않는다.', '미래를 예언하지 않는다. 상상해 보는 하루로 쓴다.', '행사장에 있는 부스·시설·이벤트·경품을 지어내지 않는다(손님이 보는 화면과 영수증에 적힌 것만 말한다).'] },
+  'sommelier-nh': { role: '와인 시음 안내자. 오늘 행사장에서 실제로 따라 드리는 시음 와인 중, 후보로 올라온 병 가운데 손님에게 가장 어울리는 한 병을 골라 이유를 풀어 준다.', rules: ['성인 대상 시음 안내다. 음주를 권하거나 양을 정하지 않는다.', '후보 밖의 와인 이름·브랜드·빈티지·가격·수상 경력을 만들지 않는다. 다른 와인과 비교할 때도 후보만 말한다.', '후보는 이미 손님의 답과 현장 재고를 함께 본 규칙 점수 순서다. 사진·답변이 뚜렷하게 다른 후보를 가리키지 않으면 첫 후보를 고른다.', 'headline 에 와인 이름을 다시 쓰지 않는다(화면 맨 위에 번호와 이름이 크게 나온다). 손님에게 어울리는 까닭을 한 줄로.'] },
   'housing-mate': { role: '주거 성향 조향사. 성향 후보 중 손님의 답과 가장 잘 맞는 하나를 골라, 어울리는 이웃·공간 이야기와 그 성향의 시그니처 블렌드를 짠다.', rules: ['재미로 보는 성향 이야기다. 사람의 됨됨이를 판정하지 않는다.', '특정 단지·정책의 자격이나 입주를 약속하지 않는다.', '행사장에 있는 부스·시설·이벤트·경품을 지어내지 않는다(손님이 보는 화면과 영수증에 적힌 것만 말한다).'] },
 }
 
@@ -157,6 +159,11 @@ export function validateAiAnalysis(value: unknown, req: AiRequest): AiAnalysis {
   const all = [analysis.headline, analysis.insight, ...analysis.photo, ...analysis.tips, ...(analysis.recipe ? [analysis.recipe.name, analysis.recipe.story, ...analysis.recipe.notes.map((n) => n.reason)] : [])].join(' ')
   if (!/[가-힣]/.test(all)) throw new Error('한국어로 써야 합니다.')
   for (const [pattern, why] of FORBIDDEN) if (pattern.test(all)) throw new Error(`규칙 위반(${why}): "${all.match(pattern)?.[0]}" 같은 표현을 빼고 다시 쓰십시오.`)
+  // 시상식 소믈리에 — 후보가 아닌 시음 와인을 글에서 권하지 않는다(현장 직원은 화면 맨 위 번호만 보고 따른다)
+  if (req.id === 'sommelier-nh') {
+    const outside = outsideWineMention(all, ids)
+    if (outside) throw new Error(`후보가 아닌 와인(${outside})을 말했습니다. 후보 ${req.candidates.map((c) => c.title).join(', ')} 만 말하십시오.`)
+  }
   return analysis
 }
 
