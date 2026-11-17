@@ -11,7 +11,7 @@
 // 관상(2026-11-17~): 촬영 직후 /api/photobooth/portrait 로 동양풍 초상을 만들기 시작하고(주제를 고르는 동안, 보통 10초),
 //   글과 초상을 함께 받아 초상 위에 붓글씨로 얹는다(portrait-print.ts). 초상을 못 받으면 찍은 사진을 세피아로 같은 원판에.
 
-import { AlertTriangle, Camera, Check, Clock, Delete, RefreshCw, RotateCcw } from 'lucide-react'
+import { AlertTriangle, Camera, Check, Clock, Delete, Home, Printer, RefreshCw, RotateCcw } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { optionOf } from '@/lib/booth/programs/catalog'
 import {
@@ -125,6 +125,8 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
   }, [subject, program.id])
 
   const { setStep: showStep, setDirty, report } = ctx
+  /** 영상판 관상 — 결과는 초상 포스터 하나, 인쇄하기를 누르면 바로 인쇄 */
+  const simple = Boolean(report) && program.id === 'nh-face'
   // 영상판 — 단계가 바뀌면 장면을, 결과 · 저장에서는 고른 인화물을 족자에 얹게 알린다
   useEffect(() => { report?.(step, (step === 'result' || step === 'save') && made ? { art: made.art ?? made.prints[design], painted: Boolean(made.art), title: made.story.keyword } : null) }, [report, step, made, design])
   useEffect(() => { showStep(step === 'birth' || step === 'capture' ? 1 : step === 'topic' || step === 'generating' ? 2 : 3) }, [step, showStep])
@@ -186,7 +188,26 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
           onBack={() => setStep(program.id === 'nh-face' ? 'topic' : 'capture')}
         />
       )}
-      {step === 'result' && made && (
+      {step === 'result' && made && simple && (
+        // 영상판 관상 — 초상 포스터 한 가지만(고르지 않는다), 고르기 자리에 짧은 관상 이야기, 아래 처음으로 · 인쇄하기 둘(2026-11-18 사용자 지시)
+        <Split className="pg-result pg-reading-result pg-reading-simple" visual={<div className="pg-print-preview"><img src={made.prints[0]} alt="인화될 새해 초상" width={600} height={900} /></div>}>
+          <PanelHead title={program.result.title} sub="오늘의 표정에서 착안한 새해 덕담이에요" eyebrow={made.engine === 'ai' ? 'AI가 쓴 새해 이야기' : '미리 써 둔 새해 이야기'} />
+          <div className="pg-reading-story">
+            <b>{made.story.keyword}</b>
+            <span>{made.story.title}</span>
+          </div>
+          <div className="pg-reading-lines">
+            {made.story.lines.map((line) => <p key={line}>{line}</p>)}
+            <p className="pg-reading-wish">{made.story.wish}</p>
+          </div>
+          <Creative text={program.creative} />
+          <div className="pg-actions">
+            <button type="button" className="pg-btn pg-btn--line pg-btn--grow" onClick={ctx.requestHome}><Home size={20} />처음으로</button>
+            <button type="button" className="pg-btn pg-btn--accent pg-btn--grow" onClick={() => setStep('save')}><Printer size={20} />인쇄하기</button>
+          </div>
+        </Split>
+      )}
+      {step === 'result' && made && !simple && (
         <Split className="pg-result pg-reading-result" visual={<div className="pg-print-preview"><img src={made.prints[design]} alt="인화될 새해 카드" width={600} height={900} /></div>}>
           <PanelHead title={program.result.title} sub={program.result.sub} eyebrow={made.engine === 'ai' ? 'AI가 쓴 새해 이야기' : '미리 써 둔 새해 이야기'} />
           <div className="pg-reading-story">
@@ -209,7 +230,7 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
           <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={() => setStep('save')}>저장하고 인쇄하기<span aria-hidden="true">→</span></button>
         </Split>
       )}
-      {step === 'save' && made && <SaveStep ctx={ctx} image={made.prints[design]} />}
+      {step === 'save' && made && <SaveStep ctx={ctx} image={made.prints[simple ? 0 : design]} printNow={simple} />}
     </>
   )
 }
