@@ -33,7 +33,7 @@ const SCENES = Object.keys(HANA) as Scene[]
  * 한 장으로 된 장면(해나가 그림 안에). video — 처음과 끝이 이어지는 반복 영상(mp4, 소리 없음). 영상을 만들면 이름만 넣는다
  * 영상 만들기: design-review/nh-sip-art/vault-frame.jpg 를 첫 장면으로 — docs/nh-awards-demo.md 「수장고 영상」
  */
-const STILL: Partial<Record<Scene, { img: string; video?: string }>> = { cellar: { img: 'vault' } }
+const STILL: Partial<Record<Scene, { img: string; video?: string }>> = { cellar: { img: 'vault', video: 'vault-loop' } }
 
 export function preloadMotion() {
   for (const s of SCENES) for (const f of [...(STILL[s] ? [STILL[s]!.img] : [`plate-${s}`, `hana-${s}`]), ...(s === 'gate' ? [] : [`go-${s}`])]) { const i = new Image(); i.src = `${ART}/${f}.webp` }
