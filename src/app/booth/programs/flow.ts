@@ -1,6 +1,7 @@
 'use client'
 
 // 프로그램 흐름이 화면 틀(ProgramApp)에 받는 것 + 휴대폰 사진 받기(업로드 세션) 훅.
+import type { StageArt } from './video-stage'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ProgramDef } from '@/lib/booth/programs/catalog'
 import { makeScreenQr } from './save'
@@ -23,8 +24,8 @@ export interface FlowCtx {
   /** 결과가 나왔다(매장 통계 1건) */
   onResult: () => void
   markShot: (patch: { printed?: boolean; downloaded?: boolean }) => void
-  /** 영상판(&lab=video, video-stage.tsx) — 흐름 단계와 결과 인화물을 알린다(장면 · 족자에 얹을 그림). 영상판이 아니면 없다 */
-  report?: (step: string, overlay: string | null) => void
+  /** 영상판(&lab=video, video-stage.tsx) — 흐름 단계와 결과 그림을 알린다(장면 · 족자에 그릴 초상). 영상판이 아니면 없다 */
+  report?: (step: string, overlay: StageArt | null) => void
 }
 
 export interface AlbumPhoto { name: string; url: string; token: string }

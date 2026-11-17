@@ -96,7 +96,7 @@ async function readShot(url: string, subject: 'face' | 'palm'): Promise<Read> {
   }
 }
 
-interface Made { story: ReadingStory; engine: 'ai' | 'local'; saju?: SajuView; prints: [string, string] }
+interface Made { story: ReadingStory; engine: 'ai' | 'local'; saju?: SajuView; prints: [string, string]; /** AI 초상(받았으면) — 영상판 족자에 그린다 */ art?: string }
 
 export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
   const { program } = ctx
@@ -126,7 +126,7 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
 
   const { setStep: showStep, setDirty, report } = ctx
   // 영상판 — 단계가 바뀌면 장면을, 결과 · 저장에서는 고른 인화물을 족자에 얹게 알린다
-  useEffect(() => { report?.(step, (step === 'result' || step === 'save') && made ? made.prints[design] : null) }, [report, step, made, design])
+  useEffect(() => { report?.(step, (step === 'result' || step === 'save') && made ? { art: made.art ?? made.prints[design], painted: Boolean(made.art), title: made.story.keyword } : null) }, [report, step, made, design])
   useEffect(() => { showStep(step === 'birth' || step === 'capture' ? 1 : step === 'topic' || step === 'generating' ? 2 : 3) }, [step, showStep])
   useEffect(() => { setDirty(step !== 'birth' && step !== 'capture' ? true : shots.some(Boolean) || Boolean(birth)) }, [step, shots, birth, setDirty])
 
@@ -273,7 +273,7 @@ function Generate({ ctx, shot, shotUrl, subject, birth, topic, reading, portrait
           : portrait
           ? [0, 1].map((d) => renderPortraitPrint(program, d as 0 | 1, { ...input, photo: painted ?? image, portrait: Boolean(painted), faces })) as [string, string]
           : [renderReadingPrint(program, 0, input), renderReadingPrint(program, 1, input)]
-        if (!abort.signal.aborted) doneRef.current({ story, engine: data.engine === 'ai' ? 'ai' : 'local', saju, prints })
+        if (!abort.signal.aborted) doneRef.current({ story, engine: data.engine === 'ai' ? 'ai' : 'local', saju, prints, art: painted?.src })
       } catch (cause) {
         if (abort.signal.aborted) return
         setError(cause instanceof Error ? cause.message : '새해 이야기를 만들지 못했어요.')

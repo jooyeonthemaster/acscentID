@@ -27,7 +27,7 @@ import { ReadingFlow } from './ReadingFlow'
 import { Modal, Wordmark } from './ui'
 import { AsvStart, AsvTopBar } from './AsvParts'
 import { FgeStart, FgeTopBar, useFgEditorial } from './funground-editorial'
-import { preloadVideoPlan, useLab, VIDEO_PLANS, VideoStage } from './video-stage'
+import { preloadVideoPlan, useLab, VIDEO_PLANS, VideoStage, type StageArt } from './video-stage'
 import './programs.css'
 import './asv.css'
 import './funground-editorial.css'
@@ -60,8 +60,8 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
   // 영상판(&lab=video) — 관상 등 영상 계획이 있는 프로그램만(video-stage.tsx). 아니면 undefined 라 예전 화면 그대로
   const lab = useLab()
   const plan = lab === 'video' ? VIDEO_PLANS[program.id] : undefined
-  const [flowView, setFlowView] = useState<{ step: string; overlay: string | null }>({ step: '', overlay: null })
-  const report = useCallback((step: string, overlay: string | null) => setFlowView((v) => (v.step === step && v.overlay === overlay ? v : { step, overlay })), [])
+  const [flowView, setFlowView] = useState<{ step: string; overlay: StageArt | null }>({ step: '', overlay: null })
+  const report = useCallback((step: string, overlay: StageArt | null) => setFlowView((v) => (v.step === step && v.overlay?.art === overlay?.art && v.overlay?.title === overlay?.title ? v : { step, overlay })), [])
   useEffect(() => { if (plan) preloadVideoPlan(plan) }, [plan])
   const screenSettings = useScreenBackgrounds('booth')
   const { baseSettings, synced } = screenSettings
