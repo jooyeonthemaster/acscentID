@@ -1,0 +1,137 @@
+/* SIP! 1인칭 소믈리에 게임(studio-sommelier-nh) — SommelierNhMode.tsx 가 직접 싣는다(공용 expansion.css 와 따로 — 고친 뒤 사파리가 옛 스타일을 쥐고 있던 일이 있었다).
+   요즘 3D 게임 UI: 장면 위에 반투명 유리판(대사 · 선택지), 도착할 때 큰 장소 제목, 떠다니는 빛 먼지, 단어씩 떠오르는 대사.
+   움직임은 prefers-reduced-motion 에 묶지 않는다(매장 POS 는 그 설정이 켜져 있다 — kiosk-reduced-motion-trap). 화면 높이가 낮아도(창 · 노트북) 모두 화면 안에. */
+.kx-root[data-expansion='sommelier-nh'] { --kx-bg: #0a0705; }
+.sip { --gold: #ecd08f; --gold-2: #c99a4a; --wine: #8e2440; --glass: rgba(18, 12, 9, .52); --line: rgba(255, 240, 210, .22); --ink: #fff8ec; --serif: 'nh-serif', 'Cormorant Garamond', 'Times New Roman', serif;
+  position: relative; flex: 1; min-height: 0; overflow: hidden; isolation: isolate; background: #0a0705; color: var(--ink); font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif; }
+.sip :is(button) { font: inherit; color: inherit; }
+
+/* 장면 · 빛 먼지 · 가장자리 어둠 */
+.sip-scene { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+.sip-bg { position: absolute; inset: -2%; width: 104%; height: 104%; object-fit: cover; object-position: center 20%; }
+.sip-bg--in { animation: sip-in 1.5s cubic-bezier(.25, .6, .2, 1) both, sip-breathe 18s 1.5s ease-in-out infinite alternate; }
+.sip-bg--in[data-first] { animation: sip-breathe 18s ease-in-out infinite alternate; }
+.sip-bg--out { z-index: 1; animation: sip-out 1.2s cubic-bezier(.55, 0, .75, .45) forwards; }
+@keyframes sip-in { from { transform: scale(1.14); filter: blur(10px) brightness(.5) saturate(.8); } }
+@keyframes sip-out { to { transform: scale(1.5); opacity: 0; filter: blur(14px) brightness(1.4); } }
+@keyframes sip-breathe { from { transform: scale(1) translate3d(0, 0, 0); } to { transform: scale(1.06) translate3d(-1%, -1.2%, 0); } }
+.sip-motes { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.sip-motes i { position: absolute; bottom: -10px; width: var(--s); height: var(--s); border-radius: 50%; background: radial-gradient(circle, rgba(255, 236, 190, .95), rgba(255, 210, 140, 0) 70%); filter: blur(.4px); animation: sip-mote var(--d) var(--delay) linear infinite; opacity: 0; }
+@keyframes sip-mote { 10% { opacity: .9; } 85% { opacity: .6; } to { transform: translate3d(var(--dx), -110vh, 0); opacity: 0; } }
+.sip-shade { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse 120% 80% at 50% 35%, transparent 55%, rgba(0, 0, 0, .55)), linear-gradient(rgba(0, 0, 0, .4), transparent 16%, transparent 46%, rgba(6, 4, 3, .82) 82%); }
+
+/* 위 — 처음으로 · 지금 장소(작게) */
+.sip-top { position: absolute; left: 0; right: 0; top: 0; z-index: 6; display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; }
+.sip-icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3); }
+.sip-where { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: rgba(255, 248, 236, .85); text-shadow: 0 1px 8px rgba(0, 0, 0, .7); }
+.sip-where::before { content: ''; width: 22px; height: 1px; background: var(--gold); }
+.sip-mark { width: 46px; text-align: right; font-family: var(--serif); font-size: 24px; font-weight: 500; color: var(--gold); text-shadow: 0 2px 10px rgba(0, 0, 0, .6); }
+
+/* 도착 — 화면 가운데 큰 장소 제목(떠올랐다 사라진다) */
+.sip-arrive { position: absolute; left: 0; right: 0; top: 44%; z-index: 5; display: grid; justify-items: center; gap: 6px; pointer-events: none; text-align: center; animation: sip-arrive 2.8s .5s ease-in-out both; }
+.sip-arrive small { font-size: 12px; font-weight: 700; letter-spacing: .5em; color: var(--gold); }
+.sip-arrive b { font-family: 'Pretendard', sans-serif; font-weight: 200; font-size: 46px; letter-spacing: .06em; color: var(--ink); text-shadow: 0 4px 30px rgba(0, 0, 0, .8); }
+.sip-arrive i { width: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); animation: sip-line 2.8s .5s ease-in-out both; }
+@keyframes sip-arrive { 0% { opacity: 0; transform: translateY(10px); letter-spacing: .3em; } 20%, 70% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-6px); } }
+@keyframes sip-line { 20%, 70% { width: 220px; } 100% { width: 0; } }
+
+/* 타이틀 */
+.sip-title { position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; padding: 0 24px max(56px, 7vh); border: 0; background: transparent; cursor: pointer; }
+.sip-logo { position: relative; font-family: var(--serif); font-weight: 400; font-size: clamp(96px, 26vw, 140px); line-height: .9; color: var(--gold); text-shadow: 0 0 40px rgba(236, 208, 143, .35), 0 6px 26px rgba(0, 0, 0, .7); animation: sip-rise 1.6s .3s cubic-bezier(.2, .7, .2, 1) both, sip-shine 4s 2s ease-in-out infinite; }
+@keyframes sip-shine { 50% { text-shadow: 0 0 60px rgba(236, 208, 143, .6), 0 0 18px rgba(255, 240, 200, .5), 0 6px 26px rgba(0, 0, 0, .7); } }
+.sip-tag { font-size: 15px; font-weight: 400; letter-spacing: .18em; color: rgba(255, 248, 236, .85); text-shadow: 0 2px 10px rgba(0, 0, 0, .8); animation: sip-rise 1.2s .9s both; }
+.sip-press { margin-top: 30px; display: inline-flex; align-items: center; gap: 12px; padding: 14px 30px; border-radius: 999px; border: 1px solid rgba(236, 208, 143, .55); background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); font-size: 16px; font-weight: 600; letter-spacing: .1em; color: var(--ink); animation: sip-rise 1s 1.4s both, sip-glow 2.6s 2.4s ease-in-out infinite; }
+@keyframes sip-rise { from { opacity: 0; transform: translateY(18px); } }
+@keyframes sip-glow { 50% { box-shadow: 0 0 30px rgba(236, 208, 143, .35); border-color: rgba(236, 208, 143, .9); } }
+
+/* 대사 · 선택지 — 장면 위 유리판 */
+.sip-talk { position: absolute; left: 16px; right: 16px; bottom: max(18px, 2.4vh); z-index: 6; display: flex; flex-direction: column; gap: 10px; }
+.sip-box { position: relative; padding: 18px 22px 20px; border-radius: 22px; border: 1px solid var(--line); background: linear-gradient(160deg, rgba(40, 26, 18, .62), rgba(12, 8, 6, .58)); backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3); box-shadow: 0 20px 50px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .08); cursor: pointer; animation: sip-panel .7s .6s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes sip-panel { from { opacity: 0; transform: translateY(16px) scale(.98); } }
+.sip-who { display: flex; align-items: baseline; gap: 8px; margin: 0 0 6px; }
+.sip-who b { font-size: 15px; font-weight: 700; color: var(--gold); letter-spacing: .04em; }
+.sip-who small { font-size: 12px; font-weight: 500; color: rgba(255, 248, 236, .55); letter-spacing: .12em; }
+.sip-line { margin: 0; min-height: 2.9em; font-size: 20px; font-weight: 400; line-height: 1.5; letter-spacing: -.02em; word-break: keep-all; }
+.sip-line span { display: inline-block; opacity: 0; transform: translateY(6px); filter: blur(3px); animation: sip-word .45s cubic-bezier(.2, .7, .2, 1) forwards; }
+.sip-line[data-all] span { animation-duration: .01s; animation-delay: 0s !important; }
+@keyframes sip-word { to { opacity: 1; transform: none; filter: none; } }
+.sip-wait { display: inline-flex; gap: 5px; margin-left: 8px; vertical-align: middle; }
+.sip-wait i { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: sip-dot 1.2s infinite ease-in-out; }
+.sip-wait i:nth-child(2) { animation-delay: .15s; } .sip-wait i:nth-child(3) { animation-delay: .3s; }
+@keyframes sip-dot { 50% { opacity: .25; transform: scale(.7); } }
+
+.sip-choices { display: grid; gap: 8px; }
+.sip-choices[data-cols='2'] { grid-template-columns: 1fr 1fr; }
+.sip-choices[data-cols='3'] { grid-template-columns: repeat(3, 1fr); }
+.kx-root .sip-choice { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px; padding: 0 16px; border-radius: 18px; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(16px) saturate(1.3); -webkit-backdrop-filter: blur(16px) saturate(1.3); color: var(--ink); font-size: 17px; font-weight: 600; letter-spacing: -.01em; box-shadow: 0 10px 26px rgba(0, 0, 0, .3); transition: transform .15s, background .2s, border-color .2s; animation: sip-choice .55s cubic-bezier(.2, .7, .2, 1) both; }
+.kx-root .sip-choice:active { transform: scale(.97); background: rgba(142, 36, 64, .55); border-color: rgba(236, 208, 143, .7); }
+.kx-root .sip-choice[data-main] { background: linear-gradient(135deg, rgba(236, 208, 143, .95), rgba(201, 154, 74, .95)); color: #1c120a; border-color: transparent; font-weight: 700; }
+.sip-choices > :nth-child(2) { animation-delay: .07s; } .sip-choices > :nth-child(3) { animation-delay: .14s; } .sip-choices > :nth-child(4) { animation-delay: .21s; } .sip-choices > :nth-child(5) { animation-delay: .28s; }
+@keyframes sip-choice { from { opacity: 0; transform: translateY(14px); } }
+.sip-choice svg { flex: none; }
+.sip-choices[data-kinds] { grid-template-columns: repeat(2, 1fr); }
+.sip-choices[data-kinds] > :first-child { grid-column: 1 / -1; }
+.sip-choices[data-kinds] .sip-choice { justify-content: flex-start; min-height: 58px; }
+.sip-choices[data-kinds] .ex-nh-glass { color: rgba(255, 248, 236, .85); }
+.sip-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.kx-root .sip-menu .ex-button { position: relative; overflow: hidden; min-height: 60px; border-radius: 18px; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: var(--ink); font-size: 17px; font-weight: 600; }
+.kx-root .sip-menu .ex-button:not(.ex-button--secondary) { background: linear-gradient(135deg, rgba(236, 208, 143, .95), rgba(201, 154, 74, .95)); color: #1c120a; border-color: transparent; font-weight: 700; }
+.sip-menu > .sip-choice { grid-column: 1 / -1; min-height: 48px; font-size: 15px; background: transparent; box-shadow: none; }
+
+/* 와인 방울 */
+.ex-nh-drop { position: absolute; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(142, 36, 64, .55) 0 28%, rgba(142, 36, 64, .22) 52%, transparent 70%); transform: scale(0); animation: ex-nh-drop .7s ease-out forwards; }
+@keyframes ex-nh-drop { to { transform: scale(1); opacity: 0; } }
+/* 잔 소품 */
+.ex-nh-glass { flex: none; }
+.ex-nh-liquid { transform: translateY(64px); transition: transform 1s cubic-bezier(.3, .7, .2, 1); }
+.ex-nh-glass[data-on] .ex-nh-liquid { transform: translateY(0); }
+.ex-nh-wave { animation: ex-nh-wave 2.2s linear infinite; }
+@keyframes ex-nh-wave { to { transform: translateX(30px); } }
+.ex-nh-bubble { fill: rgba(255, 255, 255, .8); opacity: 0; }
+.ex-nh-glass[data-on] .ex-nh-bubble { animation: ex-nh-bubble 1.4s ease-in infinite; }
+@keyframes ex-nh-bubble { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-40px); } }
+.ex-nh-grapes circle { fill: transparent; transition: fill .45s; }
+.ex-nh-grapes[data-on] circle { fill: var(--wine, #8e2440); }
+
+/* 기념사진 — 폴라로이드 */
+.sip-polaroid { position: absolute; inset: 0; z-index: 7; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; background: rgba(6, 4, 3, .45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: sip-rise .4s both; }
+.sip-polaroid-card { width: min(74%, 380px); padding: 14px 14px 8px; background: #fbf8f1; border-radius: 6px; box-shadow: 0 30px 70px rgba(0, 0, 0, .6); transform: rotate(-2deg); animation: sip-card-in .6s cubic-bezier(.2, .8, .2, 1.1) both; }
+@keyframes sip-card-in { from { transform: translateY(60px) rotate(6deg) scale(.9); opacity: 0; } }
+.sip-polaroid[data-done] .sip-polaroid-card { animation: sip-snap 1.3s ease-in-out both; }
+@keyframes sip-snap { 0% { filter: brightness(2.6); } 25% { filter: brightness(1); transform: rotate(-2deg); } 100% { transform: rotate(3deg) translateY(-6px); } }
+.sip-polaroid-shot { width: 100%; max-height: 52vh; margin: 0; aspect-ratio: 3 / 4; }
+.sip-polaroid-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sip-polaroid-card p { margin: 0; padding: 8px 0 2px; text-align: center; font-family: var(--serif); font-size: 32px; font-weight: 500; color: #1c1612; line-height: 1.1; }
+.kx-root .sip-skip { padding: 12px 24px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: var(--ink); font-size: 15px; font-weight: 600; }
+
+/* 와인 획득 — 빛 · 떠오르는 카드 */
+.sip-get { position: relative; display: grid; place-items: center; }
+.sip-get[data-big] { position: absolute; left: 20px; right: 20px; top: 28%; z-index: 5; }
+.sip-rays { position: absolute; left: 50%; top: 50%; width: 900px; height: 900px; margin: -450px 0 0 -450px; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(236, 208, 143, .28) 0 5deg, transparent 5deg 16deg); -webkit-mask-image: radial-gradient(circle, #000 0 18%, transparent 60%); mask-image: radial-gradient(circle, #000 0 18%, transparent 60%); animation: sip-spin 8s linear infinite, sip-rise .6s both; pointer-events: none; }
+@keyframes sip-spin { to { transform: rotate(360deg); } }
+.sip-card { position: relative; width: 100%; padding: 16px 20px 18px; border-radius: 22px; background: linear-gradient(150deg, rgba(255, 250, 240, .97), rgba(240, 228, 206, .95)); color: #1c1612; box-shadow: 0 0 0 1px rgba(236, 208, 143, .9), 0 0 50px rgba(236, 208, 143, .35), 0 24px 60px rgba(0, 0, 0, .55); animation: sip-get 1.1s cubic-bezier(.2, .9, .3, 1.15) both; }
+.sip-get:not([data-big]) .sip-card { animation: sip-settle .6s cubic-bezier(.2, .7, .2, 1) both; box-shadow: 0 0 0 1px rgba(236, 208, 143, .7), 0 20px 50px rgba(0, 0, 0, .5); }
+@keyframes sip-get { from { opacity: 0; transform: scale(.5) translateY(30px); filter: blur(8px); } 60% { opacity: 1; filter: none; } }
+@keyframes sip-settle { from { opacity: 0; transform: translateY(-30px) scale(1.04); } }
+.sip-card-kicker { margin: 0 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .3em; color: var(--wine); }
+.sip-card-main { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; }
+.sip-card-no { font-family: var(--serif); font-weight: 500; font-size: 90px; line-height: .85; }
+.sip-card-no small { font-size: 26px; font-style: italic; margin-right: 2px; }
+.sip-card h2 { margin: 0; font-size: 21px; font-weight: 700; line-height: 1.3; word-break: keep-all; }
+.sip-card p { margin: 4px 0 6px; font-family: var(--serif); font-style: italic; font-size: 15px; color: #6d6058; }
+.sip-card span { display: inline-block; padding: 2px 10px; border-radius: 999px; background: rgba(142, 36, 64, .1); color: var(--wine); font-size: 12px; font-weight: 700; }
+.sip-card .ex-nh-bottle { display: block; width: 36px; height: 108px; transform-origin: 50% 85%; animation: sip-tilt 1.6s 1s ease-in-out both; }
+@keyframes sip-tilt { 35% { transform: rotate(-28deg); } 70% { transform: rotate(-28deg); } 100% { transform: rotate(0); } }
+
+/* 처음으로 확인 */
+.sip-confirm { position: absolute; inset: 0; z-index: 9; display: grid; place-items: center; background: rgba(0, 0, 0, .5); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.sip-confirm > div { display: grid; gap: 10px; width: min(86%, 420px); padding: 24px; border-radius: 24px; border: 1px solid var(--line); background: rgba(24, 16, 12, .85); }
+.sip-confirm p { margin: 0 0 8px; font-size: 19px; font-weight: 600; text-align: center; }
+
+/* 키 낮은 창(노트북) — 덜 쌓이게 */
+@media (max-height: 820px) {
+  .sip-line { font-size: 18px; min-height: 2.8em; }
+  .kx-root .sip-choice { min-height: 52px; }
+  .sip-card-no { font-size: 72px; }
+  .sip-arrive b { font-size: 38px; }
+}
