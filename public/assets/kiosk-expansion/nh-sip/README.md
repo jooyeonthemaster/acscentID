@@ -4,6 +4,7 @@
 Gemini 3 Pro Image(R&D 키)로 캐릭터 시트를 먼저 만들고 그 시트를 넣어 같은 얼굴 · 옷을 유지했다(원본 2K 는 design-review/nh-sip-art, 저장소 밖). 글자 · 로고 없음. 화면용 720×1290 WebP.
 
 - `{gate,vineyard,harvest,winery,cellar,tasting}.webp` — 해나가 들어간 장면(`&lab=game`, SipGameMode.tsx)
-- `plate-*.webp` — 해나를 지운 배경판, `hana-*.webp` — 해나 포즈(투명, 높이 1400), `go-*.webp` — 그 장소로 가는 1인칭 길(빨리감기 이동)
-  → `&lab=motion`(SipMotion.tsx)
-- `loop-*.mp4` · `vault-loop.mp4` — 장소 반복 영상(Wan 3.0, 첫 · 끝 프레임 같은 그림), `move-*.mp4` — 그 장소로 가는 1인칭 이동 영상(끝 프레임 = 그 장소 반복 영상 첫 프레임). 소리 없음
+- `plate-*.webp` — 해나를 지운 배경판, `hana-*.webp` — 해나 포즈(투명, 높이 1400), `go-*.webp` — 그 장소로 가는 1인칭 길 — 그림으로 움직이던 옛 실험판 2 의 것(2026-11-18 부터 화면에서 쓰지 않음)
+- 영상판(`&lab=video` · `&lab=motion`, SipMotion.tsx) — 모두 Wan 3.0, 소리 없음, 720×1280 H.264
+  - `hi-<장소>.mp4` — 도착 인사 동작(4초, 한 번), `idle-<장소>-1|2.mp4` — 대기(4초, 무작위로 이어 틀기). 첫 · 끝 프레임 = 그 장소 그림(저장고는 `vault`)
+  - `move-<장소>.mp4` — 그 장소로 가는 1인칭 이동 영상(8초, 첫 프레임 = 떠나는 장소 그림 · 끝 프레임 = 도착 장소 그림)

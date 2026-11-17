@@ -53,6 +53,10 @@
 .sip-line { margin: 0; min-height: 2.9em; font-size: 20px; font-weight: 400; line-height: 1.5; letter-spacing: -.02em; word-break: keep-all; }
 .sip-line span { display: inline-block; opacity: 0; transform: translateY(6px); filter: blur(3px); animation: sip-word .45s cubic-bezier(.2, .7, .2, 1) forwards; }
 .sip-line[data-all] span { animation-duration: .01s; animation-delay: 0s !important; }
+/* 이동이 시작되면 — 방금 대사판이 살짝 가라앉으며 사라진다(SipGameMode data-leave) */
+.sip-talk[data-leave] { pointer-events: none; }
+.sip-talk[data-leave] .sip-box { animation: sip-leave .4s ease-in both; }
+@keyframes sip-leave { to { opacity: 0; transform: translateY(10px); filter: blur(2px); } }
 @keyframes sip-word { to { opacity: 1; transform: none; filter: none; } }
 .sip-wait { display: inline-flex; gap: 5px; margin-left: 8px; vertical-align: middle; }
 .sip-wait i { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: sip-dot 1.2s infinite ease-in-out; }

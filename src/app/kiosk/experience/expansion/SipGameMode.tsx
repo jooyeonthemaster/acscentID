@@ -18,7 +18,7 @@ import { useAiJob } from './ai-client'
 import { readPhoto } from './read-photo'
 import { TakeActions } from './shared'
 import { useWineDrop, WineBottle, WineGlass } from './nh-wine-art'
-import { MotionScene, preloadMotion, travelMs, useTravel } from './SipMotion'
+import { MotionScene, preloadMotion } from './SipMotion'
 import './sip-game.css'
 
 const ID = 'sommelier-nh' as const
@@ -29,8 +29,7 @@ const PLACE_EN: Record<Scene, string> = { gate: 'VINEYARD GATE', vineyard: 'THE 
 /** 떠다니는 빛 먼지 — 크기 · 속도 · 시작이 다른 18개(처음 한 번 정해 둔다) */
 const MOTES = Array.from({ length: 18 }, (_, i) => ({ left: (i * 37) % 100, s: 2 + (i % 4), d: 9 + (i % 5) * 2.4, delay: -(i * 1.3), dx: ((i % 3) - 1) * 40 }))
 
-const STEPS = ['title', 'hello', 'photo-ask', 'camera', 'photo-done', 'sweet', 'acid', 'body', 'kind', 'cellar', 'oops', 'reveal', 'result'] as const
-type Step = typeof STEPS[number]
+type Step = 'title' | 'hello' | 'photo-ask' | 'camera' | 'photo-done' | 'sweet' | 'acid' | 'body' | 'kind' | 'cellar' | 'oops' | 'reveal' | 'result'
 const SCENE_OF: Record<Step, Scene> = { title: 'gate', hello: 'gate', 'photo-ask': 'vineyard', camera: 'vineyard', 'photo-done': 'vineyard', sweet: 'harvest', acid: 'harvest', body: 'harvest', kind: 'winery', cellar: 'cellar', oops: 'cellar', reveal: 'tasting', result: 'tasting' }
 const LINE: Partial<Record<Step, string>> = {
   hello: '어서 오세요! 오늘 밤 당신의 한 잔을 찾아 드릴 소믈리에 해나예요.',
@@ -96,9 +95,12 @@ export default function SipGameMode({ motion = false }: { /** 실험판 2 — �
   const drop = useWineDrop()
   const counted = useRef<string | null>(null)
   const scene = SCENE_OF[step]
-  const travel = useTravel(scene)
-  // 실험판 2 — 이동하는 동안은 대사 · 장소 제목 · 와인 카드를 띄우지 않는다
-  const moving = motion && travel.from !== null
+  // 실험판 2 — 화면이 다 도착한 장소(MotionScene 이 알린다). 이동하는 동안(틀던 영상 마저 틀기 · 이동 영상)은 대사 · 장소 제목 · 와인 카드를 띄우지 않는다
+  const [settled, setSettled] = useState<Scene>(scene)
+  const moving = motion && settled !== scene
+  // 떠나기 직전에 보이던 단계 — 이동이 시작되면 그 대사판이 살짝 사라진다(뚝 끊기지 않게)
+  const [said, setSaid] = useState<Step>(step)
+  if (!moving && said !== step) setSaid(step)
   // 실험판 2 의 저장고는 와인 벽 앞에서 고르는 수장고 장면
   const place = motion && scene === 'cellar' ? '와인 수장고' : PLACE[scene]
 
@@ -131,7 +133,8 @@ export default function SipGameMode({ motion = false }: { /** 실험판 2 — �
     setBundle(made); counted.current = null
     run(made, read)
   }
-  useEffect(() => { if (step !== 'reveal') return; const t = window.setTimeout(() => setStep('result'), motion ? 2600 + travelMs('tasting') : 2600); return () => window.clearTimeout(t) }, [step, motion])
+  // 와인 획득 연출은 시음실에 다 도착한 뒤부터 잰다
+  useEffect(() => { if (step !== 'reveal' || moving) return; const t = window.setTimeout(() => setStep('result'), 2600); return () => window.clearTimeout(t) }, [step, moving])
   useEffect(() => {
     if (step !== 'result' || !result?.pour || counted.current === result.id) return
     counted.current = result.id; addCount(result.pour.no)
@@ -157,7 +160,7 @@ export default function SipGameMode({ motion = false }: { /** 실험판 2 — �
 
   return <div className="sip" data-motion={motion || undefined} onPointerDown={drop}>
     {motion
-      ? <div className="sip-scene" aria-hidden="true"><MotionScene scene={scene} travel={travel} talk={STEPS.indexOf(step)} /><Atmosphere /></div>
+      ? <div className="sip-scene" aria-hidden="true"><MotionScene scene={scene} onSettle={setSettled} /><Atmosphere /></div>
       : <SceneLayer scene={scene} />}
     {step === 'title'
       ? <button type="button" className="sip-title" onClick={() => setStep('hello')} aria-label="터치하여 시작">
@@ -171,8 +174,8 @@ export default function SipGameMode({ motion = false }: { /** 실험판 2 — �
           <span className="sip-where">{place}</span>
           <span className="sip-mark">SIP!</span>
         </header>
-        {moving ? null : <>
-        {step !== 'reveal' && step !== 'result' && <div key={scene} className="sip-arrive" aria-hidden="true"><small>{motion && scene === 'cellar' ? 'WINE VAULT' : PLACE_EN[scene]}</small><b>{place}</b><i /></div>}
+        {moving ? LINE[said] && <div key={`x${said}`} className="sip-talk" data-leave aria-hidden="true"><div className="sip-box"><p className="sip-who"><b>해나</b><small>SOMMELIER</small></p><p className="sip-line">{LINE[said]}</p></div></div> : <>
+        {step !== 'reveal' && step !== 'result' && <div key={`a-${scene}`} className="sip-arrive" aria-hidden="true"><small>{motion && scene === 'cellar' ? 'WINE VAULT' : PLACE_EN[scene]}</small><b>{place}</b><i /></div>}
         {step === 'camera' && <Polaroid onShot={took} onCancel={() => took(null)} />}
         {step === 'reveal' && result?.pour && <WineCard pour={result.pour} big />}
         {step === 'result' && result
