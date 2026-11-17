@@ -173,7 +173,7 @@ export const EXPANSION_META = {
     "category": "주거복지",
     "hero": "/assets/kiosk-expansion/housing-mate.webp"
   },
-  // 연말 시상식(2026-12-15) AI 소믈리에 — 소믈리에의 후보를 실제 시음 와인 10병(nh-wines.ts)으로. 데이터·규칙은 nh-sommelier.ts, 화면은 SommelierNhSwitch.tsx(기본 SIP! 영상판 SipGameMode motion, 이전 모노 화면 SommelierNhMode 는 &lab=classic)
+  // 연말 시상식(2026-12-15) AI 소믈리에 — 소믈리에의 후보를 실제 시음 와인 10병(nh-wines.ts)으로. 데이터·규칙은 nh-sommelier.ts, 화면은 SommelierNhSwitch.tsx(기본 모노 화면 SommelierNhMode, &lab=video 는 SIP! 영상판 SipGameMode motion)
   "sommelier-nh": {
     "name": "AI 소믈리에",
     "tag": "SIP!",

@@ -2,12 +2,13 @@
 
 // 연말 시상식 AI 체험존 데모 랜딩(/booth-demo/nh) — 고객이 링크로 열어 프로그램을 직접 해 보고 고른다(11/24 확정).
 // 카드 4장: 키오스크 AI 소믈리에 + 포토부스 새해 이야기 셋(부스 2대에 둘을 고른다). 카드마다 제작 구분(기존 · 고쳐 씀 / 새로 제작)과 손님 한 명 시간.
+// 그 아래 따로 「새로 만든 판」(NH_NEW_DEMOS) — SIP! 영상판(같은 소믈리에를 1인칭 영상 여정으로, &lab=video).
 // 고객 로고 · 이름은 넣지 않는다(브랜드 커스텀 옵션을 고르기 전, src/lib/nh-awards/brand.ts). /booth-demo/nh/clean?k=… 은 워터마크 없는 판.
 
 import { ArrowUpRight, Camera, Clock, Printer, Sparkles } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { DemoCleanLinkMaker } from '@/components/demo/DemoCleanLinkMaker'
-import { NH_BUILD_LABEL, NH_DEMOS, nhDemoHref, type NhDemo } from '@/lib/nh-awards/demo'
+import { NH_BUILD_LABEL, NH_DEMOS, NH_NEW_DEMOS, nhDemoHref, type NhDemo } from '@/lib/nh-awards/demo'
 import { NH_WINES } from '@/lib/kiosk/expansion/nh-wines'
 import { NH_KIND_LABEL } from '@/lib/kiosk/expansion/nh-sommelier'
 import { Kiosk } from '@/app/kiosk-demo/KioskDemoLanding'
@@ -95,6 +96,11 @@ export function NhLanding({ cleanKey, cleanRejected = false }: { cleanKey?: stri
       <section className="nh-section">
         <div className="nh-section-head"><h2>포토부스 · 2027 정미년 새해 이야기</h2><p>사진 + 짧은 새해 이야기를 4×6 한 장으로 — 디자인 두 가지 중 손님이 골라 인화해요.</p></div>
         <ul className="nh-grid">{booth.map((d) => <Card key={d.key} demo={d} cleanKey={cleanKey} />)}</ul>
+      </section>
+
+      <section className="nh-section">
+        <div className="nh-section-head"><h2>새로 만든 판 · SIP! 영상판</h2><p>위 AI 소믈리에와 같은 와인 10병 · 같은 추천 규칙을, 소믈리에를 따라 와이너리를 걷는 1인칭 영상 여정으로 만들었어요. 위 소믈리에 대신 고르실 수 있어요.</p></div>
+        <ul className="nh-grid nh-grid--kiosk">{NH_NEW_DEMOS.map((d) => <Card key={d.key} demo={d} cleanKey={cleanKey} />)}</ul>
       </section>
 
       <section className="nh-section nh-notes">
