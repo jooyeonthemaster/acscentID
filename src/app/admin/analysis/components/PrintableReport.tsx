@@ -2,7 +2,8 @@
 
 /* eslint-disable @next/next/no-img-element */
 import type { CSSProperties } from 'react'
-import { ImageAnalysisResult, TraitScores, ScentCategoryScores, TRAIT_LABELS, TRAIT_ICONS, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS, ChemistryProfile, SajuAnalysisResult, SajuElement, SAJU_ELEMENT_INFO, SAJU_PURPOSES } from '@/types/analysis'
+import { ImageAnalysisResult, TraitScores, ScentCategoryScores, TRAIT_LABELS, TRAIT_ICONS, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS, ChemistryProfile, SajuAnalysisResult, SajuElement, SAJU_ELEMENT_INFO, SAJU_PURPOSES, type SeasonType, type ToneType } from '@/types/analysis'
+import { getLocalizedPerfumeText } from '@/data/perfumes-i18n'
 
 interface PrintableAnalysis {
   id: string
@@ -19,6 +20,8 @@ interface PrintableAnalysis {
   user_image_url?: string | null
   target_type?: 'idol' | 'self' | null
   character_name?: string | null
+  /** 분석 문장 언어 — 'zh' 면 이미지 분석 결과지의 글자(성별·특성·향 계열·계절)도 중국어로 찍는다 */
+  locale?: string | null
 }
 
 interface PrintableLayeringSession {
@@ -107,6 +110,78 @@ const TIME_ICONS: Record<string, { emoji: string; label: string }> = {
   night: { emoji: '🌙', label: '밤' },
 }
 
+// 이미지 분석 결과지에 찍는 글자 — 분석 문장이 중국어(locale 'zh')인 건은 글자도 중국어로.
+// 단체 손님 배치(scripts/batch-analyze-roster.ts --locale zh)용. 값은 사이트 src/messages/zh.json 의 labels 와 같다.
+type BestTimeKey = keyof typeof TIME_ICONS
+
+interface ImageReportLabels {
+  traits: Record<keyof TraitScores, string>
+  categories: Record<string, string>
+  seasons: Record<SeasonType, string>
+  tones: Record<ToneType, string>
+  times: Record<BestTimeKey, string>
+  gender: { Male: string; Female: string; Other: string }
+  seasonFallback: string
+  timeFallback: string
+  noImage: string
+  /** 계절·시간 코멘트 줄바꿈 — 한국어는 어절 단위, 띄어쓰기 없는 중국어는 글자 단위 */
+  reasonBreak: 'break-keep' | 'break-normal'
+  /** TOP·MIDDLE·BASE 향료명 오른쪽에 영어 이름을 함께 찍는가 */
+  noteEnglish: boolean
+  /** 계절·시간 칸 너비와 글자 — 영어(Afternoon 등)는 칸을 넓히고 글자를 줄여 칸 밖으로 넘치지 않게 */
+  chipBox: 'w-8' | 'w-9'
+  chipText: 'text-[8px]' | 'text-[6px] tracking-tight'
+}
+
+const IMAGE_REPORT_LABELS_KO: ImageReportLabels = {
+  traits: TRAIT_LABELS,
+  categories: Object.fromEntries(Object.entries(CATEGORY_INFO).map(([key, info]) => [key, info.name])),
+  seasons: SEASON_LABELS,
+  tones: TONE_LABELS,
+  times: Object.fromEntries(Object.entries(TIME_ICONS).map(([key, icon]) => [key, icon.label])) as Record<BestTimeKey, string>,
+  gender: { Male: '남성', Female: '여성', Other: '기타' },
+  seasonFallback: '계절에 어울리는 향수 코멘트가 이곳에 표시됩니다.',
+  timeFallback: '시간대에 어울리는 향수 코멘트가 이곳에 표시됩니다.',
+  noImage: '이미지 없음',
+  reasonBreak: 'break-keep',
+  noteEnglish: false,
+  chipBox: 'w-8',
+  chipText: 'text-[8px]',
+}
+
+const IMAGE_REPORT_LABELS_ZH: ImageReportLabels = {
+  traits: { sexy: '性感', cute: '可爱', charisma: '霸气', darkness: '暗黑', freshness: '清爽', elegance: '优雅', freedom: '自由', luxury: '奢华', purity: '纯净', uniqueness: '独特' },
+  categories: { citrus: '柑橘调', floral: '花香调', woody: '木质调', musky: '麝香调', fruity: '果香调', spicy: '辛香调' },
+  seasons: { spring: '春', summer: '夏', autumn: '秋', winter: '冬' },
+  tones: { bright: '明亮', light: '清浅', mute: '柔和', deep: '深沉' },
+  times: { morning: '上午', afternoon: '下午', evening: '傍晚', night: '夜晚' },
+  gender: { Male: '男性', Female: '女性', Other: '其他' },
+  seasonFallback: '-',
+  timeFallback: '-',
+  noImage: '无图片',
+  reasonBreak: 'break-normal',
+  noteEnglish: true,
+  chipBox: 'w-8',
+  chipText: 'text-[8px]',
+}
+
+// 값은 사이트 src/messages/en.json 의 labels 와 같다 — luxury 만 레이더 오른쪽 라벨이 FEATURE 칸에 닿지 않게 'Luxury'
+const IMAGE_REPORT_LABELS_EN: ImageReportLabels = {
+  traits: { sexy: 'Sexy', cute: 'Cute', charisma: 'Charisma', darkness: 'Dark', freshness: 'Fresh', elegance: 'Elegant', freedom: 'Free-spirited', luxury: 'Luxury', purity: 'Pure', uniqueness: 'Unique' },
+  categories: { citrus: 'Citrus', floral: 'Floral', woody: 'Woody', musky: 'Musky', fruity: 'Fruity', spicy: 'Spicy' },
+  seasons: { spring: 'Spring', summer: 'Summer', autumn: 'Autumn', winter: 'Winter' },
+  tones: { bright: 'Bright', light: 'Light', mute: 'Mute', deep: 'Deep' },
+  times: { morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening', night: 'Night' },
+  gender: { Male: 'Male', Female: 'Female', Other: 'Other' },
+  seasonFallback: '-',
+  timeFallback: '-',
+  noImage: 'No image',
+  reasonBreak: 'break-normal',
+  noteEnglish: false,
+  chipBox: 'w-9',
+  chipText: 'text-[6px] tracking-tight',
+}
+
 // 시드 기반 랜덤 (KeywordCloud와 동일)
 const seededRandom = (seed: number) => {
   const x = Math.sin(seed) * 10000
@@ -114,7 +189,7 @@ const seededRandom = (seed: number) => {
 }
 
 // 정적 레이더 차트 (기존 TraitRadarChart 스타일)
-function PrintRadarChart({ traits, monochrome = false }: { traits: TraitScores, monochrome?: boolean }) {
+function PrintRadarChart({ traits, monochrome = false, traitLabels = TRAIT_LABELS }: { traits: TraitScores, monochrome?: boolean, traitLabels?: Record<keyof TraitScores, string> }) {
   const centerX = 100
   const centerY = 100
   const radius = 55
@@ -124,7 +199,7 @@ function PrintRadarChart({ traits, monochrome = false }: { traits: TraitScores, 
 
   const characteristics = Object.entries(traits).map(([key, value]) => ({
     key: key as keyof TraitScores,
-    label: TRAIT_LABELS[key as keyof TraitScores],
+    label: traitLabels[key as keyof TraitScores],
     value,
     icon: TRAIT_ICONS[key as keyof TraitScores]
   }))
@@ -1189,6 +1264,9 @@ export function PrintableReport({
   const personalColor = analysisData.personalColor
   const matchingPerfume = analysisData.matchingPerfumes?.[0]
   const scentRecommendation = analysisData.scentRecommendation
+  const L = analysis.locale === 'zh' ? IMAGE_REPORT_LABELS_ZH : analysis.locale === 'en' ? IMAGE_REPORT_LABELS_EN : IMAGE_REPORT_LABELS_KO
+  const reportName = analysis.idol_name || analysis.twitter_name || '-'
+  const noteEnglish = L.noteEnglish && matchingPerfume ? getLocalizedPerfumeText(matchingPerfume.perfumeId, 'en') : undefined
 
   // 상위 3개 특성
   const topTraits = Object.entries(traits)
@@ -1197,7 +1275,7 @@ export function PrintableReport({
     .map(([key, value]) => ({
       key: key as keyof TraitScores,
       value,
-      label: TRAIT_LABELS[key as keyof TraitScores],
+      label: L.traits[key as keyof TraitScores],
       icon: TRAIT_ICONS[key as keyof TraitScores],
       colors: TRAIT_COLORS[key as keyof TraitScores]
     }))
@@ -1209,7 +1287,7 @@ export function PrintableReport({
 
   // 컬러 타입 이름
   const colorTypeName = personalColor
-    ? `${SEASON_LABELS[personalColor.season]} ${TONE_LABELS[personalColor.tone]}`
+    ? `${L.seasons[personalColor.season]} ${L.tones[personalColor.tone]}`
     : ''
 
   // 키워드에 스타일 할당
@@ -1270,12 +1348,12 @@ export function PrintableReport({
 
         {/* ===== IMAGE PROFILE 섹션 ===== */}
 
-        {/* NAME 값 */}
+        {/* NAME 값 — 긴 이름(영문 풀네임 등)은 작게 줄여 두 줄 안에 두고 아래 GENDER 값과 겹치지 않게 */}
         <div
-          className="absolute text-sm font-bold text-slate-900 leading-tight"
-          style={{ left: 320, top: 119, maxWidth: 70, wordBreak: 'keep-all', overflowWrap: 'break-word' }}
+          className={`absolute font-bold text-slate-900 ${reportName.length > 7 ? 'text-[10px] leading-[1.2]' : 'text-sm leading-tight'}`}
+          style={{ left: 320, top: 119, maxWidth: reportName.length > 7 ? 76 : 70, wordBreak: 'keep-all', overflowWrap: 'break-word' }}
         >
-          {analysis.idol_name || analysis.twitter_name || '-'}
+          {reportName}
         </div>
 
 
@@ -1283,7 +1361,7 @@ export function PrintableReport({
 
         {/* GENDER 값 */}
         <div className="absolute text-sm font-bold text-slate-900" style={{ left: 320, top: 152 }}>
-          {analysis.idol_gender === 'Male' ? '남성' : analysis.idol_gender === 'Female' ? '여성' : '기타'}
+          {analysis.idol_gender === 'Male' ? L.gender.Male : analysis.idol_gender === 'Female' ? L.gender.Female : L.gender.Other}
         </div>
 
 
@@ -1311,7 +1389,7 @@ export function PrintableReport({
             <img src={analysis.user_image_url} alt="분석 이미지" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-              <span className="text-slate-400 text-[8px]">이미지 없음</span>
+              <span className="text-slate-400 text-[8px]">{L.noImage}</span>
             </div>
           )}
         </div>
@@ -1327,7 +1405,7 @@ export function PrintableReport({
             WebkitFilter: 'blur(0)',
           }}
         >
-          <PrintRadarChart traits={traits} monochrome={isSelfImageReport} />
+          <PrintRadarChart traits={traits} monochrome={isSelfImageReport} traitLabels={L.traits} />
         </div>
 
 
@@ -1378,20 +1456,15 @@ export function PrintableReport({
 
         {/* ===== SCENT PROFILE 섹션 ===== */}
 
-        {/* TOP NOTE */}
-        <div className="absolute text-sm font-bold text-slate-900" style={{ left: 610, top: 120.5 }}>
-          {matchingPerfume?.persona?.mainScent?.name || '-'}
-        </div>
-
-        {/* MIDDLE NOTE */}
-        <div className="absolute text-sm font-bold text-slate-900" style={{ left: 610, top: 162 }}>
-          {matchingPerfume?.persona?.subScent1?.name || '-'}
-        </div>
-
-        {/* BASE NOTE */}
-        <div className="absolute text-sm font-bold text-slate-900" style={{ left: 610, top: 204 }}>
-          {matchingPerfume?.persona?.subScent2?.name || '-'}
-        </div>
+        {/* TOP · MIDDLE · BASE NOTE — 중국어 결과지는 오른쪽에 영어 향료명을 함께 */}
+        {([['mainScent', 120.5], ['subScent1', 162], ['subScent2', 204]] as const).map(([note, top]) => (
+          <div key={note} className="absolute text-sm font-bold text-slate-900 whitespace-nowrap" style={{ left: 610, top }}>
+            {matchingPerfume?.persona?.[note]?.name || '-'}
+            {noteEnglish?.[note] && (
+              <span className="ml-1.5 text-[11px] font-semibold text-slate-500">{noteEnglish[note]}</span>
+            )}
+          </div>
+        ))}
 
         {/* 향기 계열 바 차트 - 기존 PerfumeProfile 스타일 (도트 형태) */}
         <div className="absolute space-y-0" style={{ left: 460, top: 240, width: 320 }}>
@@ -1415,7 +1488,7 @@ export function PrintableReport({
                 )}
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1 min-w-[75px] pl-1">
-                    <span className="text-[12px] font-bold text-slate-800">{info.name}</span>
+                    <span className="text-[12px] font-bold text-slate-800">{L.categories[key] || info.name}</span>
                   </div>
                   <div className="flex-grow flex items-center gap-[2px] ml-2">
                     {[...Array(10)].map((_, i) => (
@@ -1451,20 +1524,20 @@ export function PrintableReport({
                 return (
                   <div
                     key={season}
-                    className={`flex flex-col items-center justify-center w-8 h-10 rounded-lg border-2 ${isSelected
+                    className={`flex flex-col items-center justify-center ${L.chipBox} h-10 rounded-lg border-2 ${isSelected
                       ? 'bg-emerald-400 border-emerald-600 text-white shadow-sm'
                       : 'bg-gray-50 border-gray-200 text-gray-400'
                       }`}
                   >
                     <span className={`text-[10px] ${!isSelected ? 'grayscale opacity-50' : ''}`}>{icon.emoji}</span>
-                    <span className="text-[8px] font-bold mt-0.5">{icon.label}</span>
+                    <span className={`${L.chipText} font-bold mt-0.5`}>{L.seasons[season]}</span>
                   </div>
                 )
               })}
             </div>
           </div>
-          <p className="text-[9px] font-bold text-slate-600 leading-tight break-keep border-l-[2.5px] border-slate-800 pl-1.5 ml-1 mt-[3px]">
-            {scentRecommendation?.season_reason || "계절에 어울리는 향수 코멘트가 이곳에 표시됩니다."}
+          <p className={`text-[9px] font-bold text-slate-600 leading-tight ${L.reasonBreak} border-l-[2.5px] border-slate-800 pl-1.5 ml-1 mt-[3px]`}>
+            {scentRecommendation?.season_reason || L.seasonFallback}
           </p>
         </div>
 
@@ -1478,20 +1551,20 @@ export function PrintableReport({
                 return (
                   <div
                     key={time}
-                    className={`flex flex-col items-center justify-center w-8 h-10 rounded-lg border-2 ${isSelected
+                    className={`flex flex-col items-center justify-center ${L.chipBox} h-10 rounded-lg border-2 ${isSelected
                       ? 'bg-blue-400 border-blue-600 text-white shadow-sm'
                       : 'bg-gray-50 border-gray-200 text-gray-400'
                       }`}
                   >
                     <span className={`text-[10px] ${!isSelected ? 'grayscale opacity-50' : ''}`}>{icon.emoji}</span>
-                    <span className="text-[8px] font-bold mt-0.5">{icon.label}</span>
+                    <span className={`${L.chipText} font-bold mt-0.5`}>{L.times[time]}</span>
                   </div>
                 )
               })}
             </div>
           </div>
-          <p className="text-[9px] font-bold text-slate-600 leading-tight break-keep border-l-[2.5px] border-slate-800 pl-1.5 ml-1 mt-[3px]">
-            {scentRecommendation?.time_reason || "시간대에 어울리는 향수 코멘트가 이곳에 표시됩니다."}
+          <p className={`text-[9px] font-bold text-slate-600 leading-tight ${L.reasonBreak} border-l-[2.5px] border-slate-800 pl-1.5 ml-1 mt-[3px]`}>
+            {scentRecommendation?.time_reason || L.timeFallback}
           </p>
         </div>
       </div>
