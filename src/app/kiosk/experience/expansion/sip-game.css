@@ -1,7 +1,6 @@
-/* SIP! 1인칭 소믈리에 게임(studio-sommelier-nh) — SommelierNhMode.tsx 가 직접 싣는다(공용 expansion.css 와 따로 — 고친 뒤 사파리가 옛 스타일을 쥐고 있던 일이 있었다).
+/* SIP! 1인칭 소믈리에 게임(studio-sommelier-nh) — SipGameMode.tsx 가 직접 싣는다(공용 expansion.css 와 따로 — 고친 뒤 사파리가 옛 스타일을 쥐고 있던 일이 있었다).
    요즘 3D 게임 UI: 장면 위에 반투명 유리판(대사 · 선택지), 도착할 때 큰 장소 제목, 떠다니는 빛 먼지, 단어씩 떠오르는 대사.
    움직임은 prefers-reduced-motion 에 묶지 않는다(매장 POS 는 그 설정이 켜져 있다 — kiosk-reduced-motion-trap). 화면 높이가 낮아도(창 · 노트북) 모두 화면 안에. */
-.kx-root[data-expansion='sommelier-nh'] { --kx-bg: #0a0705; }
 .sip { --gold: #ecd08f; --gold-2: #c99a4a; --wine: #8e2440; --glass: rgba(18, 12, 9, .52); --line: rgba(255, 240, 210, .22); --ink: #fff8ec; --serif: 'nh-serif', 'Cormorant Garamond', 'Times New Roman', serif;
   position: relative; flex: 1; min-height: 0; overflow: hidden; isolation: isolate; background: #0a0705; color: var(--ink); font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif; }
 .sip :is(button) { font: inherit; color: inherit; }

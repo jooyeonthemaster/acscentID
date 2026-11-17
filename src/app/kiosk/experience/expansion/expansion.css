@@ -274,4 +274,4 @@
 .ex-nh-taste dd i { height: 6px; background: #34322f; }
 .ex-nh-taste dd i[data-on] { background: var(--kx-ink); }
 .ex-nh-taste span { font-family: var(--nh-serif, serif); font-size: 20px; text-align: right; color: var(--kx-ink); }
-/* SIP!(sommelier-nh) 게임 화면은 sip-game.css — SommelierNhMode.tsx 가 직접 싣는다 */
+/* SIP! 실험용 게임판(?lab=game)의 화면은 sip-game.css — SipGameMode.tsx 가 직접 싣는다 */

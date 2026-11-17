@@ -10,7 +10,7 @@ const CameraModes = dynamic(() => import('./CameraModes'), { ssr:false })
 const ParticipantModes = dynamic(() => import('./ParticipantModes'), { ssr:false })
 const InteractiveModes = dynamic(() => import('./InteractiveModes'), { ssr:false })
 const HousingModes = dynamic(() => import('./HousingModes'), { ssr:false })
-const SommelierNhMode = dynamic(() => import('./SommelierNhMode'), { ssr:false })
+const SommelierNhMode = dynamic(() => import('./SommelierNhSwitch'), { ssr:false })
 
 export default function ExpansionMode() {
   const { id } = useKx()
