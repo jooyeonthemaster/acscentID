@@ -111,3 +111,32 @@ test('브랜드 자리 — 꺼 두면 어디에도 나오지 않는다', () => {
   assert.equal(NH_BRAND.kiosk.enabled, false)
   for (const id of ['nh-face', 'nh-saju', 'nh-palm', 'sommelier-nh', 'sommelier']) assert.equal(eventBrandFor(id), null)
 })
+
+test('관상 동양풍 초상 — 지시문이 얼굴 · 안경을 지키고 글씨를 넣지 않는다, 빠른 모델이 먼저', async () => {
+  const { buildFacePortraitPrompt, PORTRAIT_ATTEMPTS, PORTRAIT_USES, portraitPeople } = await import('../portrait')
+  const prompt = buildFacePortraitPrompt()
+  assert.match(prompt, /IDENTITY LOCK/)
+  assert.match(prompt, /GLASSES/)
+  assert.match(prompt, /DO NOT add any text/)
+  assert.match(prompt, /not .*resemble any real celebrity or actor/)
+  // 얼굴 닮음이 먼저 — Seedream 먼저(2026-11-17 시험), 여럿이면 단체 지시문
+  assert.equal(PORTRAIT_ATTEMPTS[0][0], 'seedream-5-flash')
+  const group = buildFacePortraitPrompt(3)
+  assert.match(group, /Show ALL 3 of them/)
+  assert.doesNotMatch(group, /strictly frontal and symmetrical close-up/)
+  assert.equal(portraitPeople(undefined), 1)
+  assert.equal(portraitPeople(9), 6)
+  // 라우트 maxDuration 60초 안
+  assert.ok(PORTRAIT_ATTEMPTS.reduce((a, [, ms]) => a + ms, 0) <= 55_000)
+  assert.equal(PORTRAIT_USES, 2)
+  const face = findProgram('nh-face')!
+  assert.deepEqual(face.designs, ['초상 포스터', '족자'])
+})
+
+test('세로쓰기 줄 나누기 — 낱말을 끊지 않고, 부호는 뺀다', async () => {
+  const { verticalColumns } = await import('../../../../app/booth/programs/portrait-print')
+  assert.deepEqual(verticalColumns('단단한 한 걸음', 4), ['단단한', '한 걸음'])
+  assert.deepEqual(verticalColumns('꾸준히 타는 불씨', 5), ['꾸준히', '타는 불씨'])
+  assert.deepEqual(verticalColumns('쌓아 온 것이, 빛나는 해!', 9), ['쌓아 온 것이', '빛나는 해'])
+  assert.deepEqual(verticalColumns('가나다라마바사', 3), ['가나다', '라마바', '사'])
+})

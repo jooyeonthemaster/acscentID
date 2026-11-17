@@ -65,13 +65,16 @@ interface ImageReply {
   error?: string
 }
 
+/** 요청에 쓰는 키와 기록 이름(X-Title) — 프로젝트마다 다른 키(~/.claude/CLAUDE.md 키 규칙) */
+interface ImageKey { value: string; title: string }
+
 const isDataImage = (value: string) => /^data:image\/(jpeg|png|webp);base64,/.test(value)
 
 /** OpenRouter images API — Seedream 등. 받은 그림이 주소면 내려받아 data URL 로 */
-async function requestImagesApi(model: string, prompt: string, refs: string[], aspect: string, timeout: number): Promise<ImageReply> {
+async function requestImagesApi(model: string, prompt: string, refs: string[], aspect: string, timeout: number, key: ImageKey): Promise<ImageReply> {
   const res = await fetch('https://openrouter.ai/api/v1/images', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${fungroundKey()}`, 'Content-Type': 'application/json', 'X-Title': "AC'SCENT photobooth funground" },
+    headers: { Authorization: `Bearer ${key.value}`, 'Content-Type': 'application/json', 'X-Title': key.title },
     body: JSON.stringify({ model, prompt, aspect_ratio: aspect, input_references: refs.map((url) => ({ type: 'image_url', image_url: { url } })) }),
     signal: AbortSignal.timeout(timeout),
   })
@@ -92,10 +95,10 @@ async function requestImagesApi(model: string, prompt: string, refs: string[], a
 }
 
 /** OpenRouter chat completions(이미지 출력) — Gemini 이미지 모델. 부스 공통 요청(idol-generate.ts requestImage)과 같은 모양 */
-async function requestChatImage(model: string, prompt: string, refs: string[], aspect: string, timeout: number): Promise<ImageReply> {
+async function requestChatImage(model: string, prompt: string, refs: string[], aspect: string, timeout: number, key: ImageKey): Promise<ImageReply> {
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${fungroundKey()}`, 'Content-Type': 'application/json', 'X-Title': "AC'SCENT photobooth funground" },
+    headers: { Authorization: `Bearer ${key.value}`, 'Content-Type': 'application/json', 'X-Title': key.title },
     body: JSON.stringify({
       model,
       modalities: ['image', 'text'],
@@ -132,27 +135,46 @@ export interface GeneratedImage {
  */
 export async function generateFungroundImage(programId: ProgramId, prompt: string, photos: string[], label: string): Promise<GeneratedImage> {
   if (!fungroundImageConfigured()) throw new IdolError('펀그라운드 데모용 AI 키가 아직 설정되지 않았어요.', 503)
-  if (!photos.length || photos.some((p) => !isDataImage(p) || p.length > 3_000_000)) throw new IdolError('사진 형식이 올바르지 않아요.', 400)
   const primary = FUNGROUND_PRIMARY[programId] ?? FALLBACK_IMAGE_MODEL
-  const attempts: [ImageModelKey, number][] = [[primary, 60_000], [FALLBACK_IMAGE_MODEL, 45_000]]
+  return generateWithModels({
+    key: { value: fungroundKey(), title: "AC'SCENT photobooth funground" }, log: 'funground-image',
+    attempts: [[primary, 60_000], [FALLBACK_IMAGE_MODEL, 45_000]], prompt, photos, label,
+  })
+}
+
+/**
+ * 모델 순서대로 한 장 — 실패 · 시간 초과면 다음 모델. 받은 그림은 JPEG(긴 변 1800 이하)로.
+ * 손님 사진은 기록하지 않고 모델 · 요약(label) · 걸린 시간 · usage.cost 만 남긴다
+ */
+export async function generateWithModels({ key, log, attempts, prompt, photos, label, aspect = '2:3' }: {
+  key: ImageKey
+  /** 로그 머리말 */
+  log: string
+  attempts: [ImageModelKey, number][]
+  prompt: string
+  photos: string[]
+  label: string
+  aspect?: '2:3' | '3:2'
+}): Promise<GeneratedImage> {
+  if (!photos.length || photos.some((p) => !isDataImage(p) || p.length > 3_000_000)) throw new IdolError('사진 형식이 올바르지 않아요.', 400)
   const started = Date.now()
   let spent = 0
   let anyCost = false
-  for (const [key, timeout] of attempts) {
-    const model = IMAGE_MODELS[key]
+  for (const [modelKey, timeout] of attempts) {
+    const model = IMAGE_MODELS[modelKey]
     const t0 = Date.now()
     let reply: ImageReply
     try {
       reply = model.api === 'images'
-        ? await requestImagesApi(model.id, prompt, photos, '2:3', timeout)
-        : await requestChatImage(model.id, prompt, photos, '2:3', timeout)
+        ? await requestImagesApi(model.id, prompt, photos, aspect, timeout, key)
+        : await requestChatImage(model.id, prompt, photos, aspect, timeout, key)
     } catch (error) {
       reply = { url: null, cost: null, error: error instanceof Error ? error.message : String(error) }
     }
     if (reply.cost !== null) { spent += reply.cost; anyCost = true }
     const took = `${Math.round((Date.now() - t0) / 1000)}s`
     if (!reply.url) {
-      console.error('[funground-image] 실패', model.id, label, took, `cost=${reply.cost ?? '-'}`, reply.error?.slice(0, 200))
+      console.error(`[${log}] 실패`, model.id, label, took, `cost=${reply.cost ?? '-'}`, reply.error?.slice(0, 200))
       continue
     }
     // 응답 크기(4.5MB 제한)와 부스 전송을 줄이려 JPEG 로 — 긴 변 1800 이하(부스 공통과 같다)
@@ -162,7 +184,7 @@ export async function generateFungroundImage(programId: ProgramId, prompt: strin
       .toBuffer()
     const seconds = Math.round((Date.now() - started) / 100) / 10
     const cost = anyCost ? Math.round(spent * 100000) / 100000 : null
-    console.log('[funground-image] 생성', model.id, label, took, `cost=${cost ?? '-'}`)
+    console.log(`[${log}] 생성`, model.id, label, took, `cost=${cost ?? '-'}`)
     return { image: `data:image/jpeg;base64,${jpeg.toString('base64')}`, model: model.id, cost, seconds }
   }
   throw new IdolError('AI 사진을 만들지 못했어요.', 502)

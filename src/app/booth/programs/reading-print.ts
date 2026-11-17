@@ -33,6 +33,9 @@ const FONTS: [family: string, url: string, desc?: FontFaceDescriptors][] = [
   ['nh-serif', '/fonts/cormorant-garamond/CormorantGaramond-latin.woff2', { weight: '300 700' }],
   ['nh-serif', '/fonts/cormorant-garamond/CormorantGaramond-italic-latin.woff2', { weight: '300', style: 'italic' }],
   ['nh-hanja', '/fonts/hanja/wenkai-tc-700.woff2'],
+  // 새해 관상 초상 원판(portrait-print.ts) — 큰 붓글씨 · 옛 명조(public/fonts/brush/README.md)
+  ['nh-brush', '/fonts/brush/east-sea-dokdo.woff2'],
+  ['nh-myeongjo', '/fonts/brush/song-myung.woff2'],
 ]
 const SERIF = "'nh-serif', 'Times New Roman', serif"
 const HANJA = "'nh-hanja', 'Noto Serif KR', 'AppleMyungjo', 'Batang', serif"
@@ -55,7 +58,7 @@ export function loadReadingPrintAssets(programId: string): Promise<void> {
   return Promise.all([fontsReady, logoLoad]).then(() => undefined)
 }
 
-function wrap(ctx: Ctx, text: string, width: number): string[] {
+export function wrap(ctx: Ctx, text: string, width: number): string[] {
   const lines: string[] = []
   for (const para of text.split('\n')) {
     let line = ''

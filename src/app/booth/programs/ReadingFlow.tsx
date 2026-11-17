@@ -6,7 +6,10 @@
 //   관상: 촬영 → 주제 하나 → (생성) → 결과 → 저장
 //   손금: 촬영(얼굴 옆에 손바닥) → (생성) → 결과 → 저장
 // 생성 = 기기 안에서 사진 읽기(표정 · 기울기 / 손 펼친 정도, 키오스크 read-photo 그대로) → /api/photobooth/reading 에서 글 → 기기 안에서 4×6 두 가지 합성.
-// 그림은 AI 로 만들지 않는다 — 대기는 AI 글 3~6초(늦으면 10초에 미리 쓴 문장). 촬영 · 저장 화면은 사진 프로그램(PhotoFlow)과 같은 부품.
+// 사주(2026-11-17~): 관상처럼 촬영 직후 초상(후광 · 구름 · 한복)을 만들기 시작하고, 가로 6×4 접는 카드로 합성한다(saju-print.ts).
+// 손금은 그림을 AI 로 만들지 않는다 — 대기는 AI 글 3~6초(늦으면 10초에 미리 쓴 문장). 촬영 · 저장 화면은 사진 프로그램(PhotoFlow)과 같은 부품.
+// 관상(2026-11-17~): 촬영 직후 /api/photobooth/portrait 로 동양풍 초상을 만들기 시작하고(주제를 고르는 동안, 보통 10초),
+//   글과 초상을 함께 받아 초상 위에 붓글씨로 얹는다(portrait-print.ts). 초상을 못 받으면 찍은 사진을 세피아로 같은 원판에.
 
 import { AlertTriangle, Camera, Check, Clock, Delete, RefreshCw, RotateCcw } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -22,6 +25,8 @@ import { loadVision, photoCanvas, preloadVision } from '@/app/kiosk/experience/k
 import { toRequestJpeg, type FlowCtx } from './flow'
 import { CaptureStep, SaveStep } from './PhotoFlow'
 import { loadReadingPrintAssets, renderReadingPrint } from './reading-print'
+import { renderPortraitPrint, type FaceBox } from './portrait-print'
+import { loadSajuPrintAssets, renderSajuPrint } from './saju-print'
 import { Creative, Modal, OptionGroups, PanelHead, Split, Stages, useElapsed } from './ui'
 import { loadImage } from './video'
 
@@ -29,8 +34,37 @@ type Step = 'birth' | 'capture' | 'topic' | 'generating' | 'result' | 'save'
 type Shot = HTMLCanvasElement | HTMLImageElement
 const shotUrl = (shot: Shot) => (shot instanceof HTMLCanvasElement ? shot.toDataURL('image/jpeg', 0.88) : shot.src)
 
+/** 관상 동양풍 초상 — 실패해도 null(찍은 사진으로 원판을 만든다) */
+async function requestPortrait(ctx: FlowCtx, shot: Shot, reading: Promise<Read> | null): Promise<string | null> {
+  try {
+    // 기기가 센 얼굴 수(여럿이면 단체 초상) — 사진 읽기는 1초 안팎
+    const [ticket, read] = await Promise.all([ctx.getTicket(), reading?.catch(() => null) ?? null])
+    const res = await fetch('/api/photobooth/portrait', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticket, program: ctx.program.id, photo: toRequestJpeg(shot, 1024), people: read?.people }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || typeof data.image !== 'string') { console.warn('[nh-portrait]', res.status, data.error); return null }
+    return data.image as string
+  } catch (error) {
+    console.warn('[nh-portrait]', error instanceof Error ? error.message : error)
+    return null
+  }
+}
+
+/** AI 초상 안 모든 얼굴을 감싼 상자(0~1) — 원판에서 얼굴이 글 칸에 묻히지 않게. 못 찾으면 null(가운데 기준) */
+async function faceBoxOf(image: HTMLImageElement): Promise<FaceBox | null> {
+  const canvas = await photoCanvas(image.src, 960)
+  try {
+    const faces = (await loadVision('faces')).detect(canvas).faceLandmarks
+    if (!faces.length) return null
+    const pts = faces.flat()
+    return { x0: Math.min(...pts.map((p) => p.x)), y0: Math.min(...pts.map((p) => p.y)), x1: Math.max(...pts.map((p) => p.x)), y1: Math.max(...pts.map((p) => p.y)) }
+  } catch { return null } finally { canvas.width = canvas.height = 0 }
+}
+
 /** 기기에서 읽은 값 — 사진 읽기를 못 해도 흐름은 멈추지 않는다(값 없이 미리 쓴 문장 · AI 는 사진만 보고) */
-interface Read { facts: ReadingFacts; focus: { x: number; y: number } | null; problem: 'no-face' | 'no-hand' | null }
+interface Read { facts: ReadingFacts; focus: { x: number; y: number } | null; problem: 'no-face' | 'no-hand' | null; people?: number }
 
 /** 손바닥 가운데(0~1) — 손금 카드 사진 자르기에만 쓴다(키오스크 손 도구 그대로, 이미 받아 둔 것) */
 async function handCentre(url: string): Promise<{ x: number; y: number } | null> {
@@ -55,7 +89,7 @@ async function readShot(url: string, subject: 'face' | 'palm'): Promise<Read> {
     }
     const made: PhotoReading = await readPhoto(url, { ...PHOTO_PLANS.face, outfit: false })
     const f = made.faces[0]
-    return { facts: { smile: f?.smile, tilt: f?.tilt }, focus: f ? { x: f.x, y: f.y } : null, problem: null }
+    return { facts: { smile: f?.smile, tilt: f?.tilt }, focus: f ? { x: f.x, y: f.y } : null, problem: null, people: made.faces.length || undefined }
   } catch (error) {
     const problem = error instanceof Error && (error.message === 'no-face' || error.message === 'no-hand') ? error.message : null
     return { facts: {}, focus: null, problem }
@@ -77,12 +111,16 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
   const [design, setDesign] = useState<0 | 1>(0)
   /** 촬영이 끝나자마자 사진을 읽기 시작한다(주제를 고르는 동안 끝난다) */
   const [reading, setReading] = useState<Promise<Read> | null>(null)
+  /** 관상: 촬영이 끝나자마자 초상을 만들기 시작한다 */
+  const [portrait, setPortrait] = useState<Promise<string | null> | null>(null)
+  const withPortrait = program.id === 'nh-face' || program.id === 'nh-saju'
   const [readWarning, setReadWarning] = useState<string | null>(null)
 
   // 사진 읽는 도구를 미리 받아 둔다(첫 손님도 기다리지 않게)
   useEffect(() => {
     const stops = [preloadVision('faces'), ...(subject === 'palm' ? [preloadVision('hand')] : [])]
     void loadReadingPrintAssets(program.id)
+    if (program.id === 'nh-saju') void loadSajuPrintAssets(program.id)
     return () => stops.forEach((stop) => stop())
   }, [subject, program.id])
 
@@ -94,7 +132,9 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
     setShots((list) => list.map((s, j) => (j === i ? shot : s)))
     const url = shot ? shotUrl(shot) : null
     setShotUrls((list) => list.map((s, j) => (j === i ? url : s)))
-    setReading(url ? readShot(url, subject) : null)
+    const read = url ? readShot(url, subject) : null
+    setReading(read)
+    setPortrait(shot && withPortrait ? requestPortrait(ctx, shot, read) : null)
     setReadWarning(null)
   }
   const afterCapture = async () => {
@@ -139,7 +179,7 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
       {step === 'generating' && shots[0] && (
         <Generate
           ctx={ctx} shot={shots[0]} shotUrl={shotUrls[0]!} subject={subject} birth={birth}
-          topic={(choices.topic ?? 'work') as FaceTopic} reading={reading}
+          topic={(choices.topic ?? 'work') as FaceTopic} reading={reading} portrait={withPortrait ? portrait ?? Promise.resolve(null) : null}
           onDone={(m) => { setMade(m); setDesign(0); setStep('result'); ctx.onResult() }}
           onBack={() => setStep(program.id === 'nh-face' ? 'topic' : 'capture')}
         />
@@ -178,7 +218,7 @@ function Photo({ url }: { url: string | null }) {
 
 // ───────────────────────── 생성 ─────────────────────────
 
-function Generate({ ctx, shot, shotUrl, subject, birth, topic, reading, onDone, onBack }: {
+function Generate({ ctx, shot, shotUrl, subject, birth, topic, reading, portrait, onDone, onBack }: {
   ctx: FlowCtx
   shot: Shot
   shotUrl: string
@@ -186,6 +226,8 @@ function Generate({ ctx, shot, shotUrl, subject, birth, topic, reading, onDone, 
   birth: FgBirth | null
   topic: FaceTopic
   reading: Promise<Read> | null
+  /** 관상 초상(먼저 시작한 요청) — null 이면 초상 없는 프로그램 */
+  portrait: Promise<string | null> | null
   onDone: (m: Made) => void
   onBack: () => void
 }) {
@@ -215,14 +257,20 @@ function Generate({ ctx, shot, shotUrl, subject, birth, topic, reading, onDone, 
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.story) throw new Error(data.error || `새해 이야기를 만들지 못했어요 (${res.status}).`)
         setStage(2)
-        const [image] = await Promise.all([loadImage(shotUrl), loadReadingPrintAssets(program.id)])
+        const [image, , painted] = await Promise.all([loadImage(shotUrl), Promise.all([loadReadingPrintAssets(program.id), program.id === 'nh-saju' ? loadSajuPrintAssets(program.id) : null]), portrait ? portrait.then((url) => url ? loadImage(url).catch(() => null) : null) : null])
         const story = data.story as ReadingStory
         const saju = data.saju as SajuView | undefined
         const tag = program.id === 'nh-face'
           ? [optionOf(program, 'topic', topic)?.label, faceMood(read.facts) ? FACE_MOOD_LABEL[faceMood(read.facts)!] : null].filter(Boolean).join(' · ')
           : program.id === 'nh-palm' ? PALM_OPEN_LABEL[palmOpen(read.facts)] : saju ? `${saju.zodiac}띠 · ${saju.dayMaster.gan}(${saju.dayMaster.hanja}) 일간` : undefined
         const input = { photo: image, focus: read.focus, story, saju, tag, wide: subject === 'palm' }
-        const prints: [string, string] = [renderReadingPrint(program, 0, input), renderReadingPrint(program, 1, input)]
+        // 사주: 가로 6×4 접는 카드(왼쪽 초상 · 오른쪽 오행 색 원국과 풀이, saju-print.ts)
+        const faces = painted && program.id === 'nh-face' ? await faceBoxOf(painted) : null
+        const prints: [string, string] = program.id === 'nh-saju'
+          ? [0, 1].map((d) => renderSajuPrint(program, d as 0 | 1, { ...input, photo: painted ?? image, portrait: Boolean(painted) })) as [string, string]
+          : portrait
+          ? [0, 1].map((d) => renderPortraitPrint(program, d as 0 | 1, { ...input, photo: painted ?? image, portrait: Boolean(painted), faces })) as [string, string]
+          : [renderReadingPrint(program, 0, input), renderReadingPrint(program, 1, input)]
         if (!abort.signal.aborted) doneRef.current({ story, engine: data.engine === 'ai' ? 'ai' : 'local', saju, prints })
       } catch (cause) {
         if (abort.signal.aborted) return
@@ -257,7 +305,7 @@ function Generate({ ctx, shot, shotUrl, subject, birth, topic, reading, onDone, 
       <div className="pg-reading-wait" role="status" aria-live="polite">
         <p className="pg-reading-elapsed">{elapsed}<span>초</span></p>
         <i className="pg-reading-line" aria-hidden="true" />
-        <p>보통 5~10초 걸려요</p>
+        <p>{portrait ? '초상까지 보통 10~20초 걸려요' : '보통 5~10초 걸려요'}</p>
       </div>
       <Stages labels={program.generating.stages} active={stage} />
       <Creative text={READING_NOTICE} />

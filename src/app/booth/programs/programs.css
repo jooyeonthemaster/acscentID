@@ -843,6 +843,8 @@ canvas.pg-cam-video { transform: none; }
 .pg-reading-story span { font-size: 16px; font-weight: 500; color: var(--pg-muted); }
 .pg[data-kind='reading'] .pg-design { border: 1px solid var(--pg-line); border-radius: var(--pg-radius); background: transparent; color: var(--pg-ink); font-weight: 600; }
 .pg[data-kind='reading'] .pg-design img { border-radius: 0; }
+/* 사주 SAJU! 는 가로 6×4 접는 카드(saju-print.ts) */
+.pg[data-program='nh-saju'] .pg-design img { width: 168px; height: 112px; }
 .pg[data-kind='reading'] .pg-design[aria-checked='true'] { border-color: var(--pg-accent); box-shadow: inset 0 0 0 1px var(--pg-accent); }
 .pg[data-kind='reading'] .pg-design i { background: var(--pg-accent); color: #141414; }
 
