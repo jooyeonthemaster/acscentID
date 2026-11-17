@@ -142,7 +142,8 @@ export function CaptureStep({ ctx, shots, shotUrls, setShot, onNext }: {
   const [delay, setDelay] = useState<3 | 5>(3)
   const [count, setCount] = useState<number | null>(null)
   const [flash, setFlash] = useState(false)
-  const [consent, setConsent] = useState(false)
+  // 새해 이야기(reading)는 체크 상자 없이 「촬영하기」를 누르면 동의한 것으로 본다(안내 문구만 둔다, 2026-11-17 사용자 지시 — ANSAN 과 같은 방식)
+  const [consent, setConsent] = useState(program.kind === 'reading')
   const [phone, setPhone] = useState(false)
   const [faceWarning, setFaceWarning] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -253,13 +254,15 @@ export function CaptureStep({ ctx, shots, shotUrls, setShot, onNext }: {
               <button key={s} type="button" role="radio" aria-checked={delay === s} disabled={count !== null} onClick={() => setDelay(s)}><Timer size={18} />{s}초 타이머</button>
             ))}
           </div>
-          <label className="pg-consent">
-            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} disabled={count !== null} />
-            {program.kind === 'reading'
-              // 새해 이야기(관상 · 사주 · 손금) — 그림은 만들지 않고 글만 AI 가 쓴다. 사주는 사진을 AI 에 보내지 않는다(카드에만)
-              ? <span>사진 촬영과 AI 새해 이야기 만들기에 동의해요. {program.reading?.birth ? '사진은 새해 카드에만 들어가고 AI에 보내지 않아요.' : '찍은 사진은 이야기를 쓰는 데만 쓰고 저장하지 않아요.'} 결과 카드는 QR로 받을 때만 7일 보관해요.</span>
-              : <span>사진 촬영과 AI 사진 생성에 동의해요. 찍은 사진은 생성에만 쓰고, 저장을 누른 결과만 7일 보관해요.</span>}
-          </label>
+          {program.kind === 'reading' ? (
+            // 새해 이야기(관상 · 사주 · 손금) — 그림은 만들지 않고 글만 AI 가 쓴다. 사주는 사진을 AI 에 보내지 않는다(카드에만)
+            <p className="pg-consent pg-consent--note"><span><b>촬영하기를 누르면</b> 사진 촬영과 AI 새해 이야기 만들기에 동의한 것으로 봐요. {program.reading?.birth ? '사진은 새해 카드에만 들어가고 AI에 보내지 않아요.' : '찍은 사진은 이야기를 쓰는 데만 쓰고 저장하지 않아요.'} 결과 카드는 QR로 받을 때만 7일 보관해요.</span></p>
+          ) : (
+            <label className="pg-consent">
+              <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} disabled={count !== null} />
+              <span>사진 촬영과 AI 사진 생성에 동의해요. 찍은 사진은 생성에만 쓰고, 저장을 누른 결과만 7일 보관해요.</span>
+            </label>
+          )}
           <button type="button" className="pg-btn pg-btn--accent pg-btn--shoot" onClick={shoot} disabled={count !== null || camera.state !== 'ready' || !consent}>
             <Camera size={30} />{count !== null ? `${count || '찰칵'}…` : (program.capture.people === 2 && need === 1) || program.capture.group ? '함께 촬영하기' : '촬영하기'}
           </button>
