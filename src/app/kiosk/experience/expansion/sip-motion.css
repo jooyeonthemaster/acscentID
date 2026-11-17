@@ -85,7 +85,8 @@
 .sip-tv-flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 46%, rgba(255, 244, 222, .95), rgba(255, 214, 160, .35) 65%); opacity: 0; animation: sip-tv-flash .5s 1.2s ease-out both; }
 @keyframes sip-tv-flash { 0% { opacity: 0; } 30% { opacity: .78; } 100% { opacity: 0; } }
 
-/* 이동 영상 — 떠나는 장면이 빨려 들어가는 동안 아래에서 이동 영상이 빨리감기로 돈다. 속도선은 영상 길이만큼 */
-.sip-travel[data-movie] .sip-tv-from { z-index: 2; animation-duration: .45s; }
+/* 이동 영상 — 지금 반복 영상 위로 0.3초에 겹쳐 온다(해나는 화면에서 사라지지 않고 영상 안에서 걸어 나간다). 속도선은 빨리감기 동안만(시간은 SipMotion.tsx 가 넣는다) */
+.sip-tv-movie { animation: sip-tv-movie-in .3s ease-out both; }
+@keyframes sip-tv-movie-in { from { opacity: 0; } }
 .sip-travel[data-movie] .sip-tv-lines { z-index: 3; }
-.sip-tv-lines[data-movie] { animation: sip-tv-lines 1.6s .15s both, sip-tv-flick .1s steps(1) infinite; }
+.sip-tv-lines[data-movie] { animation-name: sip-tv-lines, sip-tv-flick; animation-fill-mode: both, none; animation-iteration-count: 1, infinite; animation-timing-function: linear, steps(1); }

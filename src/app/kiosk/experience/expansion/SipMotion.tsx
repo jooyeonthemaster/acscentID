@@ -7,20 +7,21 @@
 //   장소 이동 — 지금 장면으로 빨려 들어가고(해나는 앞서 걸어 나간다) → 다음 장소로 가는 길 그림이 끊어지는 빨리감기(하이퍼랩스)로 두 번 달려 나가며 흔들리고 속도선 · 잔상 → 빛 → 새 장면이 감속하며 멈춘다.
 //   저장고(AI 가 고르는 동안)는 한 장면 — 와인 수장고의 와인 벽 앞에서 해나가 수백 병 중 한 병을 고른다(vault). 반복 영상(STILL.video)이 있으면 그걸 틀고, 없으면 그림이 움직인다(촛불 · 먼지 · 카메라).
 // 영상판(2026-11-17 「완으로 모든 영상을」): 장소마다 Wan 3.0 반복 영상(STILL.video, 첫 · 끝 프레임 = 그 장소 그림)과 장소 사이 이동 영상(MOVE, 첫 프레임 = 떠나는 장소 배경판, 끝 = 도착 장소 그림).
-//   이동은 지금 장면이 빨려 들어가며 이동 영상이 빨리감기(MOVE_RATE 배)로 돌고, 이동 영상의 마지막 프레임 = 도착 장소 반복 영상의 첫 프레임이라 끊김 없이 이어진다.
+//   이동 영상(8초)은 떠나는 장소 그림에서 시작해 해나가 걸어서 화면 밖으로 나가고 → 길을 빨리감기로 → 도착하면 해나가 화면 밖에서 걸어 들어와 제자리에 선다(2026-11-17 사용자 지시: 뿅 · 스르륵 사라지지 말고 걸어 나가고 걸어 들어오게).
+//   걷는 앞 · 뒤는 WALK_RATE, 길은 FAST_RATE 로 튼다. 떠날 때는 지금 반복 영상 위로 이동 영상이 0.3초에 겹쳐 오고(해나는 계속 화면에 있다), 이동 영상의 마지막 프레임 = 도착 장소 반복 영상의 첫 프레임이라 끊김 없이 이어진다.
 //   영상이 없는 장소 · 이동은 위의 그림판(두 겹 · 하이퍼랩스 그림)으로 돌아간다.
 // 그림: public/assets/kiosk-expansion/nh-sip(plate-* · hana-* · go-* · vault), 화면: sip-motion.css
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './sip-motion.css'
 
 export type Scene = 'gate' | 'vineyard' | 'harvest' | 'winery' | 'cellar' | 'tasting'
 const ART = '/assets/kiosk-expansion/nh-sip'
 /** 이동 연출 전체 길이 — 이 뒤에 대사 · 장소 제목이 뜬다(sip-motion.css 시간과 맞춘다) */
 export const TRAVEL_MS = 1750
-/** 이동 영상 — 4초 영상을 MOVE_RATE 배로(약 1.85초), 그 뒤 도착 장소 반복 영상으로 바꾼다 */
-const MOVE_RATE = 2.2
-const MOVE_MS = 1950
+/** 이동 영상 빠르기 — 해나가 걸어 나가고 · 걸어 들어오는 부분 / 길을 가는 부분 */
+const WALK_RATE = 1.5
+const FAST_RATE = 3.5
 
 /**
  * 해나 자리 — 그림 세계(720×1290) 안의 % : x 가운데 · top 머리 위 · h 키 · ratio 그림 가로/세로 · cut 아래에서 잘라 낼 몫(%)
@@ -47,15 +48,24 @@ const STILL: Partial<Record<Scene, { img: string; video?: string }>> = {
   cellar: { img: 'vault', video: 'vault-loop' },
   tasting: { img: 'tasting', video: 'loop-tasting' },
 }
-/** 그 장소로 가는 이동 영상(mp4) */
-const MOVE: Partial<Record<Scene, string>> = { vineyard: 'move-vineyard', harvest: 'move-harvest', winery: 'move-winery', cellar: 'move-cellar', tasting: 'move-tasting' }
+/** 그 장소로 가는 이동 영상 — out: 해나가 화면 밖으로 다 나간 초, in: 해나가 걸어 들어오기 시작하는 초, len: 영상 길이(초) */
+type Move = { src: string; out: number; in: number; len: number }
+const MOVE: Partial<Record<Scene, Move>> = {
+  // 0.5초 간격 프레임으로 잰 값(2026-11-17 Wan 3.0 8초 판)
+  vineyard: { src: 'move-vineyard', out: 2.8, in: 4.9, len: 8 },
+  harvest: { src: 'move-harvest', out: 2.4, in: 4.8, len: 8 },
+  winery: { src: 'move-winery', out: 2.4, in: 4.4, len: 8 },
+  cellar: { src: 'move-cellar', out: 2.4, in: 5.2, len: 8 },
+  tasting: { src: 'move-tasting', out: 2.4, in: 4.8, len: 8 },
+}
+const moveMs = (m: Move) => Math.round(1000 * (m.out / WALK_RATE + (m.in - m.out) / FAST_RATE + (m.len - m.in) / WALK_RATE)) + 150
 /** 그 장소로 갈 때 이동 연출 길이 */
-export const travelMs = (to: Scene) => (MOVE[to] ? MOVE_MS : TRAVEL_MS)
+export const travelMs = (to: Scene) => (MOVE[to] ? moveMs(MOVE[to]!) : TRAVEL_MS)
 
 export function preloadMotion() {
   for (const s of SCENES) for (const f of [...(STILL[s] ? [STILL[s]!.img] : [`plate-${s}`, `hana-${s}`]), ...(s === 'gate' || MOVE[s] ? [] : [`go-${s}`])]) { const i = new Image(); i.src = `${ART}/${f}.webp` }
   // 영상은 미리 받아 둔다(첫 손님 이동이 끊기지 않게)
-  for (const s of SCENES) for (const v of [STILL[s]?.video, MOVE[s]]) if (v) void fetch(`${ART}/${v}.mp4`).catch(() => undefined)
+  for (const s of SCENES) for (const v of [STILL[s]?.video, MOVE[s]?.src]) if (v) void fetch(`${ART}/${v}.mp4`).catch(() => undefined)
 }
 
 /** 장면이 바뀌면 { from: 떠나는 장면, n } — TRAVEL_MS 뒤 from 이 비면 도착 */
@@ -83,39 +93,63 @@ function Hana({ scene, talk }: { scene: Scene; /** 말할 때마다 바뀌는 �
 
 /** 움직이는 장면 — 배경판 · 해나 두 겹, 이동 중이면 빨리감기 덧그림 */
 export function MotionScene({ scene, travel, talk }: { scene: Scene; travel: ReturnType<typeof useTravel>; talk: number }) {
-  // 이동 영상으로 가는 동안은 도착 장면을 그리지 않는다 — 이동 영상의 끝 프레임에서 반복 영상으로 바로 이어진다(data-cut)
-  const movie = travel.n > 0 && !!MOVE[scene]
+  // 이동 영상으로 가는 동안은 떠나는 장소 반복 영상을 그대로 틀어 둔다(같은 key — 다시 처음부터 돌지 않게). 그 위로 이동 영상이 겹쳐 오고,
+  // 이동 영상의 끝 프레임에서 도착 장소 반복 영상으로 바로 이어진다(data-cut — 도착 줌 없음)
+  const movie = travel.from !== null && !!MOVE[scene]
+  const shown = movie ? travel.from! : scene
+  const key = STILL[shown]?.video ? `s-${shown}` : `w${travel.n}`
   return <>
-    {!(movie && travel.from) && <div key={`w${travel.n}`} className="sip-world sip-live" data-arrive={(travel.n > 0 && !movie) || undefined} data-cut={movie || undefined} data-scene={scene}>
+    <div key={key} className="sip-world sip-live" data-arrive={(travel.n > 0 && !MOVE[scene]) || undefined} data-cut={(travel.n > 0 && !!MOVE[scene]) || undefined} data-scene={shown}>
       <div className="sip-cam">
-        {STILL[scene]
-          ? <div className="sip-layer sip-layer--still" data-video={!!STILL[scene]!.video || undefined}><Still scene={scene} play /></div>
+        {STILL[shown]
+          ? <div className="sip-layer sip-layer--still" data-video={!!STILL[shown]!.video || undefined}><Still scene={shown} play /></div>
           : <>
-            <div className="sip-layer sip-layer--far"><img className="sip-plate" src={`${ART}/plate-${scene}.webp`} alt="" draggable={false} /></div>
-            <div className="sip-layer sip-layer--near"><Hana scene={scene} talk={talk} /></div>
+            <div className="sip-layer sip-layer--far"><img className="sip-plate" src={`${ART}/plate-${shown}.webp`} alt="" draggable={false} /></div>
+            <div className="sip-layer sip-layer--near"><Hana scene={shown} talk={talk} /></div>
           </>}
       </div>
-    </div>}
+    </div>
     {travel.from && <Travel key={travel.n} from={travel.from} to={scene} />}
   </>
 }
 
-/** 빨리감기 이동 — 떠나는 장면이 빨려 들어가고, 길 그림이 끊어지며 두 번 달려 나간다 */
+/** 이동 영상 — 지금 반복 영상 위로 0.3초에 겹쳐 오고, 해나가 걸어 나가고 · 들어오는 앞뒤는 천천히, 길은 빨리감기로 */
+function MovieTravel({ m }: { m: Move }) {
+  const ref = useRef<HTMLVideoElement>(null)
+  useEffect(() => {
+    let raf = 0
+    const tick = () => {
+      const v = ref.current
+      if (v) { const rate = v.currentTime >= m.out && v.currentTime < m.in ? FAST_RATE : WALK_RATE; if (v.playbackRate !== rate) v.playbackRate = rate }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [m])
+  // 속도선은 빨리감기 동안만
+  const fastAt = m.out / WALK_RATE, fastFor = (m.in - m.out) / FAST_RATE
+  return <div className="sip-travel" data-movie>
+    <div className="sip-world sip-tv-movie">
+      <video ref={ref} className="sip-plate" src={`${ART}/${m.src}.mp4`} muted playsInline autoPlay preload="auto" disablePictureInPicture />
+    </div>
+    <i className="sip-tv-lines" data-movie style={{ animationDelay: `${fastAt}s, 0s`, animationDuration: `${fastFor}s, .1s` }} />
+  </div>
+}
+
+/** 빨리감기 이동(그림판) — 떠나는 장면이 빨려 들어가고, 길 그림이 끊어지며 두 번 달려 나간다 */
 function Travel({ from, to }: { from: Scene; to: Scene }) {
-  return <div className="sip-travel" data-movie={!!MOVE[to] || undefined}>
+  if (MOVE[to]) return <MovieTravel m={MOVE[to]!} />
+  return <div className="sip-travel">
     <div className="sip-world sip-tv-from" data-scene={from}>
       {STILL[from] ? <Still scene={from} /> : <><img className="sip-plate" src={`${ART}/plate-${from}.webp`} alt="" /><Hana scene={from} /></>}
     </div>
-    {MOVE[to] ? <div className="sip-world sip-tv-movie">
-      <video className="sip-plate" src={`${ART}/${MOVE[to]}.mp4`} muted playsInline autoPlay preload="auto" disablePictureInPicture
-        ref={(v) => { if (v) { v.defaultPlaybackRate = MOVE_RATE; v.playbackRate = MOVE_RATE } }} onLoadedMetadata={(e) => { e.currentTarget.playbackRate = MOVE_RATE }} />
-    </div> : to !== 'gate' && <div className="sip-world sip-tv-road">
+    {to !== 'gate' && <div className="sip-world sip-tv-road">
       <div className="sip-tv-shake"><div className="sip-tv-zoom">
         {[0, 1, 2].map((g) => <img key={g} data-ghost={g || undefined} src={`${ART}/go-${to}.webp`} alt="" />)}
       </div></div>
     </div>}
-    <i className="sip-tv-lines" data-movie={!!MOVE[to] || undefined} />
-    {!MOVE[to] && <i className="sip-tv-flash" />}
+    <i className="sip-tv-lines" />
+    <i className="sip-tv-flash" />
   </div>
 }
 
