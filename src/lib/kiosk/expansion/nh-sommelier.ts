@@ -21,9 +21,9 @@ export interface NhAnswers { sweet: number; acid: number; body: number; kind: Nh
 export const NH_DEFAULT_ANSWERS: NhAnswers = { sweet: 3, acid: 3, body: 3, kind: 'any' }
 
 export const NH_SCALES = [
-  { key: 'sweet', title: '단맛', note: '1 드라이 · 5 달콤하게' },
-  { key: 'acid', title: '산미', note: '1 부드럽게 · 5 상큼하게' },
-  { key: 'body', title: '바디감', note: '1 가볍게 · 5 묵직하게' },
+  { key: 'sweet', title: '단맛', note: '1 드라이 · 5 달콤하게', lo: '드라이', hi: '달콤' },
+  { key: 'acid', title: '산미', note: '1 부드럽게 · 5 상큼하게', lo: '부드럽게', hi: '상큼' },
+  { key: 'body', title: '바디감', note: '1 가볍게 · 5 묵직하게', lo: '가볍게', hi: '묵직' },
 ] as const
 export const NH_KINDS: { id: NhKindChoice; label: string; note: string }[] = [
   { id: 'any', label: '모두 좋아요', note: '맛 취향으로만 골라요' },

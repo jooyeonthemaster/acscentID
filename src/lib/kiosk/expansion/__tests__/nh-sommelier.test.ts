@@ -123,3 +123,14 @@ test('AI 지시문 — 후보만 고르고 재고 순서를 따르라는 규칙�
   assert.match(prompt, /후보 밖의 와인 이름/)
   assert.match(prompt, /nh-wine-7/)
 })
+
+test('미연시 선택지(맛은 1 · 3 · 5 세 칸)만으로도 10병이 모두 나오고 고르게 나뉜다', () => {
+  const three = [1, 3, 5]
+  const all = NH_KINDS.flatMap((k) => three.flatMap((sweet) => three.flatMap((acid) => three.map((body) => ({ sweet, acid, body, kind: k.id })))))
+  const counts: PourCounts = {}
+  const picks: number[] = []
+  for (let i = 0; i < 1350; i++) { const no = rankNhWines(all[(i * 37) % all.length], null, counts)[0].wine.no; counts[no] = (counts[no] ?? 0) + 1; picks.push(no) }
+  const s = share(tally(picks), picks.length)
+  console.log('  1·3·5 선택지 1,350명(%) —', JSON.stringify(s))
+  for (const w of NH_WINES) assert.ok(s[w.no] >= 3, `${w.no}번 ${s[w.no]}%`)
+})

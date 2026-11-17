@@ -274,3 +274,117 @@
 .ex-nh-taste dd i { height: 6px; background: #34322f; }
 .ex-nh-taste dd i[data-on] { background: var(--kx-ink); }
 .ex-nh-taste span { font-family: var(--nh-serif, serif); font-size: 20px; text-align: right; color: var(--kx-ink); }
+
+/* ═══ SIP! 1인칭 미연시(2026-11-17 사용자 지시) — 3D 렌더 장면 그림 · 길잡이 해나 · 대사창 · 선택지 · 와인 획득 연출(SommelierNhMode.tsx) ═══
+   움직임은 prefers-reduced-motion 에 묶지 않는다(매장 POS 는 그 설정이 켜져 있다 — kiosk-reduced-motion-trap). 560×996 안에서 넘치지 않게. */
+.kx-root[data-expansion='sommelier-nh'] { --kx-bg: #0b0806; --nh-wine: #8e2440; --vn-gold: #e9c46a; }
+.vn { position: relative; flex: 1; min-height: 0; overflow: hidden; isolation: isolate; background: #0b0806; color: #fffaf0; }
+.vn :is(.vn-choice, .vn-kind, .ex-button, .vn-skip) { position: relative; overflow: hidden; }
+.ex-nh-drop { position: absolute; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(142, 36, 64, .6) 0 28%, rgba(142, 36, 64, .28) 52%, transparent 70%); transform: scale(0); animation: ex-nh-drop .7s ease-out forwards; z-index: 0; }
+@keyframes ex-nh-drop { to { transform: scale(1); opacity: 0; } }
+
+/* 장면 — 들어오는 장면은 살짝 크게에서 제자리로, 나가는 장면은 앞으로 다가오며(걸어 들어가며) 흐려진다. 머무는 동안 아주 천천히 다가간다 */
+.vn-scene { position: absolute; inset: 0; z-index: 0; }
+.vn-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.vn-bg--in { animation: vn-in 1.4s cubic-bezier(.3, .6, .2, 1) both, vn-breathe 24s 1.4s ease-in-out infinite alternate; }
+.vn-bg--in[data-first] { animation: vn-breathe 24s ease-in-out infinite alternate; }
+.vn-bg--out { z-index: 1; animation: vn-out 1.1s cubic-bezier(.5, 0, .7, .4) forwards; }
+@keyframes vn-in { from { transform: scale(1.12); filter: blur(6px) brightness(.6); } }
+@keyframes vn-out { 40% { filter: blur(1px); } to { transform: scale(1.45) translateY(2%); opacity: 0; filter: blur(8px) brightness(1.3); } }
+@keyframes vn-breathe { to { transform: scale(1.05) translateY(-1%); } }
+.vn::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(rgba(0, 0, 0, .35), transparent 14%, transparent 55%, rgba(0, 0, 0, .55)); }
+
+/* 타이틀 — 게임 첫 화면 */
+.vn-title { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 10px; padding: 0 24px 70px; background: linear-gradient(rgba(0, 0, 0, .25), transparent 25%, transparent 50%, rgba(10, 6, 4, .85)); color: #fffaf0; }
+.vn-logo { font-family: var(--nh-serif); font-weight: 500; font-size: 132px; line-height: .9; letter-spacing: -.01em; background: linear-gradient(#fff6d8, var(--vn-gold) 60%, #b07a2a); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 18px rgba(0, 0, 0, .6)); animation: vn-logo 1.6s .3s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes vn-logo { from { opacity: 0; transform: translateY(20px) scale(.92); letter-spacing: .2em; } }
+.vn-sub { font-size: 16px; font-weight: 500; letter-spacing: .02em; color: rgba(255, 250, 240, .85); text-shadow: 0 2px 8px rgba(0, 0, 0, .8); animation: vn-fade 1s 1s both; }
+.vn-press { margin-top: 34px; padding: 12px 26px; border: 1px solid rgba(233, 196, 106, .7); border-radius: 999px; font-size: 18px; font-weight: 700; letter-spacing: .12em; color: var(--vn-gold); background: rgba(10, 6, 4, .45); animation: vn-fade 1s 1.6s both, vn-blink 1.8s 2.6s ease-in-out infinite; }
+@keyframes vn-fade { from { opacity: 0; transform: translateY(8px); } }
+@keyframes vn-blink { 50% { opacity: .35; } }
+
+/* 위 — 처음으로 · 지금 장소 · 마크 */
+.vn-hud { position: absolute; left: 0; right: 0; top: 0; z-index: 4; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 16px 18px; }
+.vn-hud-btn { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 1px solid rgba(255, 250, 240, .35); background: rgba(10, 6, 4, .45); color: #fffaf0; backdrop-filter: blur(4px); }
+.vn-place { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; background: rgba(10, 6, 4, .55); border: 1px solid rgba(233, 196, 106, .45); font-size: 15px; font-weight: 600; color: #fffaf0; backdrop-filter: blur(4px); animation: vn-place 1.2s .6s cubic-bezier(.2, .7, .2, 1) both; }
+.vn-place svg { color: var(--vn-gold); }
+@keyframes vn-place { from { opacity: 0; transform: translateY(-14px); } }
+.vn-hud-mark { font-family: var(--nh-serif); font-size: 26px; font-weight: 500; color: var(--vn-gold); text-shadow: 0 2px 8px rgba(0, 0, 0, .7); width: 48px; text-align: right; }
+
+/* 대사창 · 선택지 */
+.vn-talk { position: absolute; left: 14px; right: 14px; bottom: 16px; z-index: 4; display: flex; flex-direction: column; gap: 12px; animation: vn-fade .6s .9s both; }
+.vn-box { position: relative; min-height: 150px; padding: 26px 22px 22px; border-radius: 14px; border: 1px solid rgba(233, 196, 106, .55); background: linear-gradient(rgba(22, 14, 10, .9), rgba(12, 8, 6, .94)); box-shadow: 0 10px 30px rgba(0, 0, 0, .5), inset 0 0 0 4px rgba(233, 196, 106, .08); cursor: pointer; }
+.vn-name { position: absolute; left: 18px; top: -18px; margin: 0; padding: 6px 16px; border-radius: 8px; background: linear-gradient(#9c2b4a, #6d1a31); border: 1px solid rgba(233, 196, 106, .7); font-size: 17px; font-weight: 800; color: #fffaf0; box-shadow: 0 4px 12px rgba(0, 0, 0, .4); }
+.vn-name small { font-size: 12px; font-weight: 600; opacity: .8; margin-left: 4px; }
+.vn-line { margin: 0; font-size: 21px; line-height: 1.6; letter-spacing: -.02em; color: #fffaf0; word-break: keep-all; }
+.vn-next { position: absolute; right: 18px; bottom: 12px; font-size: 14px; color: var(--vn-gold); animation: vn-bob .9s ease-in-out infinite; }
+@keyframes vn-bob { 50% { transform: translateY(4px); } }
+.vn-dots { display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: middle; }
+.vn-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--vn-gold); animation: vn-dot 1.2s infinite; }
+.vn-dots i:nth-child(2) { animation-delay: .2s; } .vn-dots i:nth-child(3) { animation-delay: .4s; }
+@keyframes vn-dot { 50% { opacity: .2; transform: translateY(-3px); } }
+.vn-choices { display: flex; flex-direction: column; gap: 9px; }
+.vn-choices > * { animation: vn-choice .45s cubic-bezier(.2, .7, .2, 1) both; }
+.vn-choices > :nth-child(2) { animation-delay: .08s; } .vn-choices > :nth-child(3) { animation-delay: .16s; } .vn-choices > :nth-child(4) { animation-delay: .24s; }
+@keyframes vn-choice { from { opacity: 0; transform: translateX(30px); } }
+.kx-root .vn-choice, .kx-root .vn .ex-button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 62px; padding: 0 18px; border-radius: 12px; border: 1px solid rgba(233, 196, 106, .55); background: rgba(16, 10, 8, .82); color: #fffaf0; font-size: 19px; font-weight: 700; text-align: left; backdrop-filter: blur(4px); box-shadow: 0 6px 18px rgba(0, 0, 0, .35); }
+.kx-root .vn-choice b { flex: 1; font-weight: 700; }
+.vn-choice-mark { color: var(--vn-gold); font-size: 13px; }
+.vn-choice-go { color: rgba(255, 250, 240, .5); }
+.kx-root .vn-choice:active, .kx-root .vn .ex-button:active { background: rgba(142, 36, 64, .85); border-color: var(--vn-gold); }
+.vn-kinds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.kx-root .vn-kind { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(233, 196, 106, .55); background: rgba(16, 10, 8, .84); color: #fffaf0; text-align: left; backdrop-filter: blur(4px); animation: vn-choice .45s cubic-bezier(.2, .7, .2, 1) both; }
+.kx-root .vn-kind:first-child { grid-column: 1 / -1; }
+.vn-kind b { font-size: 18px; font-weight: 700; }
+.vn-kind .ex-nh-glass { color: rgba(255, 250, 240, .85); }
+.vn-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.vn-menu > .vn-choice { grid-column: 1 / -1; min-height: 52px; font-size: 16px; }
+.kx-root .vn .ex-button { justify-content: center; }
+.kx-root .vn .ex-button:not(.ex-button--secondary) { background: linear-gradient(#9c2b4a, #6d1a31); border-color: var(--vn-gold); }
+
+/* 잔 소품(선택지 아이콘) */
+.ex-nh-glass { flex: none; }
+.ex-nh-liquid { transform: translateY(64px); transition: transform 1s cubic-bezier(.3, .7, .2, 1); }
+.ex-nh-glass[data-on] .ex-nh-liquid { transform: translateY(0); }
+.ex-nh-wave { animation: ex-nh-wave 2.2s linear infinite; }
+@keyframes ex-nh-wave { to { transform: translateX(30px); } }
+.ex-nh-bubble { fill: rgba(255, 255, 255, .8); opacity: 0; }
+.ex-nh-glass[data-on] .ex-nh-bubble { animation: ex-nh-bubble 1.4s ease-in infinite; }
+@keyframes ex-nh-bubble { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-40px); } }
+.ex-nh-grapes circle { fill: transparent; transition: fill .45s; }
+.ex-nh-grapes[data-on] circle { fill: var(--nh-wine, #8e2440); }
+
+/* 기념사진 — 폴라로이드 */
+.vn-polaroid { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; background: rgba(8, 5, 4, .55); backdrop-filter: blur(3px); animation: vn-fade .4s both; }
+.vn-polaroid-card { width: min(78%, 400px); padding: 16px 16px 10px; background: #fbf8f1; border-radius: 4px; box-shadow: 0 30px 60px rgba(0, 0, 0, .6); transform: rotate(-2deg); animation: vn-card-in .6s cubic-bezier(.2, .8, .2, 1.1) both; }
+@keyframes vn-card-in { from { transform: translateY(60px) rotate(6deg) scale(.9); opacity: 0; } }
+.vn-polaroid[data-done] .vn-polaroid-card { animation: vn-snap 1.3s ease-in-out both; }
+@keyframes vn-snap { 0% { filter: brightness(2.4); } 25% { filter: brightness(1); transform: rotate(-2deg); } 100% { transform: rotate(3deg) translateY(-6px); } }
+.vn-polaroid-shot { width: 100%; max-height: none; margin: 0; aspect-ratio: 3 / 4; }
+.vn-polaroid-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vn-polaroid-card p { margin: 0; padding: 10px 0 4px; text-align: center; font-family: var(--nh-serif); font-size: 34px; font-weight: 500; color: #1c1612; line-height: 1.1; }
+.kx-root .vn-skip { padding: 12px 22px; border-radius: 999px; border: 1px solid rgba(255, 250, 240, .5); color: #fffaf0; background: rgba(10, 6, 4, .5); font-size: 16px; font-weight: 600; }
+
+/* 와인 획득 — 빛이 돌고 카드가 떠오른다(reveal) → 위로 올라가 남는다(result) */
+.vn-get { position: relative; display: grid; place-items: center; }
+.vn-get[data-big] { position: absolute; left: 18px; right: 18px; top: 26%; z-index: 3; }
+.vn-get:not([data-big]) .vn-card { animation: vn-settle .6s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes vn-settle { from { opacity: 0; transform: translateY(-40px) scale(1.06); } }
+.vn-rays { position: absolute; left: 50%; top: 50%; width: 900px; height: 900px; margin: -450px 0 0 -450px; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(233, 196, 106, .32) 0 6deg, transparent 6deg 18deg); -webkit-mask-image: radial-gradient(circle, #000 0 20%, transparent 62%); mask-image: radial-gradient(circle, #000 0 20%, transparent 62%); animation: vn-rays 6s linear infinite, vn-fade .6s both; pointer-events: none; }
+@keyframes vn-rays { to { transform: rotate(360deg); } }
+.vn-card { position: relative; width: 100%; padding: 14px 18px 16px; border-radius: 14px; background: linear-gradient(#fffaf0, #f3e9d6); color: #1c1612; border: 2px solid var(--vn-gold); box-shadow: 0 0 0 6px rgba(233, 196, 106, .18), 0 24px 50px rgba(0, 0, 0, .55); animation: vn-get 1s cubic-bezier(.2, .9, .3, 1.2) both; }
+@keyframes vn-get { from { opacity: 0; transform: scale(.4) rotate(-8deg); } 60% { opacity: 1; } }
+.vn-card-kicker { margin: 0 0 4px; font-size: 13px; font-weight: 800; letter-spacing: .1em; color: #8e2440; }
+.vn-card-main { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; }
+.vn-card-no { font-family: var(--nh-serif); font-weight: 500; font-size: 92px; line-height: .85; color: #1c1612; }
+.vn-card-no small { font-size: 28px; font-style: italic; margin-right: 2px; }
+.vn-card h2 { margin: 0; font-size: 22px; font-weight: 800; line-height: 1.3; word-break: keep-all; }
+.vn-card p { margin: 4px 0 6px; font-family: var(--nh-serif); font-style: italic; font-size: 15px; color: #6d6058; }
+.vn-card span { display: inline-block; padding: 2px 10px; border-radius: 999px; border: 1.5px solid #8e2440; color: #8e2440; font-size: 13px; font-weight: 800; }
+.vn-card .ex-nh-bottle { display: block; width: 38px; height: 114px; transform-origin: 50% 85%; animation: ex-nh-tilt 1.6s .9s ease-in-out both; }
+@keyframes ex-nh-tilt { 35% { transform: rotate(-30deg); } 70% { transform: rotate(-30deg); } 100% { transform: rotate(0); } }
+
+/* 처음으로 확인 */
+.vn-confirm { position: absolute; inset: 0; z-index: 9; display: grid; place-items: center; background: rgba(0, 0, 0, .6); }
+.vn-confirm > div { display: grid; gap: 10px; width: min(86%, 420px); padding: 22px; border-radius: 14px; border: 1px solid rgba(233, 196, 106, .55); background: #140d0a; }
+.vn-confirm p { margin: 0 0 6px; font-size: 20px; font-weight: 700; text-align: center; color: #fffaf0; }
