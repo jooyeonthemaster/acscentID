@@ -93,14 +93,14 @@ test('지시문 — 관상 · 손금은 사진을 근거로, 사주는 사진 �
   assert.match(saju, /다시 계산하지 않는다/)
 })
 
-test('운영 모드 · 이용권 · 랜딩 — 세 프로그램은 행사 모드(이용권 없음)로만, 영업용 랜딩에는 없다', () => {
+test('운영 모드 · 이용권 · 랜딩 — 세 프로그램은 행사 모드(이용권 없음)로, 영업용 랜딩에는 행사 맞춤 묶음에만', () => {
   for (const id of ['nh-face', 'nh-saju', 'nh-palm']) {
     const p = findProgram(id)!
     assert.equal(p.kind, 'reading')
     assert.equal(p.event, true)
     assert.ok(BOOTH_MODES.some((m) => m.id === id && m.program === id))
     assert.equal(passRequiredFor(id), false)
-    assert.ok(!BOOTH_DEMOS.some((d) => d.mode === id))
+    assert.deepEqual(BOOTH_DEMOS.filter((d) => d.mode === id).map((d) => d.group), ['event'])
     assert.ok(p.creative && p.designs.length === 2)
   }
   assert.equal(PROGRAMS.filter((p) => p.kind === 'reading').length, 3)

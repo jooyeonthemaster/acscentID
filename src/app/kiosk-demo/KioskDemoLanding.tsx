@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUpRight, Languages, LayoutGrid, Printer, Smartphone, Sparkles, WandSparkles } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { DemoCleanLinkMaker } from '@/components/demo/DemoCleanLinkMaker'
-import { KIOSK_DEMOS, KIOSK_DEMO_NEEDS, kioskDemoHref, type KioskDemo } from '@/lib/kiosk/demo'
+import { KIOSK_DEMOS, KIOSK_DEMO_NEEDS, kioskDemoCardHref, type KioskDemo } from '@/lib/kiosk/demo'
 import './kiosk-demo.css'
 
 // 영업용 데모 랜딩 — 키오스크에서 도는 프로그램을 골라 웹브라우저로 직접 눌러 볼 수 있게 한다.
@@ -23,13 +23,14 @@ const GROUPS: { id: KioskDemo['group']; title: string; note: string }[] = [
   { id: 'social', title: '나와 우리를 위한 이야기', note: '카메라 체험과 사람별 답변으로 즐기는 케미' },
   { id: 'interactive', title: '터치로 움직이는 전시', note: '빛의 실험 · 문화유산 탐색' },
   { id: 'housing', title: '주거복지 · 공공 행사', note: '2026 대한민국 주거복지대전 AI 체험존 — 제품 인터랙티브 체험관(TOUCH!) · 비전 월(VISION!) · 미래 직업 탐색(NEXT!) · 우리 집 향 처방(ROOM!)' },
+  { id: 'event', title: '행사 · 팝업 맞춤', note: '행사장에서 그 자리에서 받아 가는 프로그램 — 내 사진으로 만드는 조향 레시피, 시음 와인을 골라 주는 AI 소믈리에(화면판 · 영상판)' },
 ]
 const FEATURES = [
   { Icon: LayoutGrid, title: '프로그램 전환', text: '관리자 화면에서 키오스크마다 다른 프로그램을 골라 운영합니다.' },
-  { Icon: Languages, title: '언어 안내', text: '기존 10종은 5개 언어, 새로 추가된 21종은 한국어로 제공합니다.' },
+  { Icon: Languages, title: '언어 안내', text: '사주 · 컬러 · 타로 등 기존 10종과 AI 조향사는 5개 언어, 그 밖의 체험은 한국어로 제공합니다.' },
   { Icon: Smartphone, title: '휴대폰으로 받기', text: '체험 스튜디오의 결과는 QR을 찍어 휴대폰에 저장합니다.' },
   { Icon: WandSparkles, title: 'AI 분석 · 합성', text: '새 체험 18종은 사진과 답변을 AI가 함께 보고 풀이하고, 그중 6종은 사진으로 화보 · 오라 · 타임머신 · 포스터 · 룩북을 새로 만듭니다.' },
-  { Icon: Printer, title: '영수증 출력', text: '사주 · 컬러 · 타로 · 스킨케어 · 캐리커처 · 명함은 영수증으로도 뽑고, 새 체험 21종은 결과 화면의 인쇄하기 한 번이면 바로 나옵니다.' },
+  { Icon: Printer, title: '영수증 출력', text: '사주 · 컬러 · 타로 · 스킨케어 · 캐리커처 · 명함은 영수증으로도 뽑고, AI 조향사 · 소믈리에는 레시피 · 와인 번호를, 그 밖의 체험은 결과 화면의 인쇄하기 한 번이면 바로 나옵니다.' },
   { Icon: Sparkles, title: '행사 맞춤', text: '첫 화면 문구와 배경, 영수증 문구를 행사에 맞춰 바꿀 수 있습니다.' },
 ]
 const NOTES = [
@@ -106,11 +107,11 @@ export function KioskDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey
                 </div>
                 <ul className="kd-grid">
                   {demos.map((demo) => (
-                    <li key={demo.mode}>
-                      <a className="kd-card" href={kioskDemoHref(demo.mode, cleanKey)} target="_blank" rel="noopener" style={{ '--kd-tone': demo.color } as CSSProperties}>
+                    <li key={demo.id ?? demo.mode}>
+                      <a className="kd-card" href={kioskDemoCardHref(demo, cleanKey)} target="_blank" rel="noopener" style={{ '--kd-tone': demo.color } as CSSProperties}>
                         <Kiosk>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={screenShot(demo.mode)} alt={`${demo.name} 첫 화면`} width={600} height={1067} loading="lazy" decoding="async" />
+                          <img src={demo.screen ?? screenShot(demo.mode)} alt={`${demo.name} 첫 화면`} width={600} height={1067} loading="lazy" decoding="async" />
                         </Kiosk>
                         <span className="kd-card-body">
                           <span className="kd-tag">{demo.tag}</span>

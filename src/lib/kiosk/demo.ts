@@ -16,14 +16,20 @@ import { EXPANSION_IDS, EXPANSION_META } from './expansion/types'
 export type KioskDemoNeed = 'camera' | 'mic' | 'ai' | 'analysis' | 'touch' | 'display'
 
 export interface KioskDemo {
+  /** 카드 이름 — 같은 모드를 다른 화면(lab)으로 여는 카드가 있어 따로 둔다. 없으면 mode */
+  id?: string
   /** 운영 모드 id(src/lib/kiosk/modes.ts) */
   mode: string
+  /** 같은 모드의 다른 화면(주소 &lab=…) — SIP! 영상판 */
+  lab?: string
+  /** 카드 견본 — 없으면 /assets/kiosk-demo/screen-<mode>.webp */
+  screen?: string
   /** 첫 화면의 큰 글자 */
   tag: string
   name: string
   desc: string
   needs: KioskDemoNeed[]
-  group: 'reading' | 'studio' | 'preferences' | 'social' | 'interactive' | 'housing'
+  group: 'reading' | 'studio' | 'preferences' | 'social' | 'interactive' | 'housing' | 'event'
   /** 그 프로그램 화면의 대표색 — 랜딩의 작은 표시에 쓴다 */
   color: string
 }
@@ -41,7 +47,7 @@ export const KIOSK_DEMOS: KioskDemo[] = [
   { mode: 'studio-voice', tag: 'VOICE!', name: '보이스 체험', desc: '목소리를 녹음해 다람쥐 · 거인 · 외계인 같은 여덟 가지 필터로 들어 봅니다.', needs: ['mic'], group: 'studio', color: '#187b8d' },
   { mode: 'studio-career', tag: 'NEXT!', name: '미래 직업 탐색', desc: '질문 여덟 개와 관상 사진을 AI가 함께 보고 탐색해 볼 직업과 가이드를 인쇄해 줍니다.', needs: ['touch', 'camera', 'analysis'], group: 'housing', color: '#315ca8' },
   { mode: 'studio-makeup', tag: 'MAKEUP!', name: '버추얼 메이크업', desc: '내 얼굴에 립 · 아이 · 블러셔 · 헤어 색을 올려 보고 머리 모양도 바꿔 봅니다.', needs: ['camera', 'ai'], group: 'studio', color: '#754f70' },
-  // 연말 시상식 소믈리에(sommelier-nh)는 그 고객의 데모(/booth-demo/nh)에서만 연다 — 영업용 랜딩에는 넣지 않는다
+  // 연말 시상식 소믈리에(sommelier-nh)는 아래 「행사 · 팝업 맞춤」 묶음에 따로 싣는다
   ...EXPANSION_IDS.filter((id) => id !== 'sommelier-nh').map((id): KioskDemo => ({ mode:`studio-${id}`, tag:EXPANSION_META[id].tag, name:EXPANSION_META[id].name, desc:EXPANSION_META[id].note, color:EXPANSION_META[id].color,
     // 체험 18종은 사진 한 장으로 시작하고 AI 가 분석한다. 6종(+ 2036 우리 집의 나)은 사진으로 새 그림까지 만든다(AI 생성)
     // 주거복지 내비게이터·성향 테스트는 사진 없이 질문만(NO_PHOTO_IDS)
@@ -49,7 +55,17 @@ export const KIOSK_DEMOS: KioskDemo[] = [
     // 주거복지대전 제안서(2026-10-26) 묶음: 향 처방 · 제품 인터랙티브(TOUCH!) · 비전 월(VISION!) + 직업 탐색(NEXT!, 위)
     group: ['housing-scent', 'product', 'vision-wall'].includes(id) ? 'housing' : id.startsWith('housing-') ? 'preferences' : ['science','heritage'].includes(id) ? 'interactive' : ['team','couple','lookalike','palm','face'].includes(id) ? 'social' : 'preferences',
   })),
+  // ───── 행사 · 팝업 맞춤(2026-11-18 사용자 지시: 지금까지 만든 데모를 모두 랜딩에) ─────
+  // 매장 기본(wow · 최애 이미지 분석)은 넣지 않는다 — 매장 카운터 발권 흐름이라 데모 손님이 매장 주문표를 만들 수 있다
+  { mode: 'ai-perfumer', tag: 'SCENT!', name: 'AI 조향사', desc: '사진 한 장으로 나에게 어울리는 향 계열을 찾고, 그 자리에서 직접 조향할 레시피(퍼퓸 10ml)를 영수증으로 뽑아 줍니다.', needs: ['camera', 'analysis'], group: 'event', color: '#244eea' },
+  // 연말 시상식(/booth-demo/nh)과 같은 주소 · 같은 견본 — 시음 와인 10병 중 한 병을 번호로
+  { id: 'sommelier-nh', mode: 'studio-sommelier-nh', tag: 'SIP!', name: 'AI 소믈리에 · 시음 와인 10병', desc: '사진 한 장과 단맛 · 산미 · 바디 · 종류를 고르면 AI가 오늘의 시음 와인 10병 중 한 병을 골라 번호로 알려 줍니다. 직원은 영수증 번호를 보고 따라 드려요.', needs: ['camera', 'analysis'], group: 'event', color: '#6b2941', screen: '/assets/booth-demo/nh/sommelier.webp' },
+  { id: 'sommelier-nh-video', mode: 'studio-sommelier-nh', lab: 'video', tag: 'SIP! · 영상판', name: 'AI 소믈리에 · 와이너리 여정', desc: '소믈리에 해나를 따라 포도밭 → 와이너리 → 수장고 → 시음실을 1인칭 영상으로 걸으며 맛을 고르면, AI가 시음 와인 10병 중 한 병을 골라 줍니다.', needs: ['camera', 'analysis'], group: 'event', color: '#3a2318', screen: '/assets/booth-demo/nh/sip-video.webp' },
 ]
+
+/** 카드가 여는 주소 — 다른 화면(lab)이면 그 칸을 붙인다 */
+export const kioskDemoCardHref = (demo: Pick<KioskDemo, 'mode' | 'lab'>, cleanKey?: string) =>
+  `${kioskDemoHref(demo.mode, cleanKey)}${demo.lab ? `&lab=${encodeURIComponent(demo.lab)}` : ''}`
 
 /** 데모로 여는 주소 — 미리보기 주소에 데모 표시를 붙인다 */
 export const kioskDemoHref = (mode: string, cleanKey?: string) =>

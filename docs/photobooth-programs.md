@@ -87,7 +87,7 @@
 
 2026 안산사이언스밸리(ASV) 과학축제(2026-11-07~08, 한양대 ERICA 민주광장 일대, 무료) 'AI 포토존'용. 타임캡슐 LATER! 를 축제에 맞게 바꾼 **사진 프로그램**(`kind: 'strip'`, id `ansan-2026`).
 
-- **운영 모드**: STORE ADMIN '운영 모드'의 **ANSAN 안산사이언스밸리 과학축제**(`modes.ts`, K-WAVE 처럼 행사 항목으로 따로). 행사장 부스에서 적용 범위 **이 부스만**으로 고르면 매장 부스는 그대로다(docs/kiosk-modes.md '기기별 운영 모드'). 모드 id = 프로그램 id 라 `BoothScreen` 이 그대로 프로그램 화면을 고른다. 기본 이용권 없음(`pass-policy.ts`). 영업용 데모 랜딩에는 넣지 않았다(`event: true`) — 시험은 `/booth?mode=ansan-2026&demo=1`.
+- **운영 모드**: STORE ADMIN '운영 모드'의 **ANSAN 안산사이언스밸리 과학축제**(`modes.ts`, K-WAVE 처럼 행사 항목으로 따로). 행사장 부스에서 적용 범위 **이 부스만**으로 고르면 매장 부스는 그대로다(docs/kiosk-modes.md '기기별 운영 모드'). 모드 id = 프로그램 id 라 `BoothScreen` 이 그대로 프로그램 화면을 고른다. 기본 이용권 없음(`pass-policy.ts`). 영업용 데모 랜딩에는 2026-11-18 부터 「행사 맞춤 프로그램」 묶음에 싣는다(`event: true` 는 프로그램 묶음에서 빠지고 따로) — `/booth?mode=ansan-2026&demo=1`.
 - **화면 디자인**(2026-11-05): 축제 공식 웹사이트 디자인 'WHITEPRINT(백색 도면)'를 옮겼다 — `AsvParts.tsx`(제목줄 · 시작 화면 · 섹션 머리 · 정합 마크) + `asv.css`(ProgramApp 이 띠지 kind 일 때 루트에 붙이는 `.asv` 아래에서만, 다른 프로그램 13종은 그대로). 회백색 종이 · 잉크 · 볼트 파랑(#1436ff) 한 색, 1px 선 · 치수선 · 네 모서리 크로스헤어 · 모노 인덱스, 각진 버튼(누르면 볼트 면). 글꼴은 사이트 원본 파일(`asv-fonts/`, SIL OFL) — Bricolage Grotesque · JetBrains Mono, 한글 Pretendard. 시작 화면 로봇은 사이트 히어로 마지막 프레임(`public/assets/booth-programs/asv/robot.webp`), 예시는 `asv/sample.webp`(AI 가상 인물). 축제 표기는 `ASV_FESTIVAL`(사이트 확정 카피와 글자까지 같게, 지어내지 않는다). 인화 기본 디자인 2종도 같은 스타일 — ASV 화이트 / ASV 블랙(`strip-print.ts`).
 - **흐름**(`StripFlow.tsx`, 직원 없이): 시작 → 동의(버튼을 누르면 동의, 만 14세 미만 보호자 확인 문구) → 촬영 5초(가로 3:2 미리보기 = 찍히는 구도) → 확인(다시 찍기 / 미래 만들기) → 생성 30~40초 → 네 컷 보기 → **프레임 고르기**(기본 디자인 2(ASV 화이트 · 블랙) + 프레임 10, 왼쪽 큰 미리보기 · 인화 장수) → [사진 N장 인화하기] 한 번에 인쇄 + QR.
 - **프레임**(`strip-frames.ts`, `public/assets/booth-programs/ansan/`): 원본은 저장소 `ansan-frames/`(`contact-sheet.jpg` 로 한눈에, `coordinate-contract.json` 이 사진 칸 좌표). `renderFrameStrip` 이 배경 → 사진 → 투명 PNG → 해 이름표 → 아래 글자 순서로 그린다. 고르는 칸은 작은 투명 그림 뒤에 손님 사진을 깔아 그리고, 고른 것만 크게 그려 이번 손님 동안 기억한다.
@@ -133,4 +133,4 @@
 
 ## 연말 시상식 「2027 정미년 새해 이야기」 3종 (2026-11-17)
 
-관상 FACE!(`nh-face`) · 사주 SAJU!(`nh-saju`) · 손금 PALM!(`nh-palm`) — 새 종류 `kind: 'reading'`: 촬영(+ 생년월일) → AI 는 글만 → 찍은 사진 + 글을 기기 안에서 4×6 두 가지로 합성(그림 생성 없음). 행사 모드(STORE ADMIN '연말 시상식 · …'), 이용권 기본 없음, 영업용 랜딩에는 없고 고객 데모 `/booth-demo/nh` 에서 연다. 자세한 내용 [nh-awards-demo.md](nh-awards-demo.md).
+관상 FACE!(`nh-face`) · 사주 SAJU!(`nh-saju`) · 손금 PALM!(`nh-palm`) — 새 종류 `kind: 'reading'`: 촬영(+ 생년월일) → AI 는 글만 → 찍은 사진 + 글을 기기 안에서 4×6 두 가지로 합성(그림 생성 없음). 행사 모드(STORE ADMIN '연말 시상식 · …'), 이용권 기본 없음, 고객 데모 `/booth-demo/nh` 와 영업용 랜딩 「행사 맞춤 프로그램」에서 연다. 자세한 내용 [nh-awards-demo.md](nh-awards-demo.md).
