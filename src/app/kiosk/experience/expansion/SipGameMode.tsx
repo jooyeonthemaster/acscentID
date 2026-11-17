@@ -99,6 +99,8 @@ export default function SipGameMode({ motion = false }: { /** 실험판 2 — �
   const travel = useTravel(scene)
   // 실험판 2 — 이동하는 동안은 대사 · 장소 제목 · 와인 카드를 띄우지 않는다
   const moving = motion && travel.from !== null
+  // 실험판 2 의 저장고는 와인 벽 앞에서 고르는 수장고 장면
+  const place = motion && scene === 'cellar' ? '와인 수장고' : PLACE[scene]
 
   // 무입력 시간 — 타이틀은 처음 화면, 저장고는 기다림, 결과는 길게
   useKxScreen(step === 'title' ? 'start' : step === 'cellar' || step === 'reveal' ? 'busy' : step === 'result' ? KX_IDLE.result : step === 'camera' ? KX_IDLE.camera : KX_IDLE.step)
@@ -166,11 +168,11 @@ export default function SipGameMode({ motion = false }: { /** 실험판 2 — �
       : <>
         <header className="sip-top">
           <button type="button" className="sip-icon" onClick={() => setAskHome(true)} aria-label="처음으로"><Home size={19} /></button>
-          <span className="sip-where">{PLACE[scene]}</span>
+          <span className="sip-where">{place}</span>
           <span className="sip-mark">SIP!</span>
         </header>
         {moving ? null : <>
-        {step !== 'reveal' && step !== 'result' && <div key={scene} className="sip-arrive" aria-hidden="true"><small>{PLACE_EN[scene]}</small><b>{PLACE[scene]}</b><i /></div>}
+        {step !== 'reveal' && step !== 'result' && <div key={scene} className="sip-arrive" aria-hidden="true"><small>{motion && scene === 'cellar' ? 'WINE VAULT' : PLACE_EN[scene]}</small><b>{place}</b><i /></div>}
         {step === 'camera' && <Polaroid onShot={took} onCancel={() => took(null)} />}
         {step === 'reveal' && result?.pour && <WineCard pour={result.pour} big />}
         {step === 'result' && result

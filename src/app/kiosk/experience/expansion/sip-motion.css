@@ -21,6 +21,12 @@
 @keyframes sip-far { from { transform: scale(1.04) translate3d(.9%, .2%, 0); } to { transform: scale(1.075) translate3d(-.9%, -.4%, 0); } }
 @keyframes sip-near { from { transform: scale(1) translate3d(2.2%, 0, 0); } to { transform: scale(1.05) translate3d(-2.2%, -.3%, 0); } }
 
+/* 한 장 장면(수장고) — 와인 벽을 따라 천천히 훑어 가는 카메라 · 촛불 · 등불 일렁임(반복 영상이 없을 때) */
+.sip-layer--still { animation: sip-still 13s ease-in-out infinite alternate; }
+@keyframes sip-still { from { transform: scale(1.04) translate3d(1.6%, .4%, 0); } to { transform: scale(1.12) translate3d(-1.6%, -.8%, 0); } }
+.sip-flicker { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(circle at 9% 13%, rgba(255, 186, 100, .42), transparent 16%), radial-gradient(circle at 92% 14%, rgba(255, 186, 100, .3), transparent 12%), radial-gradient(ellipse 60% 40% at 30% 30%, rgba(255, 170, 90, .12), transparent 70%); animation: sip-flicker 2.6s linear infinite; }
+@keyframes sip-flicker { 0%, 100% { opacity: .85; } 12% { opacity: .55; } 20% { opacity: 1; } 37% { opacity: .7; } 52% { opacity: .95; } 61% { opacity: .6; } 78% { opacity: 1; } 88% { opacity: .75; } }
+
 /* 해나 — 흔들림(몸) · 숨(위아래) · 끄덕임(말할 때) */
 .sip-hana { position: absolute; translate: -50% 0; pointer-events: none; }
 .sip-hana::after { content: ''; position: absolute; left: 16%; right: 16%; bottom: -1.2%; height: 3%; z-index: -1; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, .5), transparent); }
