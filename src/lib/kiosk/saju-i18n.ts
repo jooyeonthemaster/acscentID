@@ -24,6 +24,8 @@ export interface SajuText {
   errNoDate: string
   errFuture: string
   errLunar30: string
+  errNoLeap: (year: number, month: number) => string
+  errLunar29: string
   hourTitle: string
   hourDesc: string
   hours: string[] // 12지시 이름(자시…해시)
@@ -123,6 +125,8 @@ const ko: SajuText = {
   errNoDate: '없는 날짜입니다',
   errFuture: '아직 오지 않은 날짜입니다',
   errLunar30: '음력은 30일까지입니다',
+  errNoLeap: (year, month) => `${year}년에는 윤${month}월이 없습니다. '윤달로 계산하기'를 꺼 주세요`,
+  errLunar29: '이 달은 음력 29일까지입니다',
   hourTitle: '태어난 시간은요?',
   hourDesc: '시간을 알면 네 기둥이 모두 서고, 모르면 세 기둥으로 봅니다.',
   hours: ['자시', '축시', '인시', '묘시', '진시', '사시', '오시', '미시', '신시', '유시', '술시', '해시'],
@@ -210,6 +214,8 @@ const en: SajuText = {
   errNoDate: 'This date does not exist',
   errFuture: 'This date is in the future',
   errLunar30: 'Lunar months have up to 30 days',
+  errNoLeap: (year, month) => `${year} has no leap month ${month}. Please turn off “Leap month”`,
+  errLunar29: 'This lunar month has only 29 days',
   hourTitle: 'What time were you born?',
   hourDesc: 'With the hour we read all four pillars; without it, three.',
   hours: ['Rat', 'Ox', 'Tiger', 'Rabbit', 'Dragon', 'Snake', 'Horse', 'Goat', 'Monkey', 'Rooster', 'Dog', 'Pig'],
@@ -289,6 +295,8 @@ const ja: SajuText = {
   errNoDate: '存在しない日付です',
   errFuture: 'まだ来ていない日付です',
   errLunar30: '旧暦は30日までです',
+  errNoLeap: (year, month) => `${year}年に閏${month}月はありません。「閏月で計算」をオフにしてください`,
+  errLunar29: 'この月は旧暦29日までです',
   hourTitle: '生まれた時間は？',
   hourDesc: '時間が分かれば四柱、分からなければ三柱で読みます。',
   hours: ['子の刻', '丑の刻', '寅の刻', '卯の刻', '辰の刻', '巳の刻', '午の刻', '未の刻', '申の刻', '酉の刻', '戌の刻', '亥の刻'],
@@ -368,6 +376,8 @@ const zhHans: SajuText = {
   errNoDate: '这个日期不存在',
   errFuture: '这个日期还没到',
   errLunar30: '农历最多30日',
+  errNoLeap: (year, month) => `${year}年没有闰${month}月，请取消“按闰月计算”`,
+  errLunar29: '这个月农历只有29日',
   hourTitle: '出生时辰是？',
   hourDesc: '知道时辰就看四柱，不知道就看三柱。',
   hours: ['子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时'],
@@ -448,6 +458,8 @@ const zhHant: SajuText = {
   errNoDate: '這個日期不存在',
   errFuture: '這個日期還沒到',
   errLunar30: '農曆最多30日',
+  errNoLeap: (year, month) => `${year}年沒有閏${month}月，請取消「按閏月計算」`,
+  errLunar29: '這個月農曆只有29日',
   hourTitle: '出生時辰是？',
   hourDesc: '知道時辰就看四柱，不知道就看三柱。',
   hours: ['子時', '丑時', '寅時', '卯時', '辰時', '巳時', '午時', '未時', '申時', '酉時', '戌時', '亥時'],

@@ -6,6 +6,7 @@
 import { useCallback, useMemo } from 'react'
 import { SAJU_PURPOSES, SAJU_RELATION_OPTIONS, type SajuPurpose, type SajuBirthInput } from '@/types/analysis'
 import { sajuText, type SajuText } from '@/lib/kiosk/saju-i18n'
+import { lunarDateProblem, lunarToSolar } from '@/lib/saju/lunar'
 import './saju-input.css'
 
 const KO = sajuText('ko')
@@ -34,7 +35,7 @@ export function branchToHour(index: number): number {
 }
 
 /** 8자리 문자열(YYYYMMDD)을 검증한다. 유효하면 null, 아니면 오류 문구 */
-export function validateBirthDigits(digits: string, calendar: 'solar' | 'lunar', tx: SajuText = KO): string | null {
+export function validateBirthDigits(digits: string, calendar: 'solar' | 'lunar', isLeapMonth: boolean, tx: SajuText = KO): string | null {
   if (digits.length !== 8) return null // 아직 입력 중
   const year = Number(digits.slice(0, 4))
   const month = Number(digits.slice(4, 6))
@@ -48,8 +49,15 @@ export function validateBirthDigits(digits: string, calendar: 'solar' | 'lunar',
       return tx.errNoDate
     }
     if (d.getTime() > Date.now()) return tx.errFuture
-  } else if (day > 30) {
-    return tx.errLunar30
+  } else {
+    if (day > 30) return tx.errLunar30
+    // 없는 윤달·그 달에 없는 30일 — 서버 음력 변환이 거절해 '다시 시도'를 눌러도 계속 실패했다(2026-10-03 현장, 1981년 윤6월로 5번)
+    const problem = lunarDateProblem(year, month, day, isLeapMonth)
+    if (problem === 'leap') return tx.errNoLeap(year, month)
+    if (problem === 'day') return tx.errLunar29
+    // 양력과 같이 아직 오지 않은 날은 받지 않는다(음력 2035년 말은 양력 2036년이라 서버 범위도 벗어난다)
+    const solar = lunarToSolar(year, month, day, isLeapMonth)
+    if (new Date(solar.year, solar.month - 1, solar.day).getTime() > Date.now()) return tx.errFuture
   }
   return null
 }
@@ -121,7 +129,7 @@ export function SajuBirthPad({
   label?: string
   tx?: SajuText
 }) {
-  const error = useMemo(() => validateBirthDigits(digits, calendar, tx), [digits, calendar, tx])
+  const error = useMemo(() => validateBirthDigits(digits, calendar, isLeapMonth, tx), [digits, calendar, isLeapMonth, tx])
 
   const push = useCallback(
     (d: string) => {
@@ -152,7 +160,7 @@ export function SajuBirthPad({
           )}
         </span>
       </div>
-      <p className="ksk-birth-hint">{error ?? (digits.length < 8 ? tx.birthHint : ' ')}</p>
+      <p className="ksk-birth-hint" data-error={error ? 'true' : undefined} role={error ? 'alert' : undefined}>{error ?? (digits.length < 8 ? tx.birthHint : ' ')}</p>
 
       {calendar === 'lunar' && (
         <button className="ksk-check" data-on={isLeapMonth} onClick={() => onLeapMonth(!isLeapMonth)}>

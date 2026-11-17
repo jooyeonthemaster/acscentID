@@ -22,6 +22,19 @@ export function lunarToSolar(year: number, month: number, day: number, isLeapMon
     return { year: solar.year, month: solar.month, day: solar.day }
 }
 
+/**
+ * 음력 날짜가 달력에 없으면 그 이유 — 'leap': 그 해 그 달에 윤달이 없음, 'day': 그 달에 없는 날(29일까지인 달의 30일).
+ * lunarToSolar 와 같은 데이터라, 여기서 null 이면 변환도 실패하지 않는다(입력 단계에서 미리 거르는 용도)
+ */
+export function lunarDateProblem(year: number, month: number, day: number, isLeapMonth = false): 'leap' | 'day' | null {
+    if (isLeapMonth) {
+        // 1일은 어느 달에나 있다 — 여기서 걸리면 윤달 자체가 없는 것
+        try { msLunarToSolar(year, month, 1, true) } catch { return 'leap' }
+    }
+    try { msLunarToSolar(year, month, day, isLeapMonth) } catch { return 'day' }
+    return null
+}
+
 /** 양력 → 음력 (연초 양력일은 전년도 음력으로 나올 수 있음) */
 export function solarToLunar(year: number, month: number, day: number): SajuDate & { isLeapMonth: boolean } {
     assertServiceYear(year, '양력')

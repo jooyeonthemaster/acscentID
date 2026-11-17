@@ -4,3 +4,5 @@
 .ksk-birth-slot:not([data-filled])::before { content: ''; width: 0.56em; height: 0.56em; border: 0.08em solid currentColor; border-radius: 50%; opacity: 0.45; box-sizing: border-box; }
 .ksk-birth-slot[data-next]::before { opacity: 0.95; border-width: 0.11em; }
 .ksk-birth-sep { width: 0.45em; text-align: center; opacity: 0.7; }
+/* 입력 오류(없는 날짜·없는 윤달) — 안내 줄과 같은 자리지만 눈에 띄게. 배경마다 글자색이 달라 색 대신 굵기·크기로 */
+.ksk-birth-hint[data-error] { font-size: 18px; font-weight: 700; color: var(--ink); }

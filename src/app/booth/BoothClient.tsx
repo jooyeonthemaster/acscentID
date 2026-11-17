@@ -20,7 +20,7 @@
 import '@/components/mac/mac.css'
 import { macFontVars } from '@/components/mac/theme'
 import { FramePicker } from '@/components/photobooth/FramePicker'
-import { IdolConceptPicker, IdolDesignPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
+import { IDOL_SHOT_EDGE, IdolConceptPicker, IdolDesignPicker, IdolStagePanel, useIdolStage } from '@/components/photobooth/IdolStage'
 import { drawIdolDesign } from '@/lib/booth/idol-layouts'
 import { makePrintQr, renderIdolPrint, uploadResultPhoto, type IdolPrintArgs, type ResultUploadAuth } from '@/lib/booth/print-qr'
 import { readBoothDemo, requestDemoTicket } from '@/lib/booth/demo'
@@ -405,6 +405,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   const [scanBusy, setScanBusy] = useState(false)
   const [manualCode, setManualCode] = useState('')
   const imageCacheRef = useRef<Map<string, HTMLImageElement>>(new Map())
+  /** 편집 화면에 마지막으로 그린 AI 아이돌 인화 디자인(완성하기에서 QR 을 넣어 다시 그린다) */
+  const idolPrintRef = useRef<IdolPrintArgs | null>(null)
   const renderTokenRef = useRef(0)
 
   // 결과
@@ -617,6 +619,9 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     setShots([])
     setCutCount(1)
     shotIdRef.current = null
+    // 앞 손님 사진을 붙들고 있지 않는다 — 인화용 참조와, 캐시에서는 찍은 컷(data: 주소)만 지운다(프레임·배경 그림은 다음 손님도 쓴다)
+    idolPrintRef.current = null
+    for (const src of [...imageCacheRef.current.keys()]) if (src.startsWith('data:')) imageCacheRef.current.delete(src)
     setResultUrl(null)
     setPrintStatus('idle')
     setPrintWaitLeft(null)
@@ -1308,7 +1313,8 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
   /** 한 컷 촬영 — DSLR 은 셔터를 눌러 원본을 받고(수 초), 웹캠은 현재 프레임을 뜬다 */
   const captureShot = useCallback(async (): Promise<string | null> => {
     if (cameraSource === 'dslr') {
-      const still = await captureDslrStill()
+      // AI 아이돌 사진은 얼굴 화소가 닮음을 좌우한다 — 원본을 더 크게 받아 둔다(다른 모드는 인화에 충분한 기본 크기)
+      const still = await captureDslrStill(idolOn ? IDOL_SHOT_EDGE : undefined)
       try {
         return mirroredJpeg(still, still.width, still.height)
       } finally {
@@ -1318,7 +1324,7 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     const video = videoRef.current
     if (!video || !video.videoWidth) return null
     return mirroredJpeg(video, video.videoWidth, video.videoHeight)
-  }, [cameraSource])
+  }, [cameraSource, idolOn])
 
   const startShooting = useCallback(async () => {
     if (shooting) return
@@ -1681,9 +1687,6 @@ export function BoothClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
       console.error('[photobooth] 촬영 기록 갱신 실패:', error)
     }
   }, [])
-
-  /** 편집 화면에 마지막으로 그린 AI 아이돌 인화 디자인(완성하기에서 QR 을 넣어 다시 그린다) */
-  const idolPrintRef = useRef<IdolPrintArgs | null>(null)
 
   const finishCompose = useCallback(async () => {
     const canvas = composeCanvasRef.current

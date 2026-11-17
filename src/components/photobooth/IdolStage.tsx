@@ -72,7 +72,7 @@ export type IdolStatus = 'off' | 'checking' | 'generating' | 'done' | 'failed' |
 
 /** 못 만든 이유 — 문구는 화면 언어로 그때그때 만든다(도중에 언어를 바꿔도 따라간다) */
 type IdolNote =
-  | { kind: 'noTicket' | 'noConcept' | 'noFace' }
+  | { kind: 'noTicket' | 'noConcept' | 'noFace' | 'tooFar' }
   | { kind: 'tooMany'; people: number }
   | { kind: 'failed'; detail: string | null }
 
@@ -81,6 +81,7 @@ function idolNoteText(t: BoothText, lang: BoothLang, note: IdolNote): string {
     case 'noTicket': return t.idolNoTicket
     case 'noConcept': return t.idolNoConcept
     case 'noFace': return t.idolNoFace
+    case 'tooFar': return t.idolTooFar
     case 'tooMany': return t.idolTooMany(IDOL_MAX_PEOPLE, note.people)
     // 서버·기기 오류 문구는 한국어라 한국어 화면에서만 그대로 보여 준다
     case 'failed': return `${lang === 'ko' && note.detail ? note.detail : t.idolFailed} ${t.idolFallback}`
@@ -89,29 +90,69 @@ function idolNoteText(t: BoothText, lang: BoothLang, note: IdolNote): string {
 
 type Box = { x: number; y: number; w: number; h: number }
 
-/** 원본의 box 부분을 w×h JPEG 로 */
-function cropJpeg(img: HTMLImageElement, box: Box, w: number, h: number, quality = 0.92) {
+/**
+ * 행사 모드에서 DSLR 원본을 받는 긴 변(BoothClient·BoothClassic 촬영). 기본값 2400 으로 줄여 받으면 여럿이 찍은 컷은
+ * 한 사람당 얼굴이 작아 클로즈업을 늘려 보내게 된다 — 3600 이면 세로 구도가 1600×2400 이라 줄이지 않고 보낼 수 있다
+ */
+export const IDOL_SHOT_EDGE = 3600
+
+/** 가장 큰 얼굴에 견줘 이보다 작으면 일행이 아니라 뒤에 지나가는 사람으로 본다(카메라에서 약 1.8배 먼 거리) */
+const SUBJECT_MIN_RATIO = 0.55
+/**
+ * 여럿이 찍었을 때 가장 작은 얼굴(머리·턱 여유 포함) 높이가 촬영 화면 세로의 이만큼보다 작으면 만들지 않고 가까이 서 달라고 한다.
+ * 한 사람은 얼굴 쪽으로 당겨 자르면 되지만 여럿은 당길 수 없다. 현장에서 너무 자주 걸리면 낮춘다(0 이면 끔)
+ */
+const GROUP_MIN_FACE = 0.1
+/** 서버로 보내는 크기 — 본 사진 + 얼굴 3장이 Vercel 요청 한도(4.5MB)를 넘지 않게(서버 한도는 3,000,000 / 600,000 자) */
+const PHOTO_BUDGET = 2_400_000
+const FACE_BUDGET = 500_000
+
+/** 원본의 box 부분을 w×h JPEG 로 — max(글자 수)를 넘으면(노이즈 많은 사진, 드묾) 화질을 낮춰 다시 */
+function cropJpeg(img: HTMLImageElement, box: Box, w: number, h: number, max: number) {
   const c = document.createElement('canvas')
   c.width = w
   c.height = h
   const ctx = c.getContext('2d')!
   ctx.imageSmoothingQuality = 'high'
   ctx.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, w, h)
-  return c.toDataURL('image/jpeg', quality)
+  let url = c.toDataURL('image/jpeg', 0.92)
+  for (const quality of [0.85, 0.75]) {
+    if (url.length <= max) break
+    url = c.toDataURL('image/jpeg', quality)
+  }
+  return url
+}
+
+/**
+ * 같이 찍은 사람만 고른다. 얼굴 찾기는 가로 원본 전체를 보는데 손님은 촬영 화면에서 가운데 세로 2:3 만 봤다 —
+ * 화면 밖 옆에 선 사람이나 뒤에 지나가는 사람까지 일행으로 세면, 그 얼굴이 '정체성 참고'로 들어가고 본 사진도 그쪽으로 밀려
+ * 손님이 다른 사람처럼 나오거나 모르는 사람이 같이 나왔다(2026-10-03). 얼굴 가운데가 손님이 본 영역 안에 있고,
+ * 가장 큰 얼굴에 견줘 너무 작지 않은 얼굴만 남긴다
+ */
+function pickSubjects(faces: Box[], W: number, H: number): Box[] {
+  const viewH = Math.min(H, W * 1.5), viewW = viewH / 1.5
+  const left = (W - viewW) / 2, top = (H - viewH) / 2
+  const seen = faces.filter((f) => {
+    const cx = f.x + f.w / 2, cy = f.y + f.h / 2
+    return f.w > 0 && f.h > 0 && cx >= left && cx <= left + viewW && cy >= top && cy <= top + viewH
+  })
+  const biggest = Math.max(0, ...seen.map((f) => f.h))
+  return seen.filter((f) => f.h >= biggest * SUBJECT_MIN_RATIO)
 }
 
 /**
  * AI 에 보낼 사진 — 얼굴이 작고 흐리면 모델이 얼굴을 새로 그려 '다른 사람'이 된다(가로 원판 전체를 1280 으로 줄여 보내던 때).
  * - 본 사진: 손님이 촬영 화면에서 본 세로 2:3 구도, 얼굴이 작으면 상반신이 차도록 얼굴 쪽으로 당겨 1024×1536
- *   (둘레 여백을 두고 줄여 보내 봤더니 얼굴이 작아진 대신 다른 사람처럼 나왔다 — 2026-10-01 되돌림)
- * - 얼굴 참고: 사람마다 얼굴 클로즈업 512×512(최대 IDOL_MAX_PEOPLE 장) — 서버가 '정체성 참고용'으로 함께 보낸다
+ *   (둘레 여백을 두고 줄여 보내 봤더니 얼굴이 작아진 대신 다른 사람처럼 나왔다 — 2026-10-01 되돌림).
+ *   여럿이면 당겨 자를 수 없어 한 사람당 얼굴이 작다 — 원본 화소가 있는 만큼 크게(세로 2304 까지, 늘리지는 않는다)
+ * - 얼굴 참고: 사람마다 얼굴 클로즈업(512~768, 왼쪽 사람부터) — 서버가 '정체성 참고용'으로 함께 보낸다
+ * faces: 같이 찍은 사람의 얼굴 자리(pickSubjects) — 얼굴 인식을 못 쓰면 빈 배열(가운데 구도 그대로)
  */
-async function idolInputs(img: HTMLImageElement) {
+function idolInputs(img: HTMLImageElement, faces: Box[]) {
   const W = img.naturalWidth, H = img.naturalHeight
   // 촬영 화면(2:3 cover)과 같은 가운데 세로 구도
   const baseH = Math.min(H, W * 1.5), baseW = baseH / 1.5
   let crop: Box = { x: (W - baseW) / 2, y: (H - baseH) / 2, w: baseW, h: baseH }
-  const faces = (await faceRectsInCell(img, 0, 0, W, H)).filter((f) => f.w > 0 && f.h > 0)
   if (faces.length) {
     const x0 = Math.min(...faces.map((f) => f.x)), x1 = Math.max(...faces.map((f) => f.x + f.w))
     const y0 = Math.min(...faces.map((f) => f.y)), y1 = Math.max(...faces.map((f) => f.y + f.h))
@@ -123,14 +164,16 @@ async function idolInputs(img: HTMLImageElement) {
     const y = Math.min(Math.max(y0 - h * 0.14, 0), H - h)
     crop = { x, y, w, h }
   }
-  const photo = cropJpeg(img, crop, 1024, 1536)
-  const faceRefs = faces.slice(0, IDOL_MAX_PEOPLE)
+  const photoH = faces.length > 1 ? Math.min(2304, Math.max(1536, Math.round(crop.h))) : 1536
+  const photo = cropJpeg(img, crop, Math.round(photoH / 1.5), photoH, PHOTO_BUDGET)
+  const faceRefs = [...faces]
     .sort((a, b) => a.x - b.x)
     .map((f) => {
       const side = Math.min(Math.max(f.w, f.h) * 1.35, W, H)
       const x = Math.min(Math.max(f.x + f.w / 2 - side / 2, 0), W - side)
       const y = Math.min(Math.max(f.y + f.h / 2 - side / 2, 0), H - side)
-      return cropJpeg(img, { x, y, w: side, h: side }, 512, 512)
+      const out = Math.min(768, Math.max(512, Math.round(side)))
+      return cropJpeg(img, { x, y, w: side, h: side }, out, out, FACE_BUDGET)
     })
   return { photo, faces: faceRefs }
 }
@@ -159,6 +202,8 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage, lang }
   const [image, setImage] = useState<HTMLImageElement | null>(null)
   const [note, setNote] = useState<IdolNote | null>(null)
   const [elapsed, setElapsed] = useState(0)
+  /** 같이 찍은 사람으로 인식한 수(얼굴 인식을 못 쓰면 0) — 틀리게 셌을 때 손님·직원이 알아채게 화면에 보여 준다 */
+  const [people, setPeople] = useState(0)
   /** 네트워크 오류로 한 번 더 보내는 중 */
   const [retrying, setRetrying] = useState(false)
   const runRef = useRef(0)
@@ -171,6 +216,7 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage, lang }
     setImage(null)
     setNote(null)
     setElapsed(0)
+    setPeople(0)
     if (!concept || !ticket) {
       setStatus('failed')
       setNote({ kind: !ticket ? 'noTicket' : 'noConcept' })
@@ -179,18 +225,27 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage, lang }
     try {
       setStatus('checking')
       const original = await getImage(shot)
-      const people = await countFaces(original)
+      const W = original.naturalWidth, H = original.naturalHeight
+      // 사진 속 얼굴 수(-1 = 얼굴 인식을 못 쓰는 기기) → 그중 같이 찍은 사람만
+      const found = await countFaces(original)
+      const subjects = found > 0 ? pickSubjects(await faceRectsInCell(original, 0, 0, W, H), W, H) : []
       if (token !== runRef.current) return
-      if (people === 0 || people > IDOL_MAX_PEOPLE) {
+      if (found >= 0 && (subjects.length === 0 || subjects.length > IDOL_MAX_PEOPLE)) {
         setStatus('skipped')
-        setNote(people === 0 ? { kind: 'noFace' } : { kind: 'tooMany', people })
+        setNote(subjects.length === 0 ? { kind: 'noFace' } : { kind: 'tooMany', people: subjects.length })
         return
       }
-      const input = await idolInputs(original)
-      if (token !== runRef.current) return
+      // 여럿이 멀리 서서 얼굴이 작으면 닮게 만들지 못한다 — 만들지 않고(이용 횟수를 쓰지 않는다) 가까이 서서 다시 찍게 한다
+      if (subjects.length > 1 && Math.min(...subjects.map((f) => f.h)) < Math.min(H, W * 1.5) * GROUP_MIN_FACE) {
+        setStatus('skipped')
+        setNote({ kind: 'tooFar' })
+        return
+      }
+      setPeople(subjects.length)
+      const input = idolInputs(original, subjects)
       setStatus('generating')
-      // 얼굴 인식을 못 쓰는 기기(-1)면 1명으로 보고 만든다
-      const body = JSON.stringify({ ticket, concept: concept.id, people: Math.max(1, people), photo: input.photo, faces: input.faces })
+      // 얼굴 인식을 못 쓰는 기기면 1명으로 보고 본 사진만으로 만든다
+      const body = JSON.stringify({ ticket, concept: concept.id, people: Math.max(1, subjects.length), photo: input.photo, faces: input.faces })
       const send = () => fetch('/api/photobooth/idol', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
       let res: Response
       try {
@@ -250,6 +305,7 @@ export function useIdolStage({ active, shot, conceptId, ticket, getImage, lang }
     image: status === 'done' ? image : null,
     message: note ? idolNoteText(boothText(lang), lang, note) : '',
     elapsed,
+    people,
     busy,
     retrying,
   }
@@ -272,7 +328,13 @@ export function IdolStagePanel({ stage, conceptId, variant, lang }: {
   const text = retro ? 'bth-group-text' : 'text-sm leading-snug opacity-80'
   return (
     <div className={retro ? 'bth-idol-panel' : 'flex flex-col gap-2'} role="status" aria-live="polite">
-      {concept && <p className={retro ? 'bth-idol-concept' : 'text-lg font-bold'}>{conceptText(t, concept).name}</p>}
+      {/* 인식한 인원은 줄을 늘리지 않고 컨셉 이름 옆에(1366x768 에서 이 열이 넘친다) */}
+      {concept && (
+        <p className={retro ? 'bth-idol-concept' : 'text-lg font-bold'}>
+          {conceptText(t, concept).name}
+          {stage.people > 0 && (stage.status === 'generating' || stage.status === 'done') && ` · ${t.idolPeople(stage.people)}`}
+        </p>
+      )}
       {stage.busy && (
         <>
           <p className={retro ? 'bth-idol-wait' : 'text-base font-bold'}>

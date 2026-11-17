@@ -1588,7 +1588,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
               </button>
               <button
                 className="ksk-btn ksk-btn-primary"
-                disabled={birthDigits.length !== 8 || Boolean(validateBirthDigits(birthDigits, calendar))}
+                disabled={birthDigits.length !== 8 || Boolean(validateBirthDigits(birthDigits, calendar, isLeapMonth))}
                 onClick={goNext}
               >
                 {t.next}
@@ -1672,7 +1672,7 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
                   disabled={
                     !partnerGender ||
                     partnerDigits.length !== 8 ||
-                    Boolean(validateBirthDigits(partnerDigits, partnerCalendar))
+                    Boolean(validateBirthDigits(partnerDigits, partnerCalendar, partnerLeap))
                   }
                   onClick={goNext}
                 >

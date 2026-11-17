@@ -2,12 +2,12 @@
 // 전용 키 OPENROUTER_ITAEWONPHOTOBOOTH_API_KEY(이태원 K-WAVE 행사용, 옛 이름 OPENROUTER_PHOTOBOOTH_API_KEY 도 읽음)만 쓴다
 // — 사이트 분석 메인 키·화면 배경 키와 비용을 섞지 않는다.
 // 모델은 OPENROUTER_PHOTOBOOTH_MODEL 로 바꿀 수 있다(기본: 얼굴 유지가 가장 나은 Gemini 이미지 모델).
-// 손님 사진은 생성에만 쓰고 저장하지 않는다 — 요청·응답을 기록하지 않는다.
+// 손님 사진은 생성에만 쓰고 저장하지 않는다 — 사진은 기록하지 않고, 모델·컨셉·인원·걸린 시간과 실패 이유만 로그에 남긴다.
 
 import { createHmac, timingSafeEqual } from 'crypto'
 import sharp from 'sharp'
 import { OPENROUTER_IMAGE_MODEL } from '@/lib/gemini/client'
-import { buildIdolPrompt, type IdolConcept } from './idol-concepts'
+import { buildIdolPrompt, idolFaceLabel, type IdolConcept } from './idol-concepts'
 
 function apiKey() {
   return process.env.OPENROUTER_ITAEWONPHOTOBOOTH_API_KEY || process.env.OPENROUTER_PHOTOBOOTH_API_KEY || ''
@@ -78,7 +78,14 @@ let windowStart = 0
 let windowCount = 0
 
 interface Completion {
-  choices?: { message?: { content?: string | null; images?: { image_url?: { url?: string } }[] } }[]
+  id?: string
+  provider?: string
+  choices?: {
+    finish_reason?: string | null
+    native_finish_reason?: string | null
+    error?: { message?: string }
+    message?: { content?: string | null; refusal?: string | null; images?: { image_url?: { url?: string } }[] }
+  }[]
   error?: { message?: string }
 }
 
@@ -95,9 +102,16 @@ export interface BoothImageOptions {
   retryModel?: 'fast' | 'primary'
 }
 
-/** 이미지 한 장 요청 — 실패·시간 초과면 null(기록만 남기고 다음 시도로) */
-async function requestImage(model: string, timeout: number, prompt: string, photo: string, faces: string[], options: BoothImageOptions = {}): Promise<string | null> {
+type Part = { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }
+
+/**
+ * 이미지 한 장 요청 — 실패·시간 초과면 null(기록만 남기고 다음 시도로)
+ * content: 프롬프트 + 본 사진 + 추가 사진(아이돌 단체사진은 얼굴마다 이름표를 붙인다)
+ * label: 기록에 남길 요청 요약(컨셉·인원 — 사진은 남기지 않는다)
+ */
+async function requestImage(model: string, timeout: number, content: Part[], label: string, options: BoothImageOptions = {}): Promise<string | null> {
   const started = Date.now()
+  const took = () => `${Math.round((Date.now() - started) / 1000)}s`
   const aspect = options.aspectRatio ?? '2:3'
   const imageSize = options.imageSize ?? '2K'
   try {
@@ -114,32 +128,35 @@ async function requestImage(model: string, timeout: number, prompt: string, phot
         // 기본 크기는 848x1264 라 인화 원판(1200x1800)보다 작아 늘려 찍으면 흐렸다 — Gemini 3 Pro Image 는 2K(1696x2528)를
         // 같은 값에 준다(2026-10-02 시험: 장당 약 $0.137 동일, +5초). 예비 모델(2.5 Flash)은 이 값을 모르니 기본 크기로
         image_config: model.includes('gemini-3') && imageSize === '2K' ? { aspect_ratio: aspect, image_size: '2K' } : { aspect_ratio: aspect },
-        // 본 사진 다음에 얼굴 클로즈업을 사람 순서대로 — 프롬프트가 'IMAGE 1 / 얼굴 참고'로 부른다
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'text', text: prompt },
-            { type: 'image_url', image_url: { url: photo } },
-            ...faces.map((url) => ({ type: 'image_url', image_url: { url } })),
-          ],
-        }],
+        messages: [{ role: 'user', content }],
       }),
       signal: AbortSignal.timeout(timeout),
     })
     const raw = await res.text()
     if (!res.ok) {
-      console.error('[idol] 생성 호출 실패', model, res.status, raw.slice(0, 300))
+      console.error('[idol] 생성 호출 실패', model, label, took(), res.status, raw.slice(0, 300))
       return null
     }
     const data = JSON.parse(raw) as Completion
-    const url = data.choices?.[0]?.message?.images?.[0]?.image_url?.url
+    const choice = data.choices?.[0]
+    const url = choice?.message?.images?.[0]?.image_url?.url
     if (data.error || !url?.startsWith('data:image/')) {
-      console.error('[idol] 이미지 없음', model, data.error?.message ?? data.choices?.[0]?.message?.content?.slice(0, 200))
+      // 오류도 글도 없이 이미지만 빠져 오는 일이 있다(2026-10-03 현장, 같은 손님은 다시 찍어도 같았다) — 끝난 이유를 남겨 원인을 가린다
+      console.error('[idol] 이미지 없음', model, label, took(), JSON.stringify({
+        finish: choice?.finish_reason,
+        native: choice?.native_finish_reason,
+        error: data.error?.message ?? choice?.error?.message,
+        text: (choice?.message?.refusal ?? choice?.message?.content)?.slice(0, 200),
+        choices: data.choices?.length ?? 0,
+        provider: data.provider,
+        id: data.id,
+      }))
       return null
     }
+    console.log('[idol] 생성', model, label, took())
     return url
   } catch (error) {
-    console.error('[idol] 생성 중단', model, `${Math.round((Date.now() - started) / 1000)}s`, error instanceof Error ? error.message : error)
+    console.error('[idol] 생성 중단', model, label, took(), error instanceof Error ? error.message : error)
     return null
   }
 }
@@ -180,8 +197,24 @@ export async function askBoothVision(model: string, timeout: number, prompt: str
 export async function generateIdolPhoto(photo: string, concept: IdolConcept, people: number, faces: string[] = []): Promise<string> {
   const isImage = (value: string, max: number) => /^data:image\/(jpeg|png|webp);base64,/.test(value) && value.length <= max
   // 얼굴 참고 사진(부스가 자른 클로즈업) — 사람 수까지만, 형식이 틀리면 빼고 본 사진만으로
-  const refs = faces.filter((face) => isImage(face, 600_000)).slice(0, people)
-  return generateBoothImage(buildIdolPrompt(concept, people, refs.length), photo, refs)
+  const valid = faces.filter((face) => isImage(face, 600_000)).slice(0, people)
+  // 여럿이면 사람마다 한 장씩 다 있을 때만 쓴다 — 한 장이 빠지면 이름표(왼쪽·가운데·오른쪽)가 밀려 얼굴이 뒤바뀐다
+  const many = people > 1
+  const refs = many && valid.length !== people ? [] : valid
+
+  // 본 사진(IMAGE 1) 다음에 얼굴 클로즈업을 왼쪽 사람부터 — 여럿이면 클로즈업마다 누구 얼굴인지 이름표를 붙인다
+  const content: Part[] = [
+    { type: 'text', text: buildIdolPrompt(concept, people, refs.length) },
+    { type: 'image_url', image_url: { url: photo } },
+    ...refs.flatMap((url, index): Part[] => [
+      ...(many ? [{ type: 'text' as const, text: idolFaceLabel(index, people) }] : []),
+      { type: 'image_url', image_url: { url } },
+    ]),
+  ]
+  // 여럿이면 예비 모델로 넘기지 않고 같은 모델로 한 번 더 — 작은 모델은 여러 사람 얼굴을 한꺼번에 지키기 어렵다
+  // (60+50초 — 라우트 maxDuration 120초 안)
+  const options: BoothImageOptions = many ? { retryModel: 'primary', timeouts: [60_000, 50_000] } : {}
+  return generateImage(content, `${concept.id} ${people}명 얼굴${refs.length}`, options)
 }
 
 /**
@@ -189,23 +222,35 @@ export async function generateIdolPhoto(photo: string, concept: IdolConcept, peo
  * 같은 전용 키·같은 1분 상한·같은 모델 순서(60초 → 예비 모델 45초)를 쓴다.
  */
 export async function generateBoothImage(prompt: string, photo: string, more: string[] = [], options: BoothImageOptions = {}): Promise<string> {
+  const content: Part[] = [
+    { type: 'text', text: prompt },
+    { type: 'image_url', image_url: { url: photo } },
+    ...more.map((url): Part => ({ type: 'image_url', image_url: { url } })),
+  ]
+  return generateImage(content, 'photobooth', options)
+}
+
+/** 검증·횟수 제한·모델 재시도·JPEG 변환을 두 생성 경로가 함께 쓴다. */
+async function generateImage(content: Part[], label: string, options: BoothImageOptions = {}): Promise<string> {
   if (!idolConfigured()) throw new IdolError('AI 사진 전용 키가 아직 설정되지 않았어요.', 503)
-  const isImage = (value: string, max: number) => /^data:image\/(jpeg|png|webp);base64,/.test(value) && value.length <= max
-  if (!isImage(photo, 3_000_000) || !more.every((m) => isImage(m, 3_000_000))) throw new IdolError('사진 형식이 올바르지 않아요.', 400)
+  const isImage = (value: string) => /^data:image\/(jpeg|png|webp);base64,/.test(value) && value.length <= 3_000_000
+  if (content.some((part) => part.type === 'image_url' && !isImage(part.image_url.url))) {
+    throw new IdolError('사진 형식이 올바르지 않아요.', 400)
+  }
 
   const now = Date.now()
   if (now - windowStart > 60_000) { windowStart = now; windowCount = 0 }
   if (++windowCount > PER_MINUTE) throw new IdolError('잠시 후 다시 시도해 주세요.', 429)
 
   // 가끔 이미지 모델이 한참 멈춘다(운영에서 110초 넘게 걸린 적) — 손님이 오래 서 있지 않게 첫 시도는 짧게 끊고,
-  // 더 빠른 모델로 한 번 더. 둘 다 안 되면 부스가 실패 안내(다시 만들기)를 띄운다
+  // 한 번 더 시도한다. 둘 다 안 되면 호출한 화면에서 실패를 처리한다.
   const primary = process.env.OPENROUTER_PHOTOBOOTH_MODEL || OPENROUTER_IMAGE_MODEL
   // 2K 출력은 보통 25~35초(2026-10-02) — 첫 시도는 60초까지 기다린다
   const [firstWait, fallbackWait] = options.timeouts ?? [60_000, 45_000]
   const attempts: [string, number][] = [[primary, firstWait], [options.retryModel === 'primary' ? primary : FALLBACK_MODEL, fallbackWait]]
   let url: string | null = null
   for (const [model, timeout] of attempts) {
-    url = await requestImage(model, timeout, prompt, photo, more, options)
+    url = await requestImage(model, timeout, content, label, options)
     if (url) break
   }
   if (!url) throw new IdolError('AI 사진을 만들지 못했어요.', 502)
