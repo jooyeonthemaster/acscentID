@@ -15,14 +15,14 @@ import { PC_PHOTO_NOTE } from '@/lib/kiosk/pc'
 import './draw.css'
 
 type Step = 'start' | 'capture' | 'confirm' | 'style' | 'drawing' | 'result'
-const STYLES: DrawStyle[] = ['line', 'water', 'comic']
-const LEVELS: DrawLevel[] = ['soft', 'fun']
+export const STYLES: DrawStyle[] = ['line', 'water', 'comic']
+export const LEVELS: DrawLevel[] = ['soft', 'fun']
 /** 사진 한 장으로 그릴 수 있는 장수 — 그릴 때마다 생성 비용이 든다 */
-const MAX_DRAWS = 3
-const ASSET = '/assets/kiosk-experiences'
+export const MAX_DRAWS = 3
+export const ASSET = '/assets/kiosk-experiences'
 const CORAL = '#f0563c'
 const STAR = '#f6c531'
-const comboKey = (style: DrawStyle, level: DrawLevel) => `${style}|${level}`
+export const comboKey = (style: DrawStyle, level: DrawLevel) => `${style}|${level}`
 /** 여럿이 찍을 때의 사진 비율(가로/세로) — 서버도 4:3 으로 그린다 */
 const GROUP_RATIO = 4 / 3
 
@@ -130,7 +130,8 @@ function Doodles({ text }: { text?: string }) {
   )
 }
 
-export default function DrawMode() {
+/** DRAW! 흐름 — 사진 · 화풍 · 그림 요청 · 저장 · 영수증. 기본 화면(DrawMode)과 영상판(DrawVideo)이 같이 쓴다 */
+export function useDrawFlow() {
   const { lang, home, c, pc } = useKx()
   // 노트북 — 받는 포스터에 원본 사진이 들어간다는 것을 안내에 맞춘다(매장 키오스크 문구는 그대로)
   const t = useMemo(() => {
@@ -216,6 +217,12 @@ export default function DrawMode() {
     // 선화는 밝게 찍어야 선이 또렷하다
     return { tag: 'DRAW!', title: t.resultTitle, blocks: [{ kind: 'image', src: art, width: group ? 440 : 400, frame: true, tone: style === 'line' ? 185 : 165, caption: tag }], foot: t.foot }
   }, [art, t, tag, group, style])
+
+  return { lang, home, c, pc, t, step, setStep, photo, setPhoto, style, setStyle, level, setLevel, arts, setArts, problem, setProblem, stage, saving, setSaving, printing, setPrinting, group, setGroup, cam, combo, art, used, left, tag, draw, build, receipt }
+}
+
+export default function DrawMode() {
+  const { lang, home, c, pc, t, step, setStep, photo, setPhoto, style, setStyle, level, setLevel, arts, setArts, problem, setProblem, stage, saving, setSaving, printing, setPrinting, group, setGroup, cam, combo, art, left, tag, draw, build, receipt } = useDrawFlow()
 
   if (step === 'start') {
     return (

@@ -40,6 +40,10 @@
 - 검색에 노출하지 않는다(`robots: noindex`). 로케일 라우팅 밖이라 `middleware.ts` 의 예외 목록에 들어 있다.
 - 키오스크 화면은 일반 브라우저에서도 세로 화면으로 가운데에 맞춰 보인다(PC·휴대폰 모두) — 데모용 틀을 따로 만들지 않았다.
 
+## 영상판 데모 (2026-11-18)
+
+길잡이 인물 영상 위에서 같은 프로그램을 하는 영상판 — 데모 랜딩 **`/kiosk-demo/video`**(`src/app/kiosk-demo/video/page.tsx`, middleware 예외). COLOR! 서하 · DRAW! 모루 · MAKEUP! 이안. 주소에 `&lab=video` 가 있을 때만 뜨고 기본 화면 · `/kiosk-demo` 는 그대로다. 재생기 · 계획 `src/app/kiosk/video/`(stage.tsx · plans.ts · ui.tsx), 영상 · 수치 `public/assets/kiosk-video/README.md`, 만드는 방법 `.claude/skills/kiosk-video-flow`. 흐름만 보는 미리보기(카메라 · AI 없이) `/kiosk/video/<color|draw|makeup>`.
+
 ## 키오스크 API 하루 상한 (2026-11-11)
 
 운영 사이트의 키오스크 API(`/api/kiosk/*`, `KIOSK_ALLOW_REMOTE`)는 영업 데모 · 행사 노트북(`/kiosk/pc`) · 매장 키오스크가 함께 쓰고 로그인이 없다 — 워터마크를 지우거나 API 를 직접 불러도 쓸 수 있었고, 향 분석 · 사주 · 컬러 · 타로에는 횟수 제한이 아예 없었다(그림 생성은 서버 인스턴스 메모리 기준 하루 400장이라 인스턴스가 여러 개면 상한 구실을 못 했다). 누가 부르는지 확실히 가를 방법이 없어(행사 노트북은 일반 크롬, 매장 앱 표시는 꾸밀 수 있다) **날짜(KST)별 총량**을 서버 저장소에 세어 넘으면 429 로 막는다 — `src/lib/kiosk/usage-cap.ts`.

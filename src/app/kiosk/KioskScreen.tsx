@@ -17,6 +17,9 @@ const Classic = dynamic(() => import('./classic/KioskClassic').then(m => m.Kiosk
 const Experience = dynamic(() => import('./experience/ExperienceApp').then(m => m.ExperienceApp), { ssr: false })
 // SCENT! AI 조향사(ai-perfumer) — 기존 셸의 상태·동작에 전용 화면을 입힌 것. 기기의 화면 디자인 설정(기존·레트로·맥)과 무관
 const Perfumer = dynamic(() => import('./perfumer/PerfumerKiosk').then(m => m.PerfumerKiosk), { ssr: false })
+// COLOR! 영상판(ai-color + 주소 &lab=video, 2026-11-18) — 컬러리스트 서하의 영상 위에서 같은 진단(src/app/kiosk/video/ColorVideo.tsx). 주소에 lab=video 가 없으면 기본 화면 그대로
+const ColorVideo = dynamic(() => import('./video/ColorVideo'), { ssr: false })
+const videoLab = () => new URLSearchParams(window.location.search).get('lab') === 'video'
 
 export function KioskScreen() {
   return (
@@ -32,6 +35,7 @@ export function KioskScreen() {
           const current = previewKioskModeParam() ?? readDeviceKioskMode() ?? mode
           const id = kioskExperience(current)
           if (id) return <Experience id={id} />
+          if (current === 'ai-color' && videoLab()) return <ColorVideo />
           return kioskModeDesign(current) === 'perfumer' ? <Perfumer /> : null
         }}
       />

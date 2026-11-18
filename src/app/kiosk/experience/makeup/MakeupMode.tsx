@@ -17,21 +17,21 @@ import './makeup.css'
 
 type Step = 'start' | 'capture' | 'finding' | 'edit' | 'result'
 interface Point { x: number; y: number }
-const PARTS: MakeupPart[] = ['lip', 'blush', 'eye']
-const TOOLS: MakeupTool[] = ['lip', 'blush', 'eye', 'liner', 'lash', 'brow', 'shape', 'hair']
-const PALETTE: Record<MakeupPart, string[]> = {
+export const PARTS: MakeupPart[] = ['lip', 'blush', 'eye']
+export const TOOLS: MakeupTool[] = ['lip', 'blush', 'eye', 'liner', 'lash', 'brow', 'shape', 'hair']
+export const PALETTE: Record<MakeupPart, string[]> = {
   lip: ['#d98b78', '#d9788a', '#e0635e', '#c8364a', '#8e3a5e'],
   blush: ['#f2a48f', '#f08f7c', '#e98aa0', '#f3a6c0', '#c98ba8'],
   eye: ['#d8b89a', '#b07a72', '#b59ac6', '#9c6f8a', '#7a5546'],
 }
 /** 아이라인 — 브라운 · 블랙 · 눈꼬리를 뺀 블랙 */
-const LINERS = [{ color: '#4a3026', wing: false }, { color: '#1c1917', wing: false }, { color: '#1c1917', wing: true }]
+export const LINERS = [{ color: '#4a3026', wing: false }, { color: '#1c1917', wing: false }, { color: '#1c1917', wing: true }]
 const BROWS = ['#8a6a55', '#5b4336', '#6f6a66', '#2b2523']
 const HAIRS = ['#2a2320', '#5a3d2b', '#8a6b52', '#a35a3a', '#d58aa8', '#e8c9a0']
 /** 견본이 있는 도구의 색 목록 */
-const swatches = (tool: MakeupTool): string[] => (tool === 'liner' ? LINERS.map((item) => item.color) : tool === 'brow' ? BROWS : tool === 'hair' ? HAIRS : tool === 'lash' || tool === 'shape' ? [] : PALETTE[tool])
+export const swatches = (tool: MakeupTool): string[] => (tool === 'liner' ? LINERS.map((item) => item.color) : tool === 'brow' ? BROWS : tool === 'hair' ? HAIRS : tool === 'lash' || tool === 'shape' ? [] : PALETTE[tool])
 /** 머리 모양 바꾸기는 그릴 때마다 생성 비용이 든다 — 사진 한 장에 이만큼 */
-const MAX_HAIR_AI = 2
+export const MAX_HAIR_AI = 2
 type Picks = Record<Exclude<MakeupTool, 'lash' | 'shape'>, number>
 type Levels = Record<MakeupTool, number>
 const START_PICKS: Picks = { lip: 2, blush: 0, eye: 2, liner: 0, brow: 0, hair: 1 }
@@ -114,7 +114,8 @@ function shrink(canvas: HTMLCanvasElement): string {
   return small.toDataURL('image/jpeg', 0.88)
 }
 
-export default function MakeupMode() {
+/** MAKEUP! 흐름 — 촬영 · 얼굴 찾기 · 화장 그리기 · 머리 모양 바꾸기 · 저장. 기본 화면(MakeupMode)과 영상판(MakeupVideo)이 같이 쓴다 */
+export function useMakeupFlow() {
   const { lang, home, t: k } = useKx()
   const t = kxText(MAKEUP_TEXT, lang)
   const [step, setStep] = useState<Step>('start')
@@ -270,6 +271,12 @@ export default function MakeupMode() {
     return [{ name: 'makeup-look.jpg', type: 'image/jpeg', label: t.cardLabel, blob: await drawLookCard(t, photo, final, lookName, picks, extras) }]
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [photo, final, t, lookName, lookKey])
+
+  return { lang, home, k, t, step, setStep, photo, setPhoto, scene, setScene, stage, noFace, setNoFace, tool, setTool, picks, setPicks, levels, setLevels, hair, hairSheet, setHairSheet, hairBusy, hairFail, hairUsed, split, setSplit, final, setFinal, saving, setSaving, cam, canvasRef, compareRef, analyze, wantHair, hairReady, hairMask, look, lookKey, restyle, drag, finish, lookName, extras, build }
+}
+
+export default function MakeupMode() {
+  const { lang, home, k, t, step, setStep, photo, scene, setScene, stage, noFace, setNoFace, tool, setTool, picks, setPicks, levels, setLevels, hairSheet, setHairSheet, hairBusy, hairFail, hairUsed, split, final, saving, setSaving, cam, canvasRef, compareRef, analyze, wantHair, hairReady, hairMask, lookKey, restyle, drag, finish, lookName, extras, build } = useMakeupFlow()
 
   if (step === 'start') {
     return (

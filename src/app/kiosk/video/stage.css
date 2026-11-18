@@ -1,0 +1,147 @@
+/* 키오스크 영상판 재생기(stage.tsx) · 영상 흐름 미리보기(/kiosk/video/<프로그램>, VideoPreview.tsx).
+   움직임은 prefers-reduced-motion 에 묶지 않는다(매장 POS 는 그 설정이 켜져 있다). */
+
+.kv { position: absolute; inset: 0; overflow: hidden; background: #0b0a09; color: #fff; container-type: size; font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+/* 영상 세계 — 720×1280 상자를 화면에 꽉 차게 가운데. 처음 한 번 천천히 밝아진다 */
+.kv-world { position: absolute; left: 50%; top: 50%; width: max(100cqw, calc(100cqh * 720 / 1280)); aspect-ratio: 720 / 1280; translate: -50% -50%; animation: kv-first 1.2s ease-out both; }
+@keyframes kv-first { from { filter: brightness(.3) blur(6px); transform: scale(1.06); } }
+.kv-plate { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* 다음 조각은 첫 프레임이 그려진 뒤에 겹쳐 온다. 카메라 흔들림은 넣지 않는다(겹마다 달라지면 넘길 때 화면이 튄다) */
+.kv-film { opacity: 0; transition: opacity .15s linear; }
+.kv-film[data-on] { opacity: 1; }
+
+/* 결과를 얹은 면 — 영상 위 같은 자리 */
+.kv-surface { position: absolute; z-index: 1; animation: kv-surface .9s ease-out both; }
+@keyframes kv-surface { from { opacity: 0; } }
+
+/* 속도선 — 이동 영상이 길을 빨리감기하는 동안만 */
+.kv-lines { position: absolute; inset: -25%; z-index: 2; pointer-events: none; background: repeating-conic-gradient(from 0deg at 50% 47%, transparent 0 2.4deg, rgba(255, 244, 220, .6) 2.4deg 2.75deg, transparent 2.75deg 6.5deg); -webkit-mask-image: radial-gradient(circle at 50% 47%, transparent 0 18%, #000 52%); mask-image: radial-gradient(circle at 50% 47%, transparent 0 18%, #000 52%); opacity: 0; transition: opacity .3s ease-out; animation: kv-flick .1s steps(1) infinite; }
+.kv-lines[data-fast] { opacity: .8; }
+@keyframes kv-flick { 50% { transform: rotate(2.6deg) scale(1.06); } }
+
+/* 위 — 프로그램 표 · 장소 이름(도착 뒤에만) */
+.kv-top { position: absolute; z-index: 3; left: 0; right: 0; top: 0; display: flex; align-items: center; justify-content: space-between; padding: 4cqh 5cqw 0; pointer-events: none; }
+.kv-tag { font-weight: 900; font-size: 4.2cqw; letter-spacing: .04em; padding: .5em .9em; border-radius: 999px; background: var(--kv-tone, #222); color: #fff; box-shadow: 0 .4em 1.2em rgba(0, 0, 0, .25); }
+.kv-place { font-size: 3.4cqw; font-weight: 700; letter-spacing: .14em; padding: .55em 1em; border-radius: 999px; background: rgba(12, 10, 8, .45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); animation: kv-rise .5s ease-out both; }
+.kv .kv-home { pointer-events: auto; border: 0; font: inherit; font-size: 3.2cqw; font-weight: 700; color: #fff; padding: .6em 1em; border-radius: 999px; background: rgba(12, 10, 8, .45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); cursor: pointer; }
+
+/* 아래 — 대사판(유리) · 선택지. 도착(onSettle) 뒤에만 뜨고, 떠날 때는 가라앉으며 사라진다 */
+.kv-talk { position: absolute; z-index: 3; left: 4cqw; right: 4cqw; bottom: 4cqh; padding: 4cqw 5cqw 5cqw; border-radius: 5cqw; background: rgba(16, 13, 11, .55); border: 1px solid rgba(255, 255, 255, .18); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); box-shadow: 0 2cqh 6cqh rgba(0, 0, 0, .35); animation: kv-rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+.kv-talk[data-leave] { animation: kv-sink .4s ease-in both; pointer-events: none; }
+@keyframes kv-rise { from { opacity: 0; transform: translateY(2.5cqh); } }
+@keyframes kv-sink { to { opacity: 0; transform: translateY(2.5cqh); } }
+.kv-who { display: inline-block; font-size: 3.2cqw; font-weight: 800; letter-spacing: .06em; color: var(--kv-tone-light, #ffd9c9); margin-bottom: 1.4cqw; }
+.kv-line { margin: 0; font-size: 5cqw; line-height: 1.45; font-weight: 700; word-break: keep-all; }
+.kv-line span { opacity: 0; animation: kv-word .35s ease-out forwards; }
+@keyframes kv-word { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: none; } }
+.kv-note { margin: 2cqw 0 0; font-size: 3.1cqw; opacity: .7; }
+.kv-choices { display: grid; gap: 2.4cqw; margin-top: 4cqw; }
+.kv-choices[data-cols='2'] { grid-template-columns: 1fr 1fr; }
+.kv-choices[data-cols='3'] { grid-template-columns: 1fr 1fr 1fr; }
+.kv .kv-choices button { border: 0; font: inherit; font-size: 4.2cqw; font-weight: 800; color: #1a1512; background: rgba(255, 255, 255, .92); padding: 1em .6em; border-radius: 3.4cqw; cursor: pointer; box-shadow: 0 .5cqh 1.6cqh rgba(0, 0, 0, .25); animation: kv-rise .4s ease-out both; }
+.kv .kv-choices button[data-main] { background: var(--kv-tone, #222); color: #fff; }
+.kv .kv-choices button:active { transform: scale(.97); }
+
+/* AI 기다림 — 점 세 개 */
+.kv-wait { display: inline-flex; gap: 1.2cqw; margin-top: 3cqw; }
+.kv-wait i { width: 2cqw; height: 2cqw; border-radius: 50%; background: #fff; opacity: .3; animation: kv-dot 1.2s ease-in-out infinite; }
+.kv-wait i:nth-child(2) { animation-delay: .2s; }
+.kv-wait i:nth-child(3) { animation-delay: .4s; }
+@keyframes kv-dot { 40% { opacity: 1; transform: translateY(-.6cqw); } }
+
+/* 처음으로(다음 손님) — 이음 영상이 없을 때만 쓰는 어둡게 넘기기 */
+.kv-dim { position: absolute; inset: 0; z-index: 4; background: #000; animation: kv-dim .9s ease-in-out both; pointer-events: none; }
+@keyframes kv-dim { 0%, 100% { opacity: 0; } 45%, 55% { opacity: 1; } }
+
+/* 미리보기 목록(/kiosk/video) */
+.kv-index { position: fixed; inset: 0; overflow: auto; background: #f4f1ec; color: #1a1512; font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif; padding: 48px 16px; }
+.kv-index h1 { font-size: 28px; margin: 0 0 6px; }
+.kv-index > p { margin: 0 0 28px; color: #5d554d; }
+.kv-index ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); max-width: 960px; }
+.kv-index a { display: block; text-decoration: none; color: inherit; background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 6px 20px rgba(0, 0, 0, .08); }
+.kv-index img { display: block; width: 100%; aspect-ratio: 9 / 16; object-fit: cover; }
+.kv-index b { display: block; padding: 14px 16px 2px; font-size: 18px; }
+.kv-index span { display: block; padding: 0 16px 16px; color: #5d554d; font-size: 14px; }
+
+/* 체험 화면 틀 밖(미리보기 · COLOR!) — 세로 9:16 을 화면 가운데에 고정 */
+.kv--page { position: fixed; inset: 0 auto 0 50%; width: min(100vw, calc(100vh * 9 / 16)); translate: -50% 0; }
+
+/* 대사판 안 — 선택지 · 카메라 · 도구 */
+.kv-body { margin-top: 3.4cqw; display: grid; gap: 2.6cqw; }
+.kv-talk[data-wide] { bottom: 2.4cqh; padding-bottom: 4cqw; }
+.kv-body .kv-choices { margin-top: 0; }
+.kv .kv-choices button:disabled { opacity: .45; }
+.kv-row { display: flex; gap: 2.4cqw; align-items: stretch; }
+.kv-row > * { flex: 1; }
+.kv-alert { margin: 0; padding: 2.4cqw 3cqw; border-radius: 3cqw; background: rgba(255, 90, 70, .22); border: 1px solid rgba(255, 140, 120, .5); font-size: 3.4cqw; line-height: 1.45; }
+.kv-alert b { display: block; font-size: 3.8cqw; }
+.kv-fine { margin: 0; font-size: 3cqw; opacity: .72; line-height: 1.45; }
+/* 고르는 칩(혼자 · 여럿, 살짝 · 재밌게) */
+.kv-seg { display: flex; gap: 2cqw; }
+.kv .kv-seg button { flex: 1; border: 1px solid rgba(255, 255, 255, .35); font: inherit; font-size: 3.8cqw; font-weight: 800; color: #fff; background: rgba(255, 255, 255, .08); padding: .8em .4em; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: .4em; }
+.kv .kv-seg button[data-on] { background: #fff; color: #1a1512; border-color: #fff; }
+/* 그림 견본 카드(화풍) */
+.kv-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.2cqw; }
+.kv .kv-cards button { position: relative; border: 2px solid transparent; padding: 0; border-radius: 3cqw; overflow: hidden; background: rgba(255, 255, 255, .1); color: #fff; font: inherit; cursor: pointer; }
+.kv .kv-cards button[data-on] { border-color: #fff; box-shadow: 0 0 0 2px var(--kv-tone, #fff); }
+.kv-cards img { display: block; width: 100%; aspect-ratio: 392 / 350; object-fit: cover; }
+.kv-cards b { display: block; padding: .5em 0 .6em; font-size: 3.6cqw; }
+.kv-cards em { position: absolute; top: 1.4cqw; left: 1.4cqw; font-style: normal; font-size: 2.6cqw; font-weight: 800; padding: .25em .6em; border-radius: 999px; background: rgba(0, 0, 0, .6); }
+/* 대사판 안 작은 사진(방금 찍은 사진) */
+.kv-thumb { display: flex; gap: 3cqw; align-items: center; }
+.kv-thumb img { width: 24cqw; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 2.4cqw; border: 3px solid #fff; transform: rotate(-3deg); box-shadow: 0 1cqh 2cqh rgba(0, 0, 0, .35); }
+.kv-thumb img[data-wide] { width: 34cqw; aspect-ratio: 4 / 3; }
+/* 영상 세계 안 카메라 · 편집 화면(거울 안 등) — rectStyle 로 자리를 잡는다 */
+.kv-slot { z-index: 1; overflow: hidden; animation: kv-surface .5s ease-out both; }
+.kv-slot .kx-cam { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; }
+.kv-slot .kx-cam video, .kv-slot .kx-cam img { width: 100%; height: 100%; object-fit: cover; }
+/* 대사판 위에 띄우는 카메라 카드(화가가 손가락 프레임으로 보는 자리) */
+.kv-cam-card { position: absolute; z-index: 3; left: 5cqw; top: 27cqh; margin: 0; box-sizing: border-box; width: 44cqw; padding: 2cqw 2cqw 4.5cqw; background: #fffaf0; border-radius: 1.6cqw; box-shadow: 0 2cqh 5cqh rgba(0, 0, 0, .45); rotate: -1.5deg; animation: kv-rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+.kv-cam-card[data-wide] { width: 62cqw; top: 33cqh; }
+.kv-cam-card .kx-cam { aspect-ratio: 3 / 4; border-radius: .6cqw; overflow: hidden; }
+.kv-cam-card[data-wide] .kx-cam { aspect-ratio: 4 / 3; }
+.kv-cam-card .kx-cam video, .kv-cam-card .kx-cam img { width: 100%; height: 100%; object-fit: cover; }
+.kv-cam-card figcaption { position: absolute; left: 0; right: 0; bottom: 1.6cqw; text-align: center; color: #3a2a20; font-size: 3.4cqw; font-weight: 800; }
+
+/* 영상판 버튼 — 큰 주 버튼 · 보조 버튼 */
+.kv .kv-go, .kv .kv-ghost { border: 0; font: inherit; font-size: 4.4cqw; font-weight: 800; padding: .95em .8em; border-radius: 3.4cqw; display: inline-flex; align-items: center; justify-content: center; gap: .45em; cursor: pointer; width: 100%; }
+.kv .kv-go { background: var(--kv-tone, #222); color: #fff; box-shadow: 0 .6cqh 1.8cqh rgba(0, 0, 0, .3); }
+.kv .kv-ghost { background: rgba(255, 255, 255, .92); color: #1a1512; font-size: 3.8cqw; }
+.kv .kv-go:disabled, .kv .kv-ghost:disabled { opacity: .45; cursor: default; }
+.kv .kv-go:active, .kv .kv-ghost:active { transform: scale(.98); }
+.kv-top > :not(.kv-tag):not(.kv-place) { pointer-events: auto; }
+.kv .kv-home { display: inline-flex; align-items: center; gap: .35em; }
+
+/* 밝은 대사판 — 메이크업 편집 도구(밝은 바탕용 기존 스타일)를 그대로 올린다 */
+.kv-talk[data-light] { background: rgba(255, 250, 248, .9); color: #4b2447; border-color: rgba(255, 255, 255, .7); }
+.kv-talk[data-light] .kv-who { color: var(--kv-tone, #754f70); }
+.kv-talk[data-light] .kv-line { font-size: 4.4cqw; }
+.kv-talk[data-wide] .kv-body { margin-top: 1.6cqw; gap: 1.4cqw; }
+.kv-talk[data-wide] .mku-tabs, .kv-talk[data-wide] .mku-swatches, .kv-talk[data-wide] .mku-color-name, .kv-talk[data-wide] .mku-level { margin-top: 0; }
+.kv-talk[data-wide] .mku-swatches { min-height: 48px; }
+.kv-slot[data-hidden] { opacity: 0; visibility: hidden; }
+/* 화장대 거울 안 — 거울 유리처럼 살짝 밝게 */
+.kv-mirror { border-radius: 4px; box-shadow: inset 0 0 18px rgba(255, 240, 220, .55); }
+.kv-mirror .mku-compare { width: 100%; height: 100%; border-radius: 0; aspect-ratio: auto; }
+/* 컬러 레시피 — 립 · 블러셔 · 섀도 */
+.kv-recipe { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2cqw; }
+.kv-recipe li { display: flex; align-items: center; gap: 1.8cqw; padding: 1.8cqw; border-radius: 3cqw; background: rgba(255, 255, 255, .1); }
+.kv-recipe i { flex: none; width: 7cqw; height: 7cqw; border-radius: 50%; border: 2px solid #fff; }
+.kv-recipe span { display: grid; font-size: 2.8cqw; opacity: .9; line-height: 1.3; }
+.kv-recipe b { font-size: 3.2cqw; opacity: 1; }
+
+/* COLOR! 영상판 — 이름 칸 · 추천 8색 · 결과지 창 · 오른쪽 카메라 카드 */
+.kv .kv-field { display: grid; gap: .3em; text-align: left; padding: .9em 1em; border-radius: 3cqw; background: rgba(255, 255, 255, .92); color: #1a1512; font-size: 4.4cqw; font-weight: 800; }
+.kv .kv-field small { font-size: 2.8cqw; font-weight: 700; opacity: .6; }
+.kv .kv-field i { font-style: normal; font-weight: 600; opacity: .45; }
+.kv-swatch-row { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(8, 1fr); gap: 1.4cqw; }
+.kv-swatch-row li { aspect-ratio: 1; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .85); box-shadow: 0 .4cqh 1cqh rgba(0, 0, 0, .25); }
+.kv-cam-card--right { left: auto; right: 4cqw; top: 13cqh; width: 46cqw; rotate: 1.5deg; }
+.kv-report { position: absolute; inset: 0; z-index: 8; background: var(--kx-bg, #fdf7ed); color: var(--kx-ink, #2a2330); overflow-y: auto; animation: kv-rise .35s ease-out both; }
+.kv .kv-report-x { position: sticky; top: 12px; margin: 12px 12px 0 auto; z-index: 2; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: rgba(42, 35, 48, .85); color: #fff; }
+.kv-report-body { padding: 0 18px 40px; }
+.kv-cam-card .kx-cam { width: 100%; height: auto; }
+/* 대사판 안 화면 키보드(COLOR! 이름) — 체험 화면의 키보드 스타일 그대로, 위 여백만 */
+.kv-talk .ksk-osk { margin: 0 -2cqw; padding-top: 2cqw; border-top-color: rgba(255, 255, 255, .5); }

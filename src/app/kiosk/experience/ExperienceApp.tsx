@@ -35,6 +35,12 @@ const MODES: Partial<Record<ExperienceId, ComponentType>> = {
   makeup: dynamic(() => import('./makeup/MakeupMode'), { ssr: false }),
 }
 const ExpansionMode = dynamic(() => import('./expansion/ExpansionMode'), { ssr:false })
+// 영상판(&lab=video, 2026-11-18) — 길잡이 인물 영상 위에서 같은 체험을 한다(src/app/kiosk/video). 주소에 lab=video 가 있을 때만, 기본 화면은 그대로
+const VIDEO_MODES: Partial<Record<ExperienceId, ComponentType>> = {
+  draw: dynamic(() => import('./draw/DrawVideo'), { ssr: false }),
+  makeup: dynamic(() => import('./makeup/MakeupVideo'), { ssr: false }),
+}
+const videoLab = () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('lab') === 'video'
 
 /**
  * pc: 노트북 가로 화면(/kiosk/pc/…) — 가로 두 칸 배치·창 크기 맞추기. 링크가 모드를 정하므로 기기 설정을 따라 갈아타지 않고,
@@ -123,7 +129,8 @@ export function ExperienceApp({ id, pc = false }: { id: ExperienceId; pc?: boole
 
   const context = useMemo<KxContextValue>(() => ({ id, lang, setLang, t: kioskText(lang), c: KX_COMMON[lang], home, setScreen: setKind, share, pc }), [id, lang, home, share, pc])
   const expanded = isExpansionId(id)
-  const Mode = expanded ? ExpansionMode : MODES[id]
+  const [video] = useState(videoLab)
+  const Mode = expanded ? ExpansionMode : (video ? VIDEO_MODES[id] : undefined) ?? MODES[id]
 
   return (
     <div
