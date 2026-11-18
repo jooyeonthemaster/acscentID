@@ -160,7 +160,7 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
           : fge ? <FgeTopBar step={screen === 'start' ? 1 : screen === 'pass' ? 2 : step} onHome={requestHome} />
             : <TopBar program={program} screen={screen} step={step} onHome={requestHome} onHelp={() => setHelp(true)} />}
         <main className="pg-body">
-          {screen === 'start' && (program.kind === 'strip' ? <AsvStart program={program} onStart={start} /> : fge ? <FgeStart program={program} art={fge} onStart={start} /> : <StartScreen program={program} onStart={start} />)}
+          {screen === 'start' && (program.kind === 'strip' ? <AsvStart program={program} onStart={start} /> : fge ? <FgeStart program={program} art={fge} onStart={start} /> : <StartScreen program={program} onStart={start} plain={Boolean(plan)} />)}
           {screen === 'pass' && <PassScreen onBack={home} onTicket={(t) => { ticketRef.current = t; setScreen('flow') }} />}
           {screen === 'flow' && (
             program.kind === 'photo' ? <PhotoFlow key={session} ctx={ctx} />
@@ -231,7 +231,8 @@ function TopBar({ program, screen, step, onHome, onHelp }: { program: ProgramDef
   )
 }
 
-function StartScreen({ program, onStart }: { program: ProgramDef; onStart: () => void }) {
+/** plain — 영상판: 이름 · 워드마크 · 제목 · 시작 버튼만(소개 문장 · 단계 · 안내 없음, 2026-11-18 사용자 지시) */
+function StartScreen({ program, onStart, plain = false }: { program: ProgramDef; onStart: () => void; plain?: boolean }) {
   return (
     <div className="pg-split pg-start">
       <div className="pg-visual">
@@ -243,14 +244,16 @@ function StartScreen({ program, onStart }: { program: ProgramDef; onStart: () =>
         <p className="pg-script" aria-hidden="true">{program.script}</p>
       </div>
       <div className="pg-panel">
-        <p className="pg-kicker">{program.name}</p>
+        {!plain && <p className="pg-kicker">{program.name}</p>}
         <Wordmark program={program} size="xl" />
         <h1 className="pg-headline">{program.headline.split('\n').map((l, i) => <span key={i}>{l}</span>)}</h1>
-        <p className="pg-lead">{program.lead}</p>
-        <ol className="pg-flow-steps">
-          {program.steps.map((s, i) => <li key={s}><i>{i + 1}</i><span>{s}</span></li>)}
-        </ol>
-        {program.creative && <p className="pg-creative">{program.creative}</p>}
+        {!plain && <>
+          <p className="pg-lead">{program.lead}</p>
+          <ol className="pg-flow-steps">
+            {program.steps.map((s, i) => <li key={s}><i>{i + 1}</i><span>{s}</span></li>)}
+          </ol>
+          {program.creative && <p className="pg-creative">{program.creative}</p>}
+        </>}
         <button type="button" className="pg-btn pg-btn--accent pg-btn--hero" onClick={onStart}>{program.startCta}<span aria-hidden="true">→</span></button>
       </div>
     </div>
