@@ -122,6 +122,12 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
     program, demo, getTicket, home, requestHome, setBusy, setDirty, setStep, onResult, markShot, report: plan ? report : undefined,
   }), [program, demo, getTicket, home, requestHome, onResult, markShot, plan, report])
   const scene = !plan ? null : screen === 'flow' ? plan.steps[flowView.step] ?? plan.firstFlow : plan.start
+  // 영상이 끝내 도착을 못 알리면(영상을 못 받음 등) 화면이 갇히지 않게 — 가장 긴 이동(8초 영상 + 마저 틀기)보다 넉넉히 기다린 뒤 연다
+  useEffect(() => {
+    if (!scene || arrived === scene) return
+    const t = window.setTimeout(() => setArrived(scene), 12000)
+    return () => window.clearTimeout(t)
+  }, [scene, arrived])
 
   // 무입력 — 진행 화면에서 45초 손이 없으면 확인 창(30초 뒤 처음으로). 생성·녹화·업로드 중에는 묻지 않는다
   useEffect(() => {

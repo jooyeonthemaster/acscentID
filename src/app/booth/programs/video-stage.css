@@ -154,3 +154,11 @@
 .pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-creative { margin-top: 8px; }
 /* 태어난 시간 고르기 창 — 스크롤 없이 한 번에 */
 .pg[data-video] .pg-modal:has(.pg-birth-hours) { max-height: none; overflow: visible; }
+
+/* 장면이 먼저, 패널은 나중에(2026-11-18 사용자 지시: 영상 전환이 다 끝난 뒤 패널이 스르륵 열리고 그때부터 누를 수 있게).
+   단계가 바뀌면 화면 내용(패널 · 카메라 칸)을 바로 숨기고, 영상이 다음 장면에 도착하면(ProgramApp data-arrived — 도착 인사 조각이 그려진 때) 떠오른다.
+   pg-body 에는 transform 을 주지 않는다(사주 구리거울 카메라의 position: fixed 기준이 바뀐다) — 위로 떠오르는 건 패널만 */
+.pg[data-video] .pg-body { opacity: 0; pointer-events: none; }
+.pg[data-video] .pg-body .pg-split > .pg-panel { transform: translateY(16px); }
+.pg[data-video][data-arrived] .pg-body { opacity: 1; pointer-events: auto; transition: opacity .55s ease .08s; }
+.pg[data-video][data-arrived] .pg-body .pg-split > .pg-panel { transform: none; transition: transform .7s cubic-bezier(.2, .8, .2, 1) .08s; }

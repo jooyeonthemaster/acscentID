@@ -12,7 +12,7 @@
 //   글과 초상을 함께 받아 초상 위에 붓글씨로 얹는다(portrait-print.ts). 초상을 못 받으면 찍은 사진을 세피아로 같은 원판에.
 
 import { AlertTriangle, Camera, Check, Clock, Delete, Home, Printer, RefreshCw, RotateCcw } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { optionOf } from '@/lib/booth/programs/catalog'
 import {
   FACE_MOOD_LABEL, faceMood, PALM_OPEN_LABEL, palmOpen, READING_NOTICE, sajuViewOf,
@@ -129,7 +129,8 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
   const simple = Boolean(report) && program.id === 'nh-face'
   // 영상판 — 단계가 바뀌면 장면을, 결과 · 저장에서는 고른 인화물을 족자에 얹게 알린다
   // 관상은 AI 초상을 족자 비단에 그리고, 사주는 고른 사주 카드(인화물)를 받침대 종이에 얹는다
-  useEffect(() => {
+  // 그리기 전에 알린다(useLayoutEffect) — 새 단계 화면이 한 프레임이라도 장면보다 먼저 보이지 않게(영상이 넘어간 뒤에 패널이 열린다)
+  useLayoutEffect(() => {
     const face = program.id === 'nh-face'
     report?.(step, (step === 'result' || step === 'save') && made ? { art: face ? made.art ?? made.prints[design] : made.prints[design], painted: face && Boolean(made.art), title: made.story.keyword } : null)
   }, [report, step, made, design, program.id])
