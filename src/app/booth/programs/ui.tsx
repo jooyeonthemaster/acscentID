@@ -36,11 +36,13 @@ export function Creative({ text }: { text?: string }) {
   return <p className="pg-creative" role="note">{text}</p>
 }
 
-export function OptionGroups({ groups, choices, onChange, disabled }: {
+export function OptionGroups({ groups, choices, onChange, disabled, art = false }: {
   groups: ProgramOptionGroup[]
   choices: Record<string, string>
   onChange: (group: string, option: string) => void
   disabled?: boolean
+  /** 영상판 — 옵션의 art 그림을 타일에 얹는다 */
+  art?: boolean
 }) {
   return (
     <div className="pg-groups">
@@ -55,6 +57,8 @@ export function OptionGroups({ groups, choices, onChange, disabled }: {
                   {/* 그림이 있으면 타일은 사진, 칩은 작은 아이콘 — 글자 없는 그림, 이름은 아래 글자 */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {option.image ? <img className="pg-opt-img" src={option.image} alt="" aria-hidden="true" /> : group.look !== 'chips' && <span className="pg-opt-swatch" style={{ background: option.swatch }} aria-hidden="true" />}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {art && option.art && <img className="pg-opt-art" src={option.art} alt="" aria-hidden="true" />}
                   <span className="pg-opt-label">{option.label}{option.sub && group.look === 'tiles' && <small>{option.sub}</small>}</span>
                   {on && <span className="pg-opt-check" aria-hidden="true"><Check size={16} strokeWidth={3} /></span>}
                 </button>

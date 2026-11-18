@@ -177,7 +177,7 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
       {step === 'topic' && (
         <Split className="pg-options" visual={<Photo url={shotUrls[0]} />}>
           <PanelHead title={program.options.title} sub={program.options.sub} />
-          <OptionGroups groups={program.options.groups} choices={choices} onChange={(g, o) => setChoices((c) => ({ ...c, [g]: o }))} />
+          <OptionGroups groups={program.options.groups} choices={choices} onChange={(g, o) => setChoices((c) => ({ ...c, [g]: o }))} art={Boolean(report)} />
           <Creative text={program.creative} />
           <div className="pg-actions">
             <button type="button" className="pg-btn pg-btn--line" onClick={() => { setShot(0, null); setStep('capture') }}><RotateCcw size={20} />다시 촬영</button>

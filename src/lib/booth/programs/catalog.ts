@@ -38,6 +38,8 @@ export interface ProgramOption {
   prompt?: string
   /** 타일·칩 그림(글자 없는 사진·아이콘) — 있으면 색 대신 그림을 보여 준다(주거복지대전 3종, public/assets/booth-programs/housing/) */
   image?: string
+  /** 영상판(&lab=video)에서만 타일에 얹는 그림 — 기본 화면은 그대로(FACE! 주제, 수묵담채) */
+  art?: string
 }
 
 export interface ProgramOptionGroup {
@@ -693,10 +695,11 @@ export const PROGRAMS: ProgramDef[] = [
       title: '어떤 새해 이야기를\n듣고 싶으세요?', sub: '고르시는 동안 초상을 그리고 있어요 — 고른 주제와 오늘의 표정으로 이야기를 지어요', cta: '새해 이야기 만들기',
       groups: [
         { id: 'topic', label: '새해 이야기 주제', look: 'tiles', options: [
-          { id: 'work', label: '일과 성장', sub: '새해에 키우고 싶은 일', swatch: 'linear-gradient(160deg,#f3e3c3,#c9a24a)' },
-          { id: 'people', label: '사람과 인연', sub: '함께하는 사람들', swatch: 'linear-gradient(160deg,#f8dcd2,#d9826b)' },
-          { id: 'rest', label: '쉼과 여유', sub: '나를 돌보는 시간', swatch: 'linear-gradient(160deg,#e3ecdf,#7fa58a)' },
-          { id: 'challenge', label: '새로운 도전', sub: '처음 해 볼 일', swatch: 'linear-gradient(160deg,#f6d3c6,#b3261e)' },
+          // art — 영상판 타일 그림: 대나무 순(성장) · 매화 가지의 까치 한 쌍(인연) · 찻주전자와 부채(쉼) · 폭포로 뛰어오르는 잉어(도전)
+          { id: 'work', label: '일과 성장', sub: '새해에 키우고 싶은 일', swatch: 'linear-gradient(160deg,#f3e3c3,#c9a24a)', art: '/assets/booth-programs/nh-face-video/topic-work.webp' },
+          { id: 'people', label: '사람과 인연', sub: '함께하는 사람들', swatch: 'linear-gradient(160deg,#f8dcd2,#d9826b)', art: '/assets/booth-programs/nh-face-video/topic-people.webp' },
+          { id: 'rest', label: '쉼과 여유', sub: '나를 돌보는 시간', swatch: 'linear-gradient(160deg,#e3ecdf,#7fa58a)', art: '/assets/booth-programs/nh-face-video/topic-rest.webp' },
+          { id: 'challenge', label: '새로운 도전', sub: '처음 해 볼 일', swatch: 'linear-gradient(160deg,#f6d3c6,#b3261e)', art: '/assets/booth-programs/nh-face-video/topic-challenge.webp' },
         ] },
       ],
     },
