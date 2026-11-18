@@ -10,7 +10,7 @@ import { getBoothShell } from '@/lib/photobooth/booth-shell'
 import { RESULT_PHOTO_TTL_HOURS } from '@/lib/photobooth/result-photo'
 import { linkAlive, type SavedLink } from './save'
 import { useCountdown } from './flow'
-import { formatTime } from './ui'
+import { formatTime, usePlain } from './ui'
 
 /** 화면에 QR 을 보여 두는 시간 — 파일 보관(7일)과 다르다 */
 export const QR_SCREEN_SECONDS = 120
@@ -51,6 +51,8 @@ export function QrCard({ state, label = '휴대폰으로 저장', progress }: {
 }) {
   const left = useCountdown(state.shownAt + QR_SCREEN_SECONDS * 1000, !!state.link)
   const expired = !!state.link && left <= 0
+  /** 영상판 — QR 안내 글 없음 */
+  const plain = usePlain()
   return (
     <section className="pg-card pg-qr" aria-label={label}>
       <div className="pg-qr-code" data-expired={expired || undefined}>
@@ -80,8 +82,8 @@ export function QrCard({ state, label = '휴대폰으로 저장', progress }: {
           </>
         ) : (
           <>
-            <p>휴대폰 카메라로 QR을 찍으면 바로 저장할 수 있어요.</p>
-            <p className="pg-qr-time"><Clock size={16} aria-hidden="true" />화면 표시 {formatTime(left)} · 파일은 {RESULT_PHOTO_TTL_HOURS / 24}일 동안 받을 수 있어요</p>
+            {!plain && <p>휴대폰 카메라로 QR을 찍으면 바로 저장할 수 있어요.</p>}
+            {!plain && <p className="pg-qr-time"><Clock size={16} aria-hidden="true" />화면 표시 {formatTime(left)} · 파일은 {RESULT_PHOTO_TTL_HOURS / 24}일 동안 받을 수 있어요</p>}
           </>
         )}
       </div>
@@ -126,6 +128,7 @@ export function PrintCard({ printer, label = '사진 1장 인쇄', note = '4×6 
 }) {
   const { state, error, print, browser } = printer
   const waiting = preparing && state === 'idle'
+  const plain = usePlain()
   return (
     <section className="pg-card pg-print" aria-label={label}>
       <Printer size={44} aria-hidden="true" />
@@ -138,7 +141,7 @@ export function PrintCard({ printer, label = '사진 1장 인쇄', note = '4×6 
       ) : state === 'sent' ? (
         <p role="status">{browser ? '인쇄 창을 열었어요. 부스에서는 프린터로 바로 보내요.' : '프린터로 보냈어요. 1분쯤 뒤 출구에서 나와요.'}</p>
       ) : (
-        <p>{waiting ? '사진에 휴대폰 저장 QR을 넣는 중이에요…' : note}</p>
+        (waiting || !plain) ? <p>{waiting ? '사진에 휴대폰 저장 QR을 넣는 중이에요…' : note}</p> : null
       )}
       <button type="button" className="pg-btn pg-btn--line" onClick={() => void print()} disabled={waiting || state === 'sending' || state === 'sent' || state === 'failed'}>
         {waiting ? <><Loader2 className="pg-spin" size={18} />준비 중…</> : state === 'sending' ? <><Loader2 className="pg-spin" size={18} />보내는 중…</> : state === 'sent' ? '인쇄 요청 보냄' : '인쇄하기'}

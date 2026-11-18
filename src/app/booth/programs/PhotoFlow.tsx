@@ -13,7 +13,7 @@ import { loadCanvasFonts } from './fonts'
 import { loadPrintArt, renderProgramPrint, type PrintInput } from './print-designs'
 import { savePhoto } from './save'
 import { PrintCard, QrCard, usePrint, useSavedLink } from './SavePanel'
-import { Creative, Modal, OptionGroups, PanelHead, Progress, Split, Stages, useElapsed } from './ui'
+import { Creative, Modal, OptionGroups, PanelHead, Progress, Split, Stages, useElapsed, usePlain } from './ui'
 import { loadImage } from './video'
 import { FUNGROUND_SITE, fungroundWebcamOnly, isFungroundSite } from '@/lib/funground/demo'
 import { FgeOptions, FgeResult, useFgEditorial, type FgeArt } from './funground-editorial'
@@ -290,7 +290,7 @@ export function CaptureStep({ ctx, shots, shotUrls, setShot, onNext, fge }: {
               ))}
             </div>
           )}
-          {program.kind === 'reading' ? (
+          {program.kind === 'reading' ? (video ? null :
             // 새해 이야기(관상 · 사주 · 손금) — 그림은 만들지 않고 글만 AI 가 쓴다. 사주는 사진을 AI 에 보내지 않는다(카드에만)
             <p className="pg-consent pg-consent--note"><span><b>촬영하기를 누르면</b> 사진 촬영과 AI 새해 이야기 만들기에 동의한 것으로 봐요. {program.reading?.birth ? '사진은 새해 카드에만 들어가고 AI에 보내지 않아요.' : '찍은 사진은 이야기를 쓰는 데만 쓰고 저장하지 않아요.'} 결과 카드는 QR로 받을 때만 7일 보관해요.</span></p>
           ) : (
@@ -470,6 +470,7 @@ export function SaveStep({ ctx, image, printNow = false }: {
   /** 펀그라운드 에디토리얼 결과 화면의 「인쇄하기」로 왔으면 바로 인쇄(브라우저는 인쇄 미리보기 창) — 그 밖에는 늘 false */
   printNow?: boolean
 }) {
+  const plain = usePlain()
   const { program } = ctx
   const make = useCallback(async () => savePhoto(await ctx.getTicket(), image), [ctx, image])
   const saved = useSavedLink(make, true)
@@ -497,7 +498,7 @@ export function SaveStep({ ctx, image, printNow = false }: {
           <section className="pg-card pg-print" aria-label="사진 1장 인쇄">
             <Printer size={44} aria-hidden="true" />
             <b>사진 1장 인쇄</b>
-            <p>4×6 사진 한 장 · 화면과 같은 디자인</p>
+            {!plain && <p>4×6 사진 한 장 · 화면과 같은 디자인</p>}
             <button type="button" className="pg-btn pg-btn--line" onClick={() => { setPreview(true); markShot({ printed: true }) }}>인쇄하기</button>
           </section>
         ) : (

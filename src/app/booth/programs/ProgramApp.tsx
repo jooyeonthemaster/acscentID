@@ -24,7 +24,7 @@ import { MvFlow } from './MvFlow'
 import { MovieFlow } from './MovieFlow'
 import { StripFlow } from './StripFlow'
 import { ReadingFlow } from './ReadingFlow'
-import { Modal, Wordmark } from './ui'
+import { Modal, PlainText, Wordmark } from './ui'
 import { AsvStart, AsvTopBar } from './AsvParts'
 import { FgeStart, FgeTopBar, useFgEditorial } from './funground-editorial'
 import { preloadVideoPlan, useLab, VIDEO_PLANS, VideoStage, type StageArt } from './video-stage'
@@ -159,7 +159,7 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
           ? <AsvTopBar program={program} flow={screen === 'flow'} step={step} onHome={requestHome} onHelp={() => setHelp(true)} />
           : fge ? <FgeTopBar step={screen === 'start' ? 1 : screen === 'pass' ? 2 : step} onHome={requestHome} />
             : <TopBar program={program} screen={screen} step={step} onHome={requestHome} onHelp={() => setHelp(true)} />}
-        <main className="pg-body">
+        <main className="pg-body"><PlainText.Provider value={Boolean(plan)}>
           {screen === 'start' && (program.kind === 'strip' ? <AsvStart program={program} onStart={start} /> : fge ? <FgeStart program={program} art={fge} onStart={start} /> : <StartScreen program={program} onStart={start} plain={Boolean(plan)} />)}
           {screen === 'pass' && <PassScreen onBack={home} onTicket={(t) => { ticketRef.current = t; setScreen('flow') }} />}
           {screen === 'flow' && (
@@ -169,7 +169,7 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
                   : program.kind === 'reading' ? <ReadingFlow key={session} ctx={ctx} />
                   : <MovieFlow key={session} ctx={ctx} />
           )}
-        </main>
+        </PlainText.Provider></main>
         {!demo && screen === 'start' && <AdminHold onOpen={() => setAdmin(true)} />}
 
         {confirmExit && (

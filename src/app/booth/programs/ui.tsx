@@ -4,7 +4,7 @@
 // 색·글꼴·장식은 programs.css 의 프로그램별 테마가 맡는다(같은 부품이라도 프로그램마다 모양이 다르다).
 
 import { Check, Maximize, Pause, Play, Volume2, VolumeX } from 'lucide-react'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { ProgramDef, ProgramOptionGroup } from '@/lib/booth/programs/catalog'
 
 export function Wordmark({ program, size = 'lg' }: { program: ProgramDef; size?: 'sm' | 'lg' | 'xl' }) {
@@ -21,18 +21,24 @@ export function Split({ visual, children, className }: { visual: ReactNode; chil
   )
 }
 
+/** 영상판(&lab=video) — 제목 아래 설명 · 머리말 · 안내 같은 작은 설명 글을 그리지 않는다(2026-11-18 사용자 지시). ProgramApp 이 감싼다 */
+export const PlainText = createContext(false)
+export const usePlain = () => useContext(PlainText)
+
 export function PanelHead({ title, sub, eyebrow }: { title: string; sub?: string; eyebrow?: ReactNode }) {
+  const plain = usePlain()
   return (
     <header className="pg-head">
-      {eyebrow && <div className="pg-eyebrow">{eyebrow}</div>}
+      {eyebrow && !plain && <div className="pg-eyebrow">{eyebrow}</div>}
       <h2>{title.split('\n').map((line, i) => <span key={i}>{line}</span>)}</h2>
-      {sub && <p>{sub}</p>}
+      {sub && !plain && <p>{sub}</p>}
     </header>
   )
 }
 
 export function Creative({ text }: { text?: string }) {
-  if (!text) return null
+  const plain = usePlain()
+  if (!text || plain) return null
   return <p className="pg-creative" role="note">{text}</p>
 }
 
@@ -44,11 +50,12 @@ export function OptionGroups({ groups, choices, onChange, disabled, art = false 
   /** 영상판 — 옵션의 art 그림을 타일에 얹는다 */
   art?: boolean
 }) {
+  const plain = usePlain()
   return (
     <div className="pg-groups">
       {groups.map((group) => (
         <fieldset key={group.id} className={`pg-group pg-group--${group.look}`} disabled={disabled}>
-          <legend>{group.label}</legend>
+          {!plain && <legend>{group.label}</legend>}
           <div className="pg-group-items" role="radiogroup" aria-label={group.label}>
             {group.options.map((option) => {
               const on = choices[group.id] === option.id

@@ -27,7 +27,7 @@ import { CaptureStep, SaveStep } from './PhotoFlow'
 import { loadReadingPrintAssets, renderReadingPrint } from './reading-print'
 import { renderPortraitPrint, type FaceBox } from './portrait-print'
 import { loadSajuPrintAssets, renderSajuPrint } from './saju-print'
-import { Creative, Modal, OptionGroups, PanelHead, Split, Stages, useElapsed } from './ui'
+import { Creative, Modal, OptionGroups, PanelHead, Split, Stages, useElapsed, usePlain } from './ui'
 import { loadImage } from './video'
 
 type Step = 'birth' | 'capture' | 'topic' | 'generating' | 'result' | 'save'
@@ -259,6 +259,8 @@ function Generate({ ctx, shot, shotUrl, subject, birth, topic, reading, portrait
   onDone: (m: Made) => void
   onBack: () => void
 }) {
+  /** 영상판 — 기다림 안내 글 없음 */
+  const plain = usePlain()
   const { program } = ctx
   const [stage, setStage] = useState(0)
   const [error, setError] = useState<string | null>(null)
@@ -333,7 +335,7 @@ function Generate({ ctx, shot, shotUrl, subject, birth, topic, reading, portrait
       <div className="pg-reading-wait" role="status" aria-live="polite">
         <p className="pg-reading-elapsed">{elapsed}<span>초</span></p>
         <i className="pg-reading-line" aria-hidden="true" />
-        <p>{portrait ? '초상까지 보통 10~20초 걸려요' : '보통 5~10초 걸려요'}</p>
+        {!plain && <p>{portrait ? '초상까지 보통 10~20초 걸려요' : '보통 5~10초 걸려요'}</p>}
       </div>
       <Stages labels={program.generating.stages} active={stage} />
       <Creative text={READING_NOTICE} />
@@ -397,7 +399,7 @@ function BirthStep({ initial, onBack, onNext, single = false }: { initial: FgBir
         <button type="button" onClick={() => { setDigits(''); setError(null) }} aria-label="모두 지우기">지움</button>
       </div>
       {error && <p className="pg-error-text" role="alert">{error}</p>}
-      {single && <p className="pg-muted pg-birth-note">예) 1975년 3월 8일 → 19750308 · 생년월일은 이야기를 만드는 데만 쓰고 저장하지 않아요</p>}
+      {!single && <p className="pg-muted pg-birth-note">예) 1975년 3월 8일 → 19750308 · 생년월일은 이야기를 만드는 데만 쓰고 저장하지 않아요</p>}
       <div className="pg-actions">
         <button type="button" className="pg-btn pg-btn--line" onClick={onBack}>처음으로</button>
         <button type="button" className="pg-btn pg-btn--accent pg-btn--grow" disabled={!birth} onClick={go}>다음 · 사진 찍기<span aria-hidden="true">→</span></button>
