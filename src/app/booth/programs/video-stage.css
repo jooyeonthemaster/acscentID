@@ -43,7 +43,7 @@
 .pg[data-video] .pg-capture-step .pg-cam { border-color: #efe6d4; box-shadow: 0 24px 60px rgba(0, 0, 0, .45); }
 
 /* 결과 — 패널이 한 화면에 들어오게 조금 촘촘히 */
-.pg[data-video][data-kind] .pg-reading-result .pg-panel { gap: 10px; padding-top: 16px; padding-bottom: 16px; }
+.pg[data-video][data-kind] .pg-reading-result .pg-panel { gap: 10px; padding-top: 16px; }
 .pg[data-video][data-kind] .pg-reading-result .pg-design img { max-height: 128px; width: auto; }
 .pg[data-video][data-kind] .pg-reading-result .pg-creative { font-size: 12px; padding-top: 8px; }
 
@@ -75,3 +75,82 @@
 .pg[data-video][data-program='nh-saju'] .pg-capture-step .pg-capture > * { grid-area: 1 / 1 !important; }
 .pg[data-video][data-program='nh-saju'] .pg-capture-step .pg-cam { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 6px solid rgba(214, 160, 92, .85); box-shadow: 0 0 40px rgba(255, 190, 110, .35), 0 20px 50px rgba(0, 0, 0, .4); }
 .pg[data-video][data-program='nh-saju'] .pg-capture-step .pg-cam :is(video, canvas, img) { width: 100%; height: 100%; object-fit: cover; }
+
+/* 결과 패널은 족자(받침대 종이)를 다 걸어 펼친 뒤에 — 결과 장면에 도착하면(ProgramApp data-arrived) 초상이 비단에 번지는 동안 기다렸다 떠오른다(2026-11-18 사용자 지시) */
+.pg[data-video][data-kind] .pg-reading-result .pg-panel { opacity: 0; transform: translateY(18px); pointer-events: none; }
+.pg[data-video][data-kind][data-arrived] .pg-reading-result .pg-panel { opacity: 1; transform: none; pointer-events: auto; transition: opacity .7s ease 1.1s, transform .8s cubic-bezier(.2, .8, .2, 1) 1.1s; }
+
+/* FACE! 결과 — 한지 서책 한 장(2026-11-18 사용자 지시: 오른쪽 UI 손보기). 상아색 한지 · 붉은 두 줄 테(광곽) · 붓글씨 덕담 · 주홍 낙관 · 인장 같은 인쇄 버튼 */
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-panel {
+  --pg-ink: #2a1f16; --pg-muted: #7d6a55; --pg-accent: #a8291f; --pg-line: rgba(140, 70, 40, .22);
+  /* 버튼 자리를 다른 단계 패널과 같게 — 아래 21 · 오른쪽 25(테두리 1px 포함 같은 값) */
+  position: relative; gap: 0; padding: 38px 25px 21px; border: 0; border-radius: 2px; color: var(--pg-ink);
+  background:
+    radial-gradient(ellipse 140% 90% at 50% 0%, rgba(255, 255, 255, .55), transparent 60%),
+    radial-gradient(circle at 20% 80%, rgba(160, 120, 70, .08), transparent 40%),
+    repeating-linear-gradient(97deg, rgba(120, 90, 50, .035) 0 2px, transparent 2px 7px),
+    #efe5cf;
+  box-shadow: inset 0 0 0 12px #efe5cf, inset 0 0 0 13.5px #a8291f, inset 0 0 0 16px #efe5cf, inset 0 0 0 17px rgba(168, 41, 31, .7), 0 28px 70px rgba(0, 0, 0, .5);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+/* 오른쪽 위 낙관(丁未) */
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-panel::after {
+  content: '丁未'; position: absolute; top: 30px; right: 32px; width: 44px; padding: 6px 0; writing-mode: vertical-rl; text-align: center;
+  font-family: 'nh-hanja', 'Noto Serif KR', serif; font-size: 18px; line-height: 1.1; letter-spacing: .1em; color: #f6ecd8; background: #b3261e; border-radius: 4px;
+  box-shadow: inset 0 0 0 2px rgba(255, 240, 220, .35); transform: rotate(3deg); opacity: .92;
+}
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-head { gap: 4px; padding-right: 56px; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-eyebrow { font-family: 'nh-myeongjo', 'Noto Serif KR', serif; font-style: normal; font-size: 13px; letter-spacing: .18em; color: var(--pg-muted); }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-head h2 { font-family: 'nh-myeongjo', 'Noto Serif KR', serif; font-weight: 400; font-size: 24px; letter-spacing: .02em; color: var(--pg-ink); }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-head p { font-family: 'nh-myeongjo', 'Noto Serif KR', serif; font-size: 14px; color: var(--pg-muted); }
+/* 덕담 키워드 — 큰 붓글씨, 위아래 가는 붉은 선 */
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-reading-story { margin: 18px 0 14px; padding: 14px 0 12px; gap: 2px; border-color: var(--pg-line); text-align: center; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-reading-story b { font-family: 'nh-brush', 'nh-myeongjo', serif; font-weight: 400; font-size: 64px; line-height: 1; color: #1d140d; letter-spacing: .02em; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-reading-story span { font-family: 'nh-myeongjo', 'Noto Serif KR', serif; font-size: 15px; color: var(--pg-muted); letter-spacing: .06em; }
+/* 이야기 — 옛 명조 */
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-reading-lines { gap: 8px; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-reading-lines p { font-family: 'nh-myeongjo', 'Noto Serif KR', serif; font-size: 17px; line-height: 1.75; color: #3a2b1e; }
+/* 축원 한 줄 — 붓글씨 주홍 */
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-reading-lines .pg-reading-wish { margin-top: 10px; font-family: 'nh-brush', 'nh-myeongjo', serif; font-size: 30px; line-height: 1.25; color: var(--pg-accent); text-align: center; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-creative { margin-top: 14px; border-top-color: var(--pg-line); color: var(--pg-muted); font-size: 11.5px; line-height: 1.5; }
+/* 버튼 — 처음으로는 먹선, 인쇄하기는 주홍 인장 */
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-actions { gap: 12px; padding-top: 16px; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-btn { border-radius: 3px; font-family: 'nh-myeongjo', 'Noto Serif KR', serif; font-size: 19px; font-weight: 400; letter-spacing: .08em; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-btn--line { background: transparent; color: var(--pg-ink); border: 1px solid rgba(42, 31, 22, .45); }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-btn--accent { background: #b3261e; color: #f8efdd; border: 0; box-shadow: inset 0 0 0 3px rgba(255, 236, 210, .28), 0 6px 16px rgba(120, 20, 10, .3); }
+
+/* 패널 버튼 자리 고정(2026-11-18 사용자 지시) — 패널은 화면 높이를 꽉 채우고, 앞으로 가는 버튼은 내용 길이와 상관없이 늘 패널 오른쪽 아래 같은 자리 · 같은 너비.
+   내용이 길면 버튼을 밀어내지 않고 가운데 글만 패널 안에서 스크롤한다(관상 · 사주 테마는 패널을 overflow: hidden 으로 잘라 인쇄하기 버튼이 잘렸다).
+   보이지 않는 칸(::before, order 80, 늘어남)이 버튼 묶음(order 89~91)을 아래로 민다. 모달(pg-modal) 안 버튼 줄은 건드리지 않는다 */
+.pg[data-video][data-kind] .pg-split > .pg-panel { --vs-btn-w: 56%; --vs-panel-solid: rgba(14, 11, 9, .96); height: 100%; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.pg[data-video][data-kind] .pg-split > .pg-panel::-webkit-scrollbar { display: none; }
+.pg[data-video][data-kind] .pg-split > .pg-panel::before { content: ''; order: 80; flex: 1 0 0; min-height: 0; margin: 0; padding: 0; }
+.pg[data-video][data-kind] .pg-split > .pg-panel > :is(.pg-actions, .pg-btn--shoot, .pg-btn--wide) { order: 90; flex: none; margin-top: 0; }
+/* 촬영 — 휴대폰 사진 가져오기 · 촬영하기를 오른쪽 아래에 위아래로 */
+.pg[data-video][data-kind] .pg-split > .pg-panel > .pg-btn--shoot ~ .pg-btn--line { order: 89; align-self: flex-end; width: var(--vs-btn-w); flex: none; }
+.pg[data-video][data-kind] .pg-split > .pg-panel > :is(.pg-btn--shoot, .pg-btn--wide) { align-self: flex-end; width: var(--vs-btn-w); }
+.pg[data-video][data-kind] .pg-split > .pg-panel > .pg-btn--wide { order: 91; }
+/* 버튼 줄 — 앞으로(accent)는 오른쪽에 같은 너비, 뒤로(line)는 그 왼쪽 남는 자리 */
+.pg[data-video][data-kind] .pg-split > .pg-panel > .pg-actions { flex-wrap: nowrap; justify-content: flex-end; }
+.pg[data-video][data-kind] .pg-split > .pg-panel > .pg-actions > .pg-btn--accent { flex: 0 0 var(--vs-btn-w); }
+.pg[data-video][data-kind] .pg-split > .pg-panel > .pg-actions > .pg-btn--line { flex: 1 1 0; min-width: 0; }
+/* 내용이 넘쳐 스크롤될 때도 버튼은 아래에 붙어 보인다 — 맨 끝 버튼(줄)만, 뒤 글이 비치지 않게 바닥색 */
+.pg[data-video][data-kind] .pg-split > .pg-panel > :is(.pg-actions, .pg-btn--wide, .pg-btn--shoot):last-child { position: sticky; bottom: 0; z-index: 2; box-shadow: 0 -18px 18px -6px var(--vs-panel-solid); }
+.pg[data-video][data-kind] .pg-split > .pg-panel > .pg-actions:last-child { padding-top: 10px; background: var(--vs-panel-solid); box-shadow: 0 -16px 16px -4px var(--vs-panel-solid); }
+/* 한지 서책(FACE! 결과) — 바닥색을 한지 색으로, 테두리 안쪽까지 */
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple > .pg-panel { --vs-panel-solid: #efe5cf; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-actions { margin-top: 0; }
+
+/* 모든 단계 같은 자리(2026-11-18 사용자 지시: 다음으로 넘어가는 버튼은 모든 단계에서 같은 위치, 패널은 스크롤 없이).
+   앞으로 가는 버튼 = 패널 오른쪽 아래 · 너비 --vs-btn-w · 높이 56px — 시작(큰 버튼) · 촬영(76px)도 같게. 패널은 스크롤하지 않는다(내용이 들어가게 촘촘히) */
+.pg[data-video][data-kind] .pg-split > .pg-panel { overflow-y: hidden; }
+.pg[data-video][data-kind] .pg-split > .pg-panel > :is(.pg-btn--hero, .pg-btn--shoot) { order: 90; flex: none; align-self: flex-end; width: var(--vs-btn-w); min-height: 56px; height: 56px; margin: 0; font-size: 18px; }
+.pg[data-video][data-kind] .pg-start > .pg-panel { justify-content: flex-start; padding-top: 28px; }
+/* 결과 이야기 — 길게 와도 패널 안에(줄마다 두 줄까지) */
+.pg[data-video][data-kind] .pg-reading-lines p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* FACE! 결과(한지 서책) — 긴 이야기도 한 장 안에 */
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-panel { padding-top: 30px; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-reading-story { margin: 12px 0 10px; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-creative { margin-top: 8px; }
+/* 태어난 시간 고르기 창 — 스크롤 없이 한 번에 */
+.pg[data-video] .pg-modal:has(.pg-birth-hours) { max-height: none; overflow: visible; }

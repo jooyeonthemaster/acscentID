@@ -91,6 +91,10 @@ const FINISH_MAX_RATE = 2
 const FINISH_S = 1.8
 /** 다음 조각이 첫 프레임을 그린 뒤 겹쳐 오는 시간 */
 const FADE_MS = 150
+/** 넘김을 미리 — 앞 조각이 이만큼(실제 초) 남았을 때 다음 조각을 틀기 시작한다. 끝난 뒤에 틀면 시작 지연 동안 마지막 그림이 66~100ms 머물러 '뚝' 끊겨 보였다(2026-11-18 실측) */
+const LEAD_S = 0.12
+/** 다음 조각의 첫 그림은 앞 조각의 마지막 그림과 같다(이음매) — 같은 그림이 두 번 이어지지 않게 한 장 건너뛰고 시작한다 */
+const SKIP_S = 0.04
 const BEAT_S = 4
 const moveMs = (m: Move) => { const w = m.walk ?? WALK_RATE; return Math.round(1000 * (m.out / w + (m.in - m.out) / FAST_RATE + (m.len - m.in) / w)) }
 
@@ -114,7 +118,11 @@ export function preloadVideoPlan(plan: VideoPlan) {
   for (const v of names) void fetch(`${plan.base}/${v}.mp4`).catch(() => undefined)
 }
 
-export function VideoStage({ plan, scene, overlay }: { plan: VideoPlan; scene: string; /** 결과 장면에 그릴 손님 초상 */ overlay: StageArt | null }) {
+export function VideoStage({ plan, scene, overlay, onArrive }: {
+  plan: VideoPlan; scene: string; /** 결과 장면에 그릴 손님 초상 */ overlay: StageArt | null
+  /** 도착 — 가야 할 장면의 첫 조각(인사)이 화면에 그려진 때. 이동 영상(족자를 걸어 펼치기 등)이 다 끝난 뒤다 */
+  onArrive?: (scene: string) => void
+}) {
   /** prev: 지금 조각이 그려질 때까지 마지막 프레임을 붙드는 앞 조각 · cur: 트는 조각 · pick: 다음 대기 · on: cur 가 그려졌다 */
   const [st, setSt] = useState<{ prev: Clip | null; cur: Clip; pick: number; on: boolean }>(() => ({ prev: null, cur: hi(scene, 0), pick: 0, on: false }))
   const { prev, cur } = st
@@ -123,6 +131,7 @@ export function VideoStage({ plan, scene, overlay }: { plan: VideoPlan; scene: s
   const shown = (id: number) => setSt((x) => (x.cur.id === id ? { ...x, prev: null, on: true } : x))
   const endRef = useRef(ended)
   useEffect(() => { endRef.current = ended })
+  useEffect(() => { if (st.on && !cur.move) onArrive?.(cur.at) }, [st.on, cur, onArrive])
   // 안전장치 — 영상이 멈추거나 안 받아지면 다음 조각으로
   useEffect(() => {
     const ms = (cur.move ? moveMs(cur.move) : BEAT_S * 1000) + 3000
@@ -184,6 +193,19 @@ function Film({ base, src, play, finish = false, move, onShown, onEnd }: {
     return () => { off = true; window.clearTimeout(timer) }
   }, [play, move])
 
+  // 넘김을 미리 — 남은 몫(빠르기로 나눈 실제 초)이 LEAD_S 아래로 내려가면 한 번만 끝났다고 알린다(앞 조각은 마저 돌며 다음 조각이 그려질 때까지 화면을 잇는다)
+  useEffect(() => {
+    const v = ref.current
+    if (!v || !play) return
+    let raf = 0, told = false
+    const tick = () => {
+      if (!told && Number.isFinite(v.duration) && v.duration > 0 && !v.paused && (v.duration - v.currentTime) / (v.playbackRate || 1) <= LEAD_S) { told = true; cb.current.onEnd?.() }
+      if (!told) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [play])
+
   // 마저 틀기 — 누른 순간 남은 몫으로 빠르기를 정하고 끝까지 유지, 0.2초쯤에 걸쳐 올린다
   useEffect(() => {
     const v = ref.current
@@ -213,6 +235,7 @@ function Film({ base, src, play, finish = false, move, onShown, onEnd }: {
   }, [move, play])
 
   return <video ref={ref} className="vs-v vs-film" data-on={seen || undefined} src={`${base}/${src}.mp4`} muted playsInline preload="auto" disablePictureInPicture
+    onLoadedData={(e) => { const v = e.currentTarget; if (!play && v.currentTime === 0) v.currentTime = SKIP_S }}
     onEnded={() => cb.current.onEnd?.()} onError={() => cb.current.onEnd?.()} />
 }
 

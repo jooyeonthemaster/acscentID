@@ -39,6 +39,10 @@ const FAST_RATE = 3.5
 const FINISH_MAX_RATE = 2
 const FINISH_S = 1.2
 const FADE_MS = 150
+/** 넘김을 미리 — 앞 조각이 이만큼(실제 초) 남았을 때 다음 조각을 틀기 시작한다. 끝난 뒤에 틀면 시작 지연 동안 마지막 그림이 66~100ms 머물러 '뚝' 끊겨 보였다(2026-11-18 실측) */
+const LEAD_S = 0.12
+/** 다음 조각의 첫 그림은 앞 조각의 마지막 그림과 같다(이음매) — 같은 그림이 두 번 이어지지 않게 한 장 건너뛰고 시작한다 */
+const SKIP_S = 0.04
 const BEAT_S = 4
 const moveMs = (m: KxMove) => Math.round(1000 * (m.out / WALK_RATE + (m.in - m.out) / FAST_RATE + (m.len - m.in) / WALK_RATE))
 
@@ -154,6 +158,19 @@ function Film({ base, src, play, finish = false, move, onFast, onShown, onEnd }:
     return () => { off = true; window.clearTimeout(timer) }
   }, [play, move])
 
+  // 넘김을 미리 — 남은 몫(빠르기로 나눈 실제 초)이 LEAD_S 아래로 내려가면 한 번만 끝났다고 알린다(앞 조각은 마저 돌며 다음 조각이 그려질 때까지 화면을 잇는다)
+  useEffect(() => {
+    const v = ref.current
+    if (!v || !play) return
+    let raf = 0, told = false
+    const tick = () => {
+      if (!told && Number.isFinite(v.duration) && v.duration > 0 && !v.paused && (v.duration - v.currentTime) / (v.playbackRate || 1) <= LEAD_S) { told = true; cb.current.onEnd?.() }
+      if (!told) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [play])
+
   // 마저 틀기 — 누른 순간 남은 몫으로 빠르기를 한 번 정하고 끝까지
   useEffect(() => {
     const v = ref.current
@@ -185,6 +202,7 @@ function Film({ base, src, play, finish = false, move, onFast, onShown, onEnd }:
   }, [move, play])
 
   return <video ref={ref} className="kv-plate kv-film" data-on={seen || undefined} src={`${base}/${src}.mp4`} muted playsInline preload="auto" disablePictureInPicture
+    onLoadedData={(e) => { const v = e.currentTarget; if (!play && v.currentTime === 0) v.currentTime = SKIP_S }}
     onEnded={() => cb.current.onEnd?.()} onError={() => cb.current.onEnd?.()} />
 }
 

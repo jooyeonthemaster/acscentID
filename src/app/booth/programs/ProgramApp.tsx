@@ -63,6 +63,8 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
   const [flowView, setFlowView] = useState<{ step: string; overlay: StageArt | null }>({ step: '', overlay: null })
   const report = useCallback((step: string, overlay: StageArt | null) => setFlowView((v) => (v.step === step && v.overlay?.art === overlay?.art && v.overlay?.title === overlay?.title ? v : { step, overlay })), [])
   useEffect(() => { if (plan) preloadVideoPlan(plan) }, [plan])
+  /** 영상이 도착한 장면 — 결과 패널은 족자를 다 걸어 펼친 뒤(결과 장면 도착)에 나타난다(video-stage.css data-arrived) */
+  const [arrived, setArrived] = useState<string | null>(null)
   const screenSettings = useScreenBackgrounds('booth')
   const { baseSettings, synced } = screenSettings
   const passRequired = !demo && boothPassRequired(baseSettings)
@@ -143,9 +145,9 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
   }
 
   return (
-    <div className={`pg ${FONT_VARS}${program.kind === 'strip' ? ' asv' : ''}`} data-program={program.id} data-kind={program.kind} data-site={fge ? 'funground' : undefined} data-video={plan ? '' : undefined}>
+    <div className={`pg ${FONT_VARS}${program.kind === 'strip' ? ' asv' : ''}`} data-program={program.id} data-kind={program.kind} data-site={fge ? 'funground' : undefined} data-video={plan ? '' : undefined} data-arrived={plan && scene && arrived === scene ? '' : undefined}>
       <div className="pg-stage" style={{ '--pg-scale': scale } as CSSProperties}>
-        {plan && scene && <VideoStage plan={plan} scene={scene} overlay={flowView.overlay} />}
+        {plan && scene && <VideoStage plan={plan} scene={scene} overlay={flowView.overlay} onArrive={setArrived} />}
         {/* ANSAN(띠지 kind)은 축제 공식 웹사이트 디자인(AsvParts · asv.css) */}
         {program.kind === 'strip'
           ? <AsvTopBar program={program} flow={screen === 'flow'} step={step} onHome={requestHome} onHelp={() => setHelp(true)} />

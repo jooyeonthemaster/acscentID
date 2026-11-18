@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowUpRight, Languages, LayoutGrid, Printer, Smartphone, Sparkles, WandSparkles } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { DemoCleanLinkMaker } from '@/components/demo/DemoCleanLinkMaker'
+import { DemoTabs } from '@/components/demo/DemoTabs'
 import { KIOSK_DEMOS, KIOSK_DEMO_NEEDS, kioskDemoCardHref, type KioskDemo } from '@/lib/kiosk/demo'
 import './kiosk-demo.css'
 
@@ -65,6 +66,7 @@ export function KioskDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey
   const clean = Boolean(cleanKey)
   return (
     <div className="kd">
+      <DemoTabs current="kiosk" cleanKey={cleanKey} />
       {cleanRejected && (
         <p className="kd-notice" role="status">워터마크 없는 링크가 아니거나 사용 기간이 지났어요. 워터마크가 있는 데모로 보여 드려요 — 새 링크는 담당자에게 요청해 주세요.</p>
       )}

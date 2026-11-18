@@ -63,6 +63,7 @@ export function middleware(request: NextRequest) {
     pathname === '/kiosk-demo' ||
     pathname === '/kiosk-demo/clean' ||
     pathname === '/kiosk-demo/video' ||
+    pathname === '/kiosk-demo/video/clean' ||
     pathname === '/booth-demo' ||
     pathname === '/booth-demo/clean' ||
     // 펀그라운드 별내 견적 데모(랜딩 · 서명판 · 세로 시작 화면 · 전용 화면) — src/lib/funground/demo.ts
