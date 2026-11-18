@@ -57,8 +57,10 @@ export function OptionGroups({ groups, choices, onChange, disabled, art = false 
                   {/* 그림이 있으면 타일은 사진, 칩은 작은 아이콘 — 글자 없는 그림, 이름은 아래 글자 */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {option.image ? <img className="pg-opt-img" src={option.image} alt="" aria-hidden="true" /> : group.look !== 'chips' && <span className="pg-opt-swatch" style={{ background: option.swatch }} aria-hidden="true" />}
+                  {/* 자리 · 크기는 글자 칸과 따로 늘 같게(인라인 — 스타일시트가 늦게 와도 타일이 커지지 않게) */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {art && option.art && <img className="pg-opt-art" src={option.art} alt="" aria-hidden="true" />}
+                  {art && option.art && <img className="pg-opt-art" src={option.art} alt="" aria-hidden="true" width={360} height={360}
+                    style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '58%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />}
                   <span className="pg-opt-label">{option.label}{option.sub && group.look === 'tiles' && <small>{option.sub}</small>}</span>
                   {on && <span className="pg-opt-check" aria-hidden="true"><Check size={16} strokeWidth={3} /></span>}
                 </button>

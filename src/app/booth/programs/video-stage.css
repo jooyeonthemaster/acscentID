@@ -174,9 +174,9 @@
 .pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-reading-lines p { font-size: 15px; line-height: 1.55; }
 
 /* FACE! 주제 타일(영상판) — 타일마다 수묵담채 그림(대나무 순 · 까치 한 쌍 · 찻주전자와 부채 · 잉어)을 오른쪽에, 한지 타일과 같은 바탕이라 곱하기로 스미게 */
-.pg[data-video][data-kind] .pg-options .pg-opt { position: relative; overflow: hidden; min-height: 118px; }
-.pg[data-video][data-kind] .pg-options .pg-opt-art { position: absolute; right: -10%; top: 50%; height: 120%; aspect-ratio: 1; translate: 0 -50%; object-fit: cover; mix-blend-mode: multiply; opacity: .9; pointer-events: none; transition: transform .4s ease;
-  -webkit-mask-image: radial-gradient(closest-side, #000 55%, transparent 100%); mask-image: radial-gradient(closest-side, #000 55%, transparent 100%); }
+.pg[data-video][data-kind] .pg-options .pg-opt { position: relative; overflow: hidden; min-height: 118px; height: 118px; }
+.pg[data-video][data-kind] .pg-options .pg-opt-art { mix-blend-mode: multiply; opacity: .9; transition: transform .4s ease; transform-origin: 70% 50%;
+  -webkit-mask-image: radial-gradient(closest-side, #000 50%, transparent 100%); mask-image: radial-gradient(closest-side, #000 50%, transparent 100%); }
 .pg[data-video][data-kind] .pg-options .pg-opt[aria-checked='true'] .pg-opt-art { transform: scale(1.06); }
 .pg[data-video][data-kind] .pg-options .pg-opt-label { position: relative; z-index: 1; }
 .pg[data-video][data-kind] .pg-options .pg-opt-check { z-index: 2; }
