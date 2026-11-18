@@ -180,3 +180,10 @@
 .pg[data-video][data-kind] .pg-options .pg-opt[aria-checked='true'] .pg-opt-art { transform: scale(1.06); }
 .pg[data-video][data-kind] .pg-options .pg-opt-label { position: relative; z-index: 1; }
 .pg[data-video][data-kind] .pg-options .pg-opt-check { z-index: 2; }
+
+/* 자잘한 설명 글 빼기(2026-11-18 사용자 지시: 모든 과정에서 작게 쓰인 설명은 다 뺀다) — 영상판에서만.
+   남기는 것: 큰 제목 · 버튼 · 생년월일 숫자 · 주제 타일 이름 · AI 이야기 · 진행 단계 · QR · 카메라 준비 표시 */
+.pg[data-video][data-kind] .pg-body :is(
+  .pg-kicker, .pg-lead, .pg-creative, .pg-eyebrow, .pg-head > p, .pg-consent--note, .pg-birth-note, .pg-muted,
+  .pg-group > legend, .pg-reading-wait > p:not(.pg-reading-elapsed), .pg-qr-time, .pg-card > p, .pg-card-body > p, .pg-qr-text > p:not(.pg-error-text)
+) { display: none; }
