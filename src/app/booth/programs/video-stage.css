@@ -162,3 +162,13 @@
 .pg[data-video] .pg-body .pg-split > .pg-panel { transform: translateY(16px); }
 .pg[data-video][data-arrived] .pg-body { opacity: 1; pointer-events: auto; transition: opacity .55s ease .08s; }
 .pg[data-video][data-arrived] .pg-body .pg-split > .pg-panel { transform: none; transition: transform .7s cubic-bezier(.2, .8, .2, 1) .08s; }
+
+/* 촬영(영상판) — 카메라를 오른쪽 패널 안에(관상 등, 사주는 구리거울 그대로). 제목 아래 남는 높이를 카메라가 채우고, 버튼 줄은 늘 같은 자리 */
+.pg[data-video][data-kind] .pg-capture-step--panel > .pg-panel::before { flex-grow: 0; }
+.pg[data-video][data-kind] .pg-capture-step--panel > .pg-panel > .pg-capture { flex: 1 1 0; min-height: 0; width: 100%; max-height: none; margin: 0; }
+.pg[data-video][data-kind] .pg-capture-step--panel .pg-cam { border-width: 8px; box-shadow: none; }
+.pg[data-video][data-kind] .pg-capture-step--panel .pg-consent--note { padding: 8px 10px; font-size: 12px; line-height: 1.45; }
+.pg[data-video][data-kind] .pg-capture-step--panel .pg-count { font-size: 160px; }
+/* FACE! 결과 — 이야기가 길게 와도(세 줄이 모두 두 줄로) 한 장 안에 */
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-reading-lines { gap: 4px; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-reading-simple .pg-reading-lines p { font-size: 15px; line-height: 1.55; }

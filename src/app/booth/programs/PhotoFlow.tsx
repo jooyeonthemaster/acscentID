@@ -168,6 +168,10 @@ export function CaptureStep({ ctx, shots, shotUrls, setShot, onNext, fge }: {
   const [allowDslr] = useState(() => !fungroundWebcamOnly())
   const camera = useCamera({ enabled: !done, allowDslr })
   const [delay, setDelay] = useState<3 | 5>(3)
+  /** 부스 영상판(&lab=video — ctx.report 가 있다): 타이머는 3초 고정, 휴대폰 사진 · 촬영하기를 한 줄에(2026-11-18 사용자 지시).
+   *  카메라도 오른쪽 패널 안에 — 사주는 영상 속 구리거울 안에 카메라가 뜨므로 그대로 둔다 */
+  const video = Boolean(ctx.report)
+  const camInPanel = video && program.id !== 'nh-saju'
   const [count, setCount] = useState<number | null>(null)
   const [flash, setFlash] = useState(false)
   // 새해 이야기(reading)는 체크 상자 없이 「촬영하기」를 누르면 동의한 것으로 본다(안내 문구만 둔다, 2026-11-17 사용자 지시 — ANSAN 과 같은 방식)
@@ -267,22 +271,25 @@ export function CaptureStep({ ctx, shots, shotUrls, setShot, onNext, fge }: {
   }
 
   return (
-    <Split className={`pg-capture-step${fge && count !== null ? ' pgf-counting' : ''}`} visual={visual}>
+    <Split className={`pg-capture-step${fge && count !== null ? ' pgf-counting' : ''}${camInPanel ? ' pg-capture-step--panel' : ''}`} visual={camInPanel ? <div /> : visual}>
       <PanelHead
         title={done ? '사진을 확인해 주세요' : need > 1 ? `${active === 0 ? '첫 번째' : '두 번째'} 사람을 찍어 주세요` : program.capture.title}
         sub={done ? '마음에 들면 다음으로, 아니면 다시 찍을 수 있어요' : program.capture.hint}
         eyebrow={need > 1 ? `${shots.filter(Boolean).length} / ${need}` : fge ? '02 / 촬영' : undefined}
       />
       {fge && count !== null && <b className="pgf-count" aria-hidden="true">{count || '찰칵'}</b>}
+      {camInPanel && visual}
       {faceWarning && <p className="pg-warn" role="alert"><AlertTriangle size={18} aria-hidden="true" />{faceWarning}</p>}
       {error && <p className="pg-error-text" role="alert">{error}</p>}
       {!done ? (
         <>
-          <div className="pg-timer" role="radiogroup" aria-label="타이머">
-            {([3, 5] as const).map((s) => (
-              <button key={s} type="button" role="radio" aria-checked={delay === s} disabled={count !== null} onClick={() => setDelay(s)}><Timer size={18} />{s}초 타이머</button>
-            ))}
-          </div>
+          {!video && (
+            <div className="pg-timer" role="radiogroup" aria-label="타이머">
+              {([3, 5] as const).map((s) => (
+                <button key={s} type="button" role="radio" aria-checked={delay === s} disabled={count !== null} onClick={() => setDelay(s)}><Timer size={18} />{s}초 타이머</button>
+              ))}
+            </div>
+          )}
           {program.kind === 'reading' ? (
             // 새해 이야기(관상 · 사주 · 손금) — 그림은 만들지 않고 글만 AI 가 쓴다. 사주는 사진을 AI 에 보내지 않는다(카드에만)
             <p className="pg-consent pg-consent--note"><span><b>촬영하기를 누르면</b> 사진 촬영과 AI 새해 이야기 만들기에 동의한 것으로 봐요. {program.reading?.birth ? '사진은 새해 카드에만 들어가고 AI에 보내지 않아요.' : '찍은 사진은 이야기를 쓰는 데만 쓰고 저장하지 않아요.'} 결과 카드는 QR로 받을 때만 7일 보관해요.</span></p>
@@ -292,12 +299,24 @@ export function CaptureStep({ ctx, shots, shotUrls, setShot, onNext, fge }: {
               <span><span>사진 촬영과 AI 사진 생성에 동의해요.</span> 찍은 사진은 생성에만 쓰고, 저장을 누른 결과만 7일 보관해요.</span>
             </label>
           )}
-          <button type="button" className="pg-btn pg-btn--accent pg-btn--shoot" onClick={shoot} disabled={count !== null || camera.state !== 'ready' || !consent}>
-            <Camera size={30} />{count !== null ? `${count || '찰칵'}…` : (program.capture.people === 2 && need === 1) || program.capture.group ? '함께 촬영하기' : '촬영하기'}
-          </button>
-          <button type="button" className="pg-btn pg-btn--line" onClick={() => setPhone(true)} disabled={count !== null || !consent}>
-            <ImagePlus size={20} />{need > 1 ? '사진 두 장 가져오기' : '휴대폰 사진 가져오기'}
-          </button>
+          {video ? (
+            // 영상판 — 왼쪽 휴대폰 사진 · 오른쪽 촬영하기(앞으로 가는 버튼 자리)
+            <div className="pg-actions pg-capture-actions">
+              <button type="button" className="pg-btn pg-btn--line" onClick={() => setPhone(true)} disabled={count !== null || !consent}>
+                <ImagePlus size={20} />휴대폰 사진
+              </button>
+              <button type="button" className="pg-btn pg-btn--accent pg-btn--grow" onClick={shoot} disabled={count !== null || camera.state !== 'ready' || !consent}>
+                <Camera size={22} />{count !== null ? `${count || '찰칵'}…` : '촬영하기'}
+              </button>
+            </div>
+          ) : <>
+            <button type="button" className="pg-btn pg-btn--accent pg-btn--shoot" onClick={shoot} disabled={count !== null || camera.state !== 'ready' || !consent}>
+              <Camera size={30} />{count !== null ? `${count || '찰칵'}…` : (program.capture.people === 2 && need === 1) || program.capture.group ? '함께 촬영하기' : '촬영하기'}
+            </button>
+            <button type="button" className="pg-btn pg-btn--line" onClick={() => setPhone(true)} disabled={count !== null || !consent}>
+              <ImagePlus size={20} />{need > 1 ? '사진 두 장 가져오기' : '휴대폰 사진 가져오기'}
+            </button>
+          </>}
           {!consent && <p className="pg-muted">촬영하려면 위 동의를 눌러 주세요.</p>}
         </>
       ) : (
