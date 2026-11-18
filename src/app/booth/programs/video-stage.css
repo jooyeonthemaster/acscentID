@@ -53,15 +53,25 @@
 .pg[data-video][data-kind] .pg-reading-lines .pg-reading-wish { margin-top: 4px; font-family: var(--nh-serif), serif; font-size: 18px; color: var(--pg-accent); }
 .pg[data-video][data-kind] .pg-reading-simple .pg-actions { margin-top: auto; }
 
-/* 사주 생년월일 — 날짜 · 양력음력 · 태어난 시간 칸(왼쪽 그림 칸)은 영상 위 유리판으로 남긴다(서고 장면의 책장 앞) */
-.pg[data-video] .pg-birth > .pg-visual > * { visibility: visible; }
-.pg[data-video] .pg-birth > .pg-visual { justify-content: flex-end; align-items: flex-end; }
-.pg[data-video][data-kind] .pg-birth-visual { width: 58%; height: auto; align-self: flex-end; padding: 18px 20px; border-radius: 6px; background: rgba(12, 10, 8, .72); border: 1px solid rgba(255, 244, 222, .14);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 24px 60px rgba(0, 0, 0, .35); }
+/* 사주 생년월일 — 날짜 · 양력음력 · 태어난 시간 · 키패드를 오른쪽 유리판 하나에(BirthStep single). 한 화면 높이 안에 들게 촘촘히 */
+.pg[data-video][data-kind] .pg-birth--single .pg-panel { gap: 10px; }
+.pg[data-video][data-kind] .pg-birth--single .pg-birth-display { justify-content: center; font-size: 56px; padding: 4px 0 6px; border-bottom: 1px solid var(--pg-line); }
+.pg[data-video][data-kind] .pg-birth--single .pg-birth-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: stretch; }
+/* 음력이면 윤달이 붙어 셋 — 그때는 달력 한 줄 · 시간 한 줄 */
+.pg[data-video][data-kind] .pg-birth--single .pg-birth-opts:has(.pg-birth-cal > :nth-child(3)) { grid-template-columns: 1fr; }
+.pg[data-video][data-kind] .pg-birth--single .pg-birth-opts:has(.pg-birth-cal > :nth-child(3)) .pg-birth-cal button, .pg[data-video][data-kind] .pg-birth--single .pg-birth-opts:has(.pg-birth-cal > :nth-child(3)) .pg-birth-hour { min-height: 40px; }
+.pg[data-video][data-kind] .pg-birth--single .pg-birth-cal { display: flex; gap: 6px; margin: 0; min-width: 0; }
+.pg[data-video][data-kind] .pg-birth--single .pg-birth-cal button { flex: 1; }
+.pg[data-video][data-kind] .pg-birth--single .pg-birth-cal button { min-height: 44px; padding: 0 12px; white-space: nowrap; }
+.pg[data-video][data-kind] .pg-birth--single .pg-birth-hour { flex: 1; min-width: 0; min-height: 44px; margin: 0; justify-content: center; gap: 6px; font-size: 15px; white-space: nowrap; }
+.pg[data-video][data-kind] .pg-birth--single .pg-birth-keypad { grid-auto-rows: 52px; }
+.pg[data-video][data-kind] .pg-birth--single .pg-birth-keypad button { min-height: 0; height: 100%; }
+.pg[data-video][data-kind] .pg-birth--single:has(.pg-birth-cal > :nth-child(3)) .pg-birth-keypad { grid-auto-rows: 46px; }
+.pg[data-video][data-kind] .pg-birth--single:has(.pg-birth-cal > :nth-child(3)) .pg-birth-display { font-size: 48px; padding-bottom: 2px; }
+.pg[data-video][data-kind] .pg-birth--single .pg-birth-note { margin: 0; font-size: 12px; line-height: 1.45; }
 /* 사주 촬영 — 카메라를 영상 속 둥근 구리거울 자리에(1920×1080 기준 가운데 820 · 475, 지름 약 500) */
 .pg[data-video][data-program='nh-saju'] .pg-capture-step .pg-capture { position: fixed; left: 42.7%; top: 44%; width: 26%; height: auto; aspect-ratio: 1; translate: -50% -50%; display: grid; grid-template: 1fr / 1fr; }
 /* 찍은 사진 칸 · 카메라 칸은 거울 하나에 겹친다 */
 .pg[data-video][data-program='nh-saju'] .pg-capture-step .pg-capture > * { grid-area: 1 / 1 !important; }
 .pg[data-video][data-program='nh-saju'] .pg-capture-step .pg-cam { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 6px solid rgba(214, 160, 92, .85); box-shadow: 0 0 40px rgba(255, 190, 110, .35), 0 20px 50px rgba(0, 0, 0, .4); }
 .pg[data-video][data-program='nh-saju'] .pg-capture-step .pg-cam :is(video, canvas, img) { width: 100%; height: 100%; object-fit: cover; }
-.pg[data-video][data-kind] .pg-birth-display { font-size: 64px; }

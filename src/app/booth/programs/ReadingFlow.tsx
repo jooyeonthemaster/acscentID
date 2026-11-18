@@ -157,7 +157,7 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
 
   return (
     <>
-      {step === 'birth' && <BirthStep initial={birth} onBack={ctx.requestHome} onNext={(b) => { setBirth(b); setStep('capture') }} />}
+      {step === 'birth' && <BirthStep initial={birth} single={Boolean(report)} onBack={ctx.requestHome} onNext={(b) => { setBirth(b); setStep('capture') }} />}
       {step === 'capture' && (
         <>
           <CaptureStep ctx={ctx} shots={shots} shotUrls={shotUrls} setShot={setShot} onNext={() => void afterCapture()} />
@@ -343,7 +343,7 @@ function Generate({ ctx, shot, shotUrl, subject, birth, topic, reading, portrait
 // ───────────────────────── 생년월일(사주) ─────────────────────────
 
 /** 숫자 여덟 자리(YYYYMMDD)를 누르는 키패드 + 양력 · 음력 + 태어난 시간(모름이 기본) — 중장년 손님도 한 번에 */
-function BirthStep({ initial, onBack, onNext }: { initial: FgBirth | null; onBack: () => void; onNext: (birth: FgBirth) => void }) {
+function BirthStep({ initial, onBack, onNext, single = false }: { initial: FgBirth | null; onBack: () => void; onNext: (birth: FgBirth) => void; /** 영상판 — 날짜 · 양음력 · 시간까지 키패드 패널 하나에(2026-11-18 사용자 지시: 팝업창 두 개 말고 하나로) */ single?: boolean }) {
   const [digits, setDigits] = useState(() => initial ? `${initial.year}${String(initial.month).padStart(2, '0')}${String(initial.day).padStart(2, '0')}` : '')
   const [calendar, setCalendar] = useState<'solar' | 'lunar'>(initial?.calendar ?? 'solar')
   const [leap, setLeap] = useState(Boolean(initial?.isLeapMonth))
@@ -363,20 +363,32 @@ function BirthStep({ initial, onBack, onNext }: { initial: FgBirth | null; onBac
     const part = digits.slice(from, to)
     return <span className="pg-birth-part" data-empty={!part || undefined} data-active={digits.length >= from && digits.length < to || undefined}>{part.padEnd(to - from, '·') || holder}</span>
   }
+  const display = <div className="pg-birth-display" aria-live="polite">{slot(0, 4, 'YYYY')}<i>.</i>{slot(4, 6, 'MM')}<i>.</i>{slot(6, 8, 'DD')}</div>
+  const cal = (
+    <div className="pg-birth-cal" role="radiogroup" aria-label="양력 · 음력">
+      {(['solar', 'lunar'] as const).map((c) => <button key={c} type="button" role="radio" aria-checked={calendar === c} onClick={() => { setCalendar(c); setError(null) }}>{c === 'solar' ? '양력' : '음력'}</button>)}
+      {calendar === 'lunar' && <button type="button" role="checkbox" aria-checked={leap} onClick={() => setLeap((v) => !v)}>윤달</button>}
+    </div>
+  )
+  // 영상판(한 패널)은 줄여서 — 「시간 · 모름」 / 「시간 · 자시」
+  const hour = single
+    ? <button type="button" className="pg-birth-hour" onClick={() => setHourOpen(true)} aria-label={`태어난 시간 · ${hourIndex == null ? '모름' : FG_HOURS[hourIndex].label}`}><Clock size={18} />시간 · <b>{hourIndex == null ? '모름' : FG_HOURS[hourIndex].label}</b></button>
+    : <button type="button" className="pg-birth-hour" onClick={() => setHourOpen(true)}><Clock size={22} />태어난 시간 · <b>{hourIndex == null ? '모름' : `${FG_HOURS[hourIndex].label} (${FG_HOURS[hourIndex].range})`}</b></button>
   return (
-    <Split className="pg-birth" visual={
+    <Split className={`pg-birth${single ? ' pg-birth--single' : ''}`} visual={single ? <div /> :
       <div className="pg-birth-visual">
         <p className="pg-birth-label">생년월일 8자리</p>
-        <div className="pg-birth-display" aria-live="polite">{slot(0, 4, 'YYYY')}<i>.</i>{slot(4, 6, 'MM')}<i>.</i>{slot(6, 8, 'DD')}</div>
-        <div className="pg-birth-cal" role="radiogroup" aria-label="양력 · 음력">
-          {(['solar', 'lunar'] as const).map((c) => <button key={c} type="button" role="radio" aria-checked={calendar === c} onClick={() => { setCalendar(c); setError(null) }}>{c === 'solar' ? '양력' : '음력'}</button>)}
-          {calendar === 'lunar' && <button type="button" role="checkbox" aria-checked={leap} onClick={() => setLeap((v) => !v)}>윤달</button>}
-        </div>
-        <button type="button" className="pg-birth-hour" onClick={() => setHourOpen(true)}><Clock size={22} />태어난 시간 · <b>{hourIndex == null ? '모름' : `${FG_HOURS[hourIndex].label} (${FG_HOURS[hourIndex].range})`}</b></button>
+        {display}
+        {cal}
+        {hour}
         <p className="pg-muted">예) 1975년 3월 8일 → 1 9 7 5 0 3 0 8 · 생년월일은 이야기를 만드는 데만 쓰고 저장하지 않아요</p>
       </div>
     }>
-      <PanelHead title={'생년월일을\n눌러 주세요'} sub="숫자 여덟 자리면 바로 다음으로 갈 수 있어요" />
+      {single ? <>
+        <PanelHead title="생년월일을 눌러 주세요" />
+        {display}
+        <div className="pg-birth-opts">{cal}{hour}</div>
+      </> : <PanelHead title={'생년월일을\n눌러 주세요'} sub="숫자 여덟 자리면 바로 다음으로 갈 수 있어요" />}
       <div className="pg-keypad pg-birth-keypad">
         {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'back', '0'].map((k) => (
           <button key={k} type="button" onClick={() => press(k)} aria-label={k === 'back' ? '지우기' : k}>{k === 'back' ? <Delete size={26} /> : k}</button>
@@ -384,6 +396,7 @@ function BirthStep({ initial, onBack, onNext }: { initial: FgBirth | null; onBac
         <button type="button" onClick={() => { setDigits(''); setError(null) }} aria-label="모두 지우기">지움</button>
       </div>
       {error && <p className="pg-error-text" role="alert">{error}</p>}
+      {single && <p className="pg-muted pg-birth-note">예) 1975년 3월 8일 → 19750308 · 생년월일은 이야기를 만드는 데만 쓰고 저장하지 않아요</p>}
       <div className="pg-actions">
         <button type="button" className="pg-btn pg-btn--line" onClick={onBack}>처음으로</button>
         <button type="button" className="pg-btn pg-btn--accent pg-btn--grow" disabled={!birth} onClick={go}>다음 · 사진 찍기<span aria-hidden="true">→</span></button>
