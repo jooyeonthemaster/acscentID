@@ -99,7 +99,7 @@ export function NhLanding({ cleanKey, cleanRejected = false }: { cleanKey?: stri
       </section>
 
       <section className="nh-section">
-        <div className="nh-section-head"><h2>새로 만든 판 · 영상판</h2><p>위 프로그램과 같은 추천 · 이야기 · 결과물을, 영상 속 길잡이(소믈리에 · 도화서 화원)가 안내하는 판으로 만들었어요. 위 판 대신 고르실 수 있어요.</p></div>
+        <div className="nh-section-head"><h2>새로 만든 판 · 영상판</h2><p>위 프로그램과 같은 추천 · 이야기 · 결과물을, 영상 속 길잡이(소믈리에 · 도화서 화원 · 천문 관원)가 안내하는 판으로 만들었어요. 위 판 대신 고르실 수 있어요.</p></div>
         <ul className="nh-grid">{NH_NEW_DEMOS.map((d) => <Card key={d.key} demo={d} cleanKey={cleanKey} />)}</ul>
       </section>
 

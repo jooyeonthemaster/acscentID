@@ -128,7 +128,11 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
   /** 영상판 관상 — 결과는 초상 포스터 하나, 인쇄하기를 누르면 바로 인쇄 */
   const simple = Boolean(report) && program.id === 'nh-face'
   // 영상판 — 단계가 바뀌면 장면을, 결과 · 저장에서는 고른 인화물을 족자에 얹게 알린다
-  useEffect(() => { report?.(step, (step === 'result' || step === 'save') && made ? { art: made.art ?? made.prints[design], painted: Boolean(made.art), title: made.story.keyword } : null) }, [report, step, made, design])
+  // 관상은 AI 초상을 족자 비단에 그리고, 사주는 고른 사주 카드(인화물)를 받침대 종이에 얹는다
+  useEffect(() => {
+    const face = program.id === 'nh-face'
+    report?.(step, (step === 'result' || step === 'save') && made ? { art: face ? made.art ?? made.prints[design] : made.prints[design], painted: face && Boolean(made.art), title: made.story.keyword } : null)
+  }, [report, step, made, design, program.id])
   useEffect(() => { showStep(step === 'birth' || step === 'capture' ? 1 : step === 'topic' || step === 'generating' ? 2 : 3) }, [step, showStep])
   useEffect(() => { setDirty(step !== 'birth' && step !== 'capture' ? true : shots.some(Boolean) || Boolean(birth)) }, [step, shots, birth, setDirty])
 

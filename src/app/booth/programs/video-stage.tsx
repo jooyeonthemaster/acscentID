@@ -57,7 +57,26 @@ const FACE: VideoPlan = {
   frame: { scene: 'scroll', x: 703, y: 218, w: 361, h: 650 },
 }
 
-export const VIDEO_PLANS: Partial<Record<ProgramId, VideoPlan>> = { 'nh-face': FACE }
+/** SAJU! 사주 — 관상감 천문 관원 「하율」: 밤의 관상감 마당 → 만세력 서고(생년월일) → 구리거울(촬영) → 관측대 별밤(사주 세우기) → 정미년 첫 해돋이(사주 카드) → 접어 건네고 다시 마당 */
+const SAJU: VideoPlan = {
+  base: '/assets/booth-programs/nh-saju-video',
+  start: 'gate', firstFlow: 'library',
+  steps: { birth: 'library', capture: 'mirror', generating: 'sky', result: 'card', save: 'card' },
+  pics: { gate: 'gate', library: 'library', mirror: 'mirror', sky: 'sky', card: 'card' },
+  idles: 2,
+  moves: {
+    // 0.25초 간격 프레임으로 잰 out · in(2026-11-18)
+    'gate>library': { src: 'move-library', out: 2.25, in: 5.2, len: 8 },
+    'library>mirror': { src: 'move-mirror', out: 3.6, in: 5.2, len: 8 },
+    'mirror>sky': { src: 'move-sky', out: 2, in: 5.4, len: 8 },
+    'sky>card': { src: 'move-card', out: 8, in: 8, len: 8, walk: 1.4 },
+    'card>gate': { src: 'move-gate', out: 3.75, in: 5.65, len: 8 },
+  },
+  // 받침대의 빈 종이(x 650~1298 · y 352~875) 중 결과 패널(화면 x 1164~)에 가리지 않는 왼쪽에 사주 카드(3:2)를 — 하율의 손끝은 SilkArt 가 종이 색이 아닌 곳으로 알아보고 남긴다
+  frame: { scene: 'card', x: 662, y: 430, w: 490, h: 360 },
+}
+
+export const VIDEO_PLANS: Partial<Record<ProgramId, VideoPlan>> = { 'nh-face': FACE, 'nh-saju': SAJU }
 
 /** 주소의 &lab= 값(서버 렌더에서는 null) */
 export function useLab(): string | null {
@@ -279,11 +298,13 @@ function SilkArt({ frame, art, video, leaving, style }: {
             let silk = dist < 0.014 ? 1 : dist > 0.03 ? 0 : 1 - (dist - 0.014) / 0.016
             if (s < 150) silk = 0
             const a = silk * (p[i + 3] / 255)
-            if (a <= 0) continue
-            // 그림 × 비단 밝기(기준색에 대한 비) — 빛 · 그림자 · 결이 그림에 그대로
-            d[i] = r + (Math.min(255, p[i] * r / R) - r) * a
-            d[i + 1] = g + (Math.min(255, p[i + 1] * g / G) - g) * a
-            d[i + 2] = b + (Math.min(255, p[i + 2] * b / B) - b) * a
+            // 그림이 없는 곳은 투명 — 영상을 캔버스로 다시 그리면 색 처리가 달라 네모 경계가 보인다(아래 영상이 그대로 보이게)
+            if (a <= 0) { d[i + 3] = 0; continue }
+            // 그림 × 비단 밝기(기준색에 대한 비) — 빛 · 그림자 · 결이 그림에 그대로. 섞는 정도는 알파로(아래 영상 위에 겹친다)
+            d[i] = Math.min(255, p[i] * r / R)
+            d[i + 1] = Math.min(255, p[i + 1] * g / G)
+            d[i + 2] = Math.min(255, p[i + 2] * b / B)
+            d[i + 3] = Math.round(a * 255)
           }
           out.putImageData(px, 0, 0)
         }

@@ -10,7 +10,7 @@ export type NhBuild = 'existing' | 'adapted' | 'new'
 export const NH_BUILD_LABEL: Record<NhBuild, string> = { existing: '기존 프로그램', adapted: '기존 · 고쳐 씀', new: '새로 제작' }
 
 export interface NhDemo {
-  key: 'sommelier' | 'face' | 'saju' | 'palm' | 'sip-video' | 'face-video'
+  key: 'sommelier' | 'face' | 'saju' | 'palm' | 'sip-video' | 'face-video' | 'saju-video'
   device: 'kiosk' | 'booth'
   tag: string
   name: string
@@ -45,10 +45,12 @@ export const NH_DEMOS: NhDemo[] = [
  * 새로 만든 판 — 기존 4종과 따로 보여 준다(2026-11-17 사용자 지시: nh 4종과 영상 버전을 구분해서).
  * SIP! 영상판: 같은 소믈리에(studio-sommelier-nh · 같은 와인 10병 · 같은 추천 규칙)를 1인칭 영상 여정으로 — 주소 &lab=video
  * FACE! 영상판: 같은 관상(nh-face · 같은 초상 · 글 · 인화물)을 도화서 화원이 초상을 그려 족자로 걸어 주는 영상으로 — 주소 &lab=video(2026-11-18)
+ * SAJU! 영상판: 같은 사주(nh-saju)를 관상감 천문 관원 하율이 안내하는 영상으로 — 주소 &lab=video(2026-11-18)
  */
 export const NH_NEW_DEMOS: NhDemo[] = [
   { key: 'sip-video', device: 'kiosk', tag: 'SIP! · 영상판', name: 'AI 소믈리에 — 와이너리 여정', build: 'new', from: '위 AI 소믈리에(같은 와인 10병 · 같은 추천 규칙)를 1인칭 영상 게임으로', desc: '소믈리에 해나를 따라 포도밭 입구 → 포도밭 → 와이너리 → 와인 수장고 → 시음실을 1인칭으로 걸어가며 맛을 고르면, 수장고에서 AI가 시음 와인 10병 중 한 병을 골라 번호로 알려 줘요. 장면마다 움직이는 영상이에요.', time: '2분~2분 30초', wait: 'AI 4~7초', output: '영수증 · 휴대폰 QR', color: '#3a2318', screen: shot('sip-video'), mode: 'studio-sommelier-nh', lab: 'video' },
   { key: 'face-video', device: 'booth', tag: 'FACE! · 영상판', name: '새해 관상 — 도화서 화실', build: 'new', from: '위 새해 관상 이야기(같은 초상 · 덕담 · 4×6 인화)를 화원이 그려 주는 영상으로', desc: '마당에서 인사하는 도화서 화원을 따라 화실로 들어가면, 화원이 구도를 재고 초상을 그린 뒤 족자에 걸어 손님의 초상을 보여 줘요. 마치면 족자를 말아 건네고 마당으로 배웅해요. 장면마다 움직이는 영상이에요.', time: '1분 40초~2분', wait: 'AI 10~20초', output: '4×6 인화 · QR', color: '#2f4a3a', screen: shot('face-video'), print: shot('print-face'), mode: 'nh-face', lab: 'video' },
+  { key: 'saju-video', device: 'booth', tag: 'SAJU! · 영상판', name: '정미년 사주 — 관상감 별밤', build: 'new', from: '위 정미년 사주 이야기(같은 만세력 · 초상 · 접는 카드)를 천문 관원이 안내하는 영상으로', desc: '밤의 관상감에서 천문 관원 하율이 맞이해 만세력 서고에서 생년월일을 찾고, 구리거울로 한 컷 찍은 뒤 관측대 별밤에 사주를 세워요. 정미년 첫 해돋이 속 받침대에 손님의 사주 카드가 걸려요.', time: '2분~2분 30초', wait: 'AI 10~20초', output: '4×6 접는 카드 · QR', color: '#2f3f73', screen: shot('saju-video'), print: shot('print-saju'), mode: 'nh-saju', lab: 'video' },
 ]
 
 export function nhDemoHref(demo: NhDemo, cleanKey?: string): string {
