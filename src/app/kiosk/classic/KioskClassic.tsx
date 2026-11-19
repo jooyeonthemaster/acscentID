@@ -71,6 +71,7 @@ import { SajuChartView, SajuOnePageView, SajuPrescriptionView, SajuPurposeView, 
 import { PerfumerApp } from '../perfumer/PerfumerApp'
 import type { PerfumerCtx, PfStep } from '../perfumer/types'
 import { usePerfumerSwitch } from '../perfumer/usePerfumerSwitch'
+import { requestScentStamp, wrapScentVideoReceipt } from '../perfumer/scent-receipt'
 import { perfumerText } from '@/lib/kiosk/perfumer-i18n'
 
 /** 화면 언어에 맞는 첫 자판 — 손님이 모드를 찾아 누르지 않아도 바로 자기 언어로 쓴다 */
@@ -289,6 +290,11 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
   const storeBrand = kioskMode.id === 'wow'
   /** SCENT! AI 조향사 전용 화면으로 그리는가 — 모드가 바뀌어 갈아타기 전(새로고침 전)에는 예전 화면으로 */
   const perfumerUi = design === 'perfumer' && kioskMode.design === 'perfumer'
+  /** SCENT! 영상판(운영 모드 ai-perfumer-video, 데모 주소는 ai-perfumer + &lab=video) — 하린의 영상 화면에, 영수증 맨 위에 촬영 사진으로 만든 도장 · 맨 아래에 조향사 하린의 사인(../perfumer/scent-receipt.ts, 2026-11-18).
+   *  AI 조향사(ai-perfumer) 기본 화면 · 영수증은 그대로다 */
+  const scentVideo = perfumerUi && (kioskMode.id === 'ai-perfumer-video' || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('lab') === 'video'))
+  /** 그 사진의 도장 그림 요청 — 분석을 시작할 때 미리 보내 두고 영수증을 만들 때 기다린다(사진이 바뀌면 새로) */
+  const scentStampRef = useRef<{ photo: string; image: Promise<string | null> } | null>(null)
   const pcFit = usePcFit(pc)
   // 노트북 — 옷 색 미리보기 파일을 쉬지 않고 받는다(매장 키오스크는 손님 없을 때 천천히)
   useEffect(() => { if (pc) setGarmentDownloadFast(true) }, [pc])
@@ -326,9 +332,17 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
   const [backgroundAdminOpen, setBackgroundAdminOpen] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
-  /** SCENT! 화면이 카메라 영상 요소를 거는 콜백 ref */
-  const setVideoEl = useCallback((el: HTMLVideoElement | null) => { videoRef.current = el }, [])
   const streamRef = useRef<MediaStream | null>(null)
+  /** SCENT! 화면이 카메라 영상 요소를 거는 콜백 ref — 요소가 스트림보다 늦게 그려지면(SCENT! 영상판은 길잡이가 도착한 뒤에
+   *  촬영 판을 띄운다) 그때 켜 둔 스트림을 붙인다. 안 붙이면 화면이 회색이고 videoWidth 가 0 이라 찍히지 않는다 */
+  const setVideoEl = useCallback((el: HTMLVideoElement | null) => {
+    videoRef.current = el
+    const stream = streamRef.current
+    if (el && stream && el.srcObject !== stream && stream.getVideoTracks().some((t) => t.readyState === 'live')) {
+      el.srcObject = stream
+      void el.play().catch(() => {})
+    }
+  }, [])
   const ticketRef = useRef<string | null>(null)
   // 영수증 열기·인쇄가 진행 중인지 — 연타해도 한 번만 렌더·인쇄한다
   const receiptOpeningRef = useRef(false)
@@ -748,7 +762,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
     analysisAbort.current = controller
     const generation = ++analysisGeneration.current
     const isCurrent = () => generation === analysisGeneration.current
-    const perfumer = kioskMode.id === 'ai-perfumer'
+    const perfumer = kioskMode.design === 'perfumer'  // AI 조향사 · 영상판
     const rotation = perfumer ? readPerfumerRotation() : null
     const requestTimeout = window.setTimeout(
       () => controller.abort(new DOMException('Analysis timed out', 'TimeoutError')),
@@ -904,7 +918,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
     program, name, gender, styles, personalities, charms, photo,
     purpose, birthDigits, calendar, isLeapMonth, hourIndex, wish,
     partnerName, partnerGender, partnerRelation, partnerDigits, partnerCalendar, partnerLeap,
-    t, lang, sx, statusLines, tarot.topic, tarot.question, tarot.draws, kioskMode.politeTone, kioskMode.id,
+    t, lang, sx, statusLines, tarot.topic, tarot.question, tarot.draws, kioskMode.politeTone, kioskMode.design,
   ])
 
   // ── 프로그램별 단계 / 결과 장 ───────────────────────────────
@@ -1075,6 +1089,12 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
   ])
 
   // ── 영수증 ────────────────────────────────────────────────
+  // SCENT! 영상판 — 분석을 시작하면 도장 그림을 미리 요청한다(보통 10~25초, 분석 20~40초 동안 끝난다)
+  useEffect(() => {
+    if (!scentVideo || step !== 'analyzing' || !photo || scentStampRef.current?.photo === photo) return
+    scentStampRef.current = { photo, image: requestScentStamp(photo) }
+  }, [scentVideo, step, photo])
+
   const buildReceipt = useCallback(async (): Promise<{ dataUrl: string; base64: string } | null> => {
     if (!result) return null
     const now = new Date()
@@ -1145,7 +1165,8 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
     }
     // 사주는 사진을 쓰지 않는다 (생년월일시만으로 보는 프로그램)
     const rendered = await renderKioskReceipt(data, {
-      photoSrc: isSajuResult(result) || isColorResult(result) || isTarotResult(result) ? null : photo,
+      // SCENT! 영상판은 사진 칸 대신 맨 위에 도장을 찍는다(wrapScentVideoReceipt)
+      photoSrc: scentVideo || isSajuResult(result) || isColorResult(result) || isTarotResult(result) ? null : photo,
       lang,
       brand: {
         ...kioskMode.receipt, eventLines: modeEventLines(kioskMode, lang), theme: isSajuResult(result) ? 'saju' : 'scent',
@@ -1157,8 +1178,15 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
         brandless: !storeBrand,
       },
     })
+    if (scentVideo) {
+      // 도장 그림을 기다린다 — 45초 안에 안 오거나 실패하면 기본 도장(사람 없는 부티크)
+      const pending = photo && scentStampRef.current?.photo === photo ? scentStampRef.current.image : photo ? requestScentStamp(photo) : Promise.resolve(null)
+      const art = await Promise.race([pending, new Promise<null>((resolve) => window.setTimeout(() => resolve(null), 45_000))])
+      const wrapped = await wrapScentVideoReceipt(rendered, { stamp: art, lang, when: stamp.date })
+      return { dataUrl: wrapped.dataUrl, base64: wrapped.base64 }
+    }
     return { dataUrl: rendered.dataUrl, base64: rendered.base64 }
-  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode, sx, px, deviceBaseSettings.receiptStyle, deviceBaseSettings.hanjaFont, storeBrand])
+  }, [result, persona, match, productInfo, name, gender, topTraits, recipeRows, photo, mocked, t, lang, kioskMode, sx, px, deviceBaseSettings.receiptStyle, deviceBaseSettings.hanjaFont, storeBrand, scentVideo])
 
   /** 영수증 한 장을 인쇄한다(프린터 없는 웹 초안은 PNG 저장) — 미리보기의 버튼과 '영수증 출력'이 함께 쓴다 */
   const printReceiptData = useCallback(async (target: { dataUrl: string; base64: string }) => {
@@ -1426,6 +1454,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
     const ctx: PerfumerCtx = {
       step: pfSteps.includes(step as PfStep) ? (step as PfStep) : 'attract',
       inputSteps: steps as PfStep[],
+      variant: scentVideo ? 'video' : undefined,
       lang,
       setLang,
       langLocked: step === 'analyzing' || step === 'result',

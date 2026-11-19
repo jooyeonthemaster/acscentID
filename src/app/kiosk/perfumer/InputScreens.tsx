@@ -59,10 +59,32 @@ export function AttractScreen({ ctx }: { ctx: PerfumerCtx }) {
   )
 }
 
-export function InfoScreen({ ctx }: { ctx: PerfumerCtx }) {
-  const { p, t } = ctx
+/** keyboardApart: 자판을 이 화면 안에 그리지 않는다 — 영상판은 이름 칸 위 말풍선으로 따로 띄운다(PerfumerApp KeyboardPop) */
+/** 영상판 첫 화면 — SIP! 영상판처럼 유리판 없이 영상 위에 큰 제목 · 'OO에서 OO까지' · 터치하여 시작. 화면 어디를 눌러도 시작한다 */
+const VIDEO_ATTRACT: Record<PerfumerCtx['lang'], [string, string]> = {
+  ko: ['골목에서 부티크까지', '터치하여 시작'],
+  en: ['From the lane to the boutique', 'Touch to start'],
+  ja: ['路地からブティックまで', 'タッチしてスタート'],
+  'zh-Hans': ['从小巷到香水精品店', '触摸开始'],
+  'zh-Hant': ['從小巷到香水精品店', '觸摸開始'],
+}
+
+export function VideoAttractScreen({ ctx }: { ctx: PerfumerCtx }) {
+  const [tag, press] = VIDEO_ATTRACT[ctx.lang] ?? VIDEO_ATTRACT.ko
   return (
-    <section className="pf-screen" data-keyboard={ctx.keyboardOpen || undefined}>
+    <button type="button" className="scv-title" onClick={ctx.start} aria-label={press}>
+      <span className="scv-logo" aria-label="SCENT!">SCENT<em>!</em></span>
+      <span className="scv-tag">{tag}</span>
+      <span className="scv-press">{press}</span>
+    </button>
+  )
+}
+
+export function InfoScreen({ ctx, keyboardApart = false }: { ctx: PerfumerCtx; keyboardApart?: boolean }) {
+  const { p, t } = ctx
+  const inline = ctx.keyboardOpen && !keyboardApart
+  return (
+    <section className="pf-screen" data-keyboard={inline || undefined}>
       <StepDots ctx={ctx} />
       <StepHead ctx={ctx} step="info" />
       <h1 className="pf-title">{t.infoTitleSelf}</h1>
@@ -91,7 +113,7 @@ export function InfoScreen({ ctx }: { ctx: PerfumerCtx }) {
         })}
       </div>
 
-      {ctx.keyboardOpen ? (
+      {inline ? (
         <div className="pf-keyboard">{ctx.keyboard}</div>
       ) : (
         <div className="pf-info-art" aria-hidden="true">

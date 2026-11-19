@@ -1,0 +1,101 @@
+/* SCENT! 영상판(?lab=video, scent-plan.ts) — 하린을 따라 향수 하우스를 걷는 영상을 화면 가득 깔고, 입력 화면은 아래 반투명 대화판 안으로.
+   모든 규칙은 .pf-root[data-video] 아래 · .scv-* 에서만 걸린다 — 평소 SCENT! 화면(영상판이 아닌 주소)은 그대로다.
+   움직임은 prefers-reduced-motion 에 묶지 않는다(매장 POS 는 그 설정이 켜져 있다 — kiosk-reduced-motion-trap). */
+
+.pf-root[data-video] {
+  background: #191613;
+  --glass: rgba(250, 248, 242, 0.88);
+}
+
+/* 영상 — 공용 재생기(../video/stage.tsx · stage.css 의 .kv-world 는 container 단위를 쓴다)를 화면 기둥(560×996 --u, 매장 키오스크 1080×1920)과 같은 9:16 상자 — 가로로 넓은 창에서도 영상이 창 너비로 커져 위아래가 잘리지 않게(2026-11-18). 양옆은 어두운 바탕 */
+.scv-bg { position: absolute; left: 50%; top: 50%; z-index: 0; width: calc(var(--u) * 560); height: calc(var(--u) * 996); translate: -50% -50%; overflow: hidden; container-type: size; pointer-events: none; }
+
+/* 머리띠 — 영상 위라 흰 글자 + 위쪽 그늘 */
+.pf-root[data-video]::before { content: ''; position: absolute; inset: 0 0 auto; z-index: 1; height: calc(var(--u) * 150); background: linear-gradient(rgba(12, 10, 8, .5), rgba(12, 10, 8, 0)); pointer-events: none; }
+.pf-root[data-video] .pf-top { color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, .35); }
+.pf-root[data-video] .pf-top .pf-wordmark em { color: #9fb2ff; }
+.pf-root[data-video] .pf-icon-btn:active { background: rgba(255, 255, 255, .16); }
+.pf-root[data-video] .pf-lang-btn[data-locked] { color: rgba(255, 255, 255, .7); }
+
+/* 대화판 — 아래쪽 반투명 유리. 내용만큼 크고(최대 높이), 넘치면 판 안에서 스크롤 */
+.pf-root[data-video] .pf-main {
+  position: absolute;
+  left: 50%;
+  /* 영상 상자(.scv-bg) 아래 끝에서 14 — 창이 기둥보다 세로로 길어도 상자 안에 */
+  bottom: calc((100% - var(--u) * 996) / 2 + var(--u) * 14);
+  z-index: 2;
+  width: calc(var(--u) * 532);
+  height: auto;
+  max-height: calc(var(--u) * 540);
+  flex: none;
+  translate: -50% 0;
+  border: 1px solid rgba(255, 255, 255, .65);
+  border-radius: calc(var(--u) * 26);
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  backdrop-filter: blur(18px) saturate(1.15);
+  box-shadow: 0 calc(var(--u) * 18) calc(var(--u) * 50) rgba(10, 8, 6, .28);
+  overflow: hidden;
+  animation: scv-up .5s cubic-bezier(.2, .8, .2, 1) both;
+}
+/* 촬영 · 결과 · 자판은 자리가 커야 한다(촬영 액자는 남은 높이를 재서 크기를 정하므로 높이를 정해 둔다) */
+.pf-root[data-video]:is([data-shown='capture'], [data-shown='result']) .pf-main { height: calc(var(--u) * 720); max-height: none; }
+/* 떠날 때 — 판이 살짝 가라앉으며 사라지고, 도착하면 새 판이 올라온다(PerfumerApp 이 data-leave 를 붙인다) */
+.pf-root[data-video] .pf-main[data-leave] { animation: scv-down .4s ease-in both; pointer-events: none; }
+@keyframes scv-up { from { opacity: 0; transform: translateY(calc(var(--u) * 40)); } }
+@keyframes scv-down { to { opacity: 0; transform: translateY(calc(var(--u) * 30)); } }
+
+/* 자판 말풍선 — 대화판을 늘리지 않고 이름 칸 위에 뜬다(PerfumerApp KeyboardPop 이 top · 꼬리 자리를 잰다) */
+.scv-kb { --gap: calc(var(--u) * 14); position: absolute; left: 50%; z-index: 6; width: calc(var(--u) * 524); translate: -50% 0; padding: calc(var(--u) * 8); border: 1px solid rgba(255, 255, 255, .7); border-radius: calc(var(--u) * 22); background: rgba(250, 248, 242, .97); box-shadow: 0 calc(var(--u) * 16) calc(var(--u) * 44) rgba(10, 8, 6, .32); transform-origin: var(--tail, 50%) 100%; animation: scv-kb-in .22s cubic-bezier(.2, .9, .3, 1.2) both; }
+@keyframes scv-kb-in { from { opacity: 0; transform: translateY(calc(var(--u) * 10)) scale(.96); } }
+.scv-kb-tail { position: absolute; bottom: calc(var(--u) * -9); left: var(--tail, 50%); width: calc(var(--u) * 18); height: calc(var(--u) * 18); translate: -50% 0; rotate: 45deg; background: rgba(250, 248, 242, .97); border-right: 1px solid rgba(255, 255, 255, .7); border-bottom: 1px solid rgba(255, 255, 255, .7); border-bottom-right-radius: calc(var(--u) * 4); }
+.scv-kb .ksk-osk { position: relative; z-index: 1; }
+
+/* 말하는 사람 — 대화판 맨 위 */
+.scv-speaker { flex: none; display: flex; align-items: baseline; gap: calc(var(--u) * 8); margin: 0; padding: calc(var(--u) * 18) var(--pad) 0; font-size: calc(var(--u) * 17); font-weight: 800; color: var(--blue); }
+.scv-speaker span { font-family: var(--serif); font-size: calc(var(--u) * 13); font-weight: 700; letter-spacing: .14em; color: var(--muted); }
+
+/* 판 안에서는 장식 그림을 뺀다(영상이 그 자리를 한다) */
+.pf-root[data-video] :is(.pf-attract-art, .pf-info-art, .pf-pick-deco, .pf-analyzing-art, .pf-qr-bg, .pf-error-art) { display: none; }
+.pf-root[data-video] .pf-screen { flex: 1 1 auto; padding-top: calc(var(--u) * 4); }
+.pf-root[data-video] .pf-bottom { background: none; padding: calc(var(--u) * 14) 0 calc(var(--u) * 18); }
+.pf-root[data-video] .pf-dots { display: none; }
+.pf-root[data-video] .pf-title { font-size: calc(var(--u) * 28); }
+.pf-root[data-video] .pf-title--pick { max-width: none; font-size: calc(var(--u) * 28); }
+.pf-root[data-video] .pf-desc { margin-top: calc(var(--u) * 6); font-size: calc(var(--u) * 16); }
+.pf-root[data-video] .pf-field-label { margin: calc(var(--u) * 16) 0 calc(var(--u) * 8); }
+.pf-root[data-video] .pf-picked { margin: calc(var(--u) * 12) 0 calc(var(--u) * 10); font-size: calc(var(--u) * 15); }
+
+/* 첫 화면 — SIP! 영상판처럼 유리판 없이 영상 위에 큰 제목 · 한 줄 · 터치하여 시작(InputScreens VideoAttractScreen). 머리띠는 숨긴다 */
+.pf-root[data-video][data-shown='attract']::before,
+.pf-root[data-video][data-shown='attract'] .pf-top { visibility: hidden; }
+.pf-root[data-video][data-shown='attract'] .pf-main { bottom: calc((100% - var(--u) * 996) / 2); height: calc(var(--u) * 996); max-height: none; width: calc(var(--u) * 560); border: 0; border-radius: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; overflow: visible; }
+.scv-title { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: calc(var(--u) * 6); padding: 0 var(--pad) calc(var(--u) * 58); border: 0; background: linear-gradient(rgba(12, 10, 8, 0) 58%, rgba(12, 10, 8, .5)); color: #fff; cursor: pointer; }
+/* 가는 안쪽 테두리 — 그림 액자처럼 */
+.scv-title::before { content: ''; position: absolute; inset: calc(var(--u) * 10); border: 1px solid rgba(255, 252, 244, .5); pointer-events: none; }
+.scv-logo { font-family: var(--serif); font-weight: 800; font-size: calc(var(--u) * 116); line-height: .95; letter-spacing: -.045em; color: #fff; text-shadow: 0 0 calc(var(--u) * 40) rgba(255, 252, 244, .3), 0 calc(var(--u) * 6) calc(var(--u) * 26) rgba(0, 0, 0, .55); animation: scv-rise 1.6s .3s cubic-bezier(.2, .7, .2, 1) both, scv-shine 4s 2s ease-in-out infinite; }
+.scv-logo em { font-style: normal; color: #6f8cff; }
+@keyframes scv-shine { 50% { text-shadow: 0 0 calc(var(--u) * 60) rgba(255, 252, 244, .55), 0 0 calc(var(--u) * 18) rgba(160, 182, 255, .5), 0 calc(var(--u) * 6) calc(var(--u) * 26) rgba(0, 0, 0, .55); } }
+.scv-tag { font-size: calc(var(--u) * 17); font-weight: 500; letter-spacing: .18em; color: rgba(255, 252, 244, .9); text-shadow: 0 2px 10px rgba(0, 0, 0, .7); animation: scv-rise 1.2s .9s both; }
+.scv-press { margin-top: calc(var(--u) * 30); display: inline-flex; align-items: center; padding: calc(var(--u) * 14) calc(var(--u) * 32); border: 1px solid rgba(255, 252, 244, .6); border-radius: 999px; background: rgba(20, 18, 16, .42); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); font-size: calc(var(--u) * 17); font-weight: 600; letter-spacing: .1em; color: #fff; animation: scv-rise 1s 1.4s both, scv-glow 2.6s 2.4s ease-in-out infinite; }
+@keyframes scv-rise { from { opacity: 0; transform: translateY(calc(var(--u) * 18)); } }
+@keyframes scv-glow { 50% { box-shadow: 0 0 calc(var(--u) * 30) rgba(111, 140, 255, .45); border-color: rgba(255, 252, 244, .95); } }
+
+/* (예전) 판 안 첫 화면 — 영상판은 VideoAttractScreen 을 쓴다 */
+.pf-root[data-video] .pf-attract-head { margin-top: calc(var(--u) * 6); }
+.pf-root[data-video] .pf-attract .pf-wordmark { font-size: calc(var(--u) * 64); }
+.pf-root[data-video] .pf-attract-sub { font-size: calc(var(--u) * 22); }
+.pf-root[data-video] .pf-attract-title { margin-top: calc(var(--u) * 12); font-size: calc(var(--u) * 26); }
+.pf-root[data-video] .pf-attract-foot { padding-top: calc(var(--u) * 18); padding-bottom: calc(var(--u) * 18); }
+.pf-root[data-video] .pf-attract-line { display: none; }
+.pf-root[data-video] .pf-attract-steps { margin-bottom: calc(var(--u) * 16); }
+
+/* 고르기 — 여덟 개를 네 칸 두 줄 작은 칩으로 */
+.pf-root[data-video] .pf-cards { grid-template-columns: repeat(4, 1fr); gap: calc(var(--u) * 8); }
+.pf-root[data-video] .pf-card { height: calc(var(--u) * 84); gap: calc(var(--u) * 6); border-radius: calc(var(--u) * 12); background: rgba(255, 254, 250, .92); }
+.pf-root[data-video] .pf-card svg:not(.pf-check svg) { width: calc(var(--u) * 26); height: calc(var(--u) * 26); }
+.pf-root[data-video] .pf-card > span:not(.pf-check) { font-size: calc(var(--u) * 15); }
+.pf-root[data-video] .pf-card-check { top: calc(var(--u) * 4); right: calc(var(--u) * 4); transform: scale(.8); }
+
+/* 촬영 — 액자 위 여백을 줄인다 */
+.pf-root[data-video] .pf-cam-slot { margin-top: calc(var(--u) * 10); min-height: calc(var(--u) * 240); }

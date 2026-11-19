@@ -81,6 +81,113 @@ export interface KioskMode {
   experience?: ExperienceId
 }
 
+const AI_PERFUMER: KioskMode = {
+  // AI 조향사 — 손님 본인 사진으로 향을 찾고 조향 레시피를 영수증으로 뽑는 행사·팝업용 모드(2026-10-26, 은평구 행사).
+  // 프로그램 하나뿐이라 고르기 화면 없이 바로 시작, 제품은 퍼퓸 10ml 로 고정(제품 단계 없음), 촬영은 키오스크 카메라가 먼저,
+  // 분석 문장은 존댓말(매장의 반말·주접 톤 대신).
+  // 행사가 정해지면 receipt.eventLines 에 행사명·장소·날짜를 넣는다.
+  id: 'ai-perfumer',
+  label: 'AI 조향사',
+  note: '행사 · 팝업용 · 본인 사진으로 향 레시피 (퍼퓸 10ml)',
+  brandName: "AI PERFUMER",
+  storeEvents: false,
+  programs: ['personal'],
+  fixedProduct: 'perfume_10ml',
+  gramsEqualMl: true,
+  politeTone: true,
+  design: 'perfumer',
+  poster: {
+    word: 'SCEN',
+    accent: 'T!',
+    line: '내 사진으로 찾는 나만의 향,',
+    main: 'AI 조향사',
+    mainEn: 'AI PERFUMER',
+    langs: 'English · 日本語 · 简体中文 · 繁體中文',
+  },
+  attract: {
+    ko: {
+      ticket: 'AI PERFUMER · MY PHOTO',
+      wordmark: 'SCENT!',
+      sub: '내 사진으로 찾는 나만의 향, AI 조향사',
+      cardNo: '01 PHOTO > 01 SCENT',
+      title1: '지금의 나,',
+      title2: '어떤 향이 어울릴까요?',
+      body1: '사진 한 장으로 나의 분위기를 읽고 어울리는 향을 찾아,',
+      body2: '나만의 조향 레시피를 영수증으로 뽑아드려요.',
+      tags: ['#나만의향', '#AI조향', '#조향체험'],
+    },
+    en: {
+      ticket: 'AI PERFUMER · MY PHOTO',
+      wordmark: 'SCENT!',
+      sub: 'An AI perfumer that reads your photo',
+      cardNo: '01 PHOTO > 01 SCENT',
+      title1: 'The you of today,',
+      title2: 'which scent suits you?',
+      body1: 'We read your mood from a single photo and find the scent that fits,',
+      body2: 'then print your own perfume recipe as a receipt.',
+      tags: ['#MyScent', '#AIPerfumer', '#ScentLab'],
+    },
+    ja: {
+      ticket: 'AI PERFUMER · MY PHOTO',
+      wordmark: 'SCENT!',
+      sub: '写真で見つける、私だけの香り',
+      cardNo: '01 PHOTO > 01 SCENT',
+      title1: '今のわたしに、',
+      title2: '似合う香りは？',
+      body1: '写真一枚から雰囲気を読み取り、似合う香りを見つけて、',
+      body2: 'あなただけの調香レシピをレシートでお渡しします。',
+      tags: ['#私だけの香り', '#AI調香', '#調香体験'],
+    },
+    'zh-Hans': {
+      ticket: 'AI PERFUMER · MY PHOTO',
+      wordmark: 'SCENT!',
+      sub: '用照片找到属于你的香气',
+      cardNo: '01 PHOTO > 01 SCENT',
+      title1: '现在的你，',
+      title2: '适合什么香气？',
+      body1: '从一张照片读取你的气质，找到适合你的香气，',
+      body2: '并把专属调香配方打印成小票。',
+      tags: ['#专属香气', '#AI调香', '#调香体验'],
+    },
+    'zh-Hant': {
+      ticket: 'AI PERFUMER · MY PHOTO',
+      wordmark: 'SCENT!',
+      sub: '用照片找到屬於你的香氣',
+      cardNo: '01 PHOTO > 01 SCENT',
+      title1: '現在的你，',
+      title2: '適合什麼香氣？',
+      body1: '從一張照片讀取你的氣質，找到適合你的香氣，',
+      body2: '並把專屬調香配方列印成收據。',
+      tags: ['#專屬香氣', '#AI調香', '#調香體驗'],
+    },
+  },
+  receipt: {
+    theme: 'scent',
+    subtitle: 'AI PERFUMER · SCENT RECIPE',
+    eventLines: [],
+    recipeBox: true,
+    // 2026-10-28 사용자: "레시피 부분이 눈에 띄게 크게 — 한눈에 봐도 이걸 보고 조향을 해야 하는구나 싶게"
+    recipeHero: true,
+    counterNotice: {
+      ko: ['이 영수증을 직원에게 보여주세요.', '적힌 레시피 그대로 조향을 하시면 됩니다.'],
+      en: ['Please show this receipt to our staff.', 'Blend your perfume exactly as the recipe says.'],
+      ja: ['このレシートをスタッフにお見せください。', '書かれたレシピ通りに調香してください。'],
+      'zh-Hans': ['请把这张小票出示给工作人员。', '按照上面的配方调香即可。'],
+      'zh-Hant': ['請把這張收據出示給工作人員。', '依照上面的配方調香即可。'],
+    },
+  },
+  defaultBackground: 'kiosk-study-01',
+}
+
+// SCENT! 영상판(2026-11-19) — AI 조향사와 같은 진단 · 레시피 · 영수증을, 실사 조향사 하린을 따라 향수 하우스 여덟 곳을 걷는 영상 위에서(src/app/kiosk/perfumer/scent-plan.ts).
+// 영수증 맨 위에 촬영 사진으로 그린 도장, 맨 아래에 하린의 사인(perfumer/scent-receipt.ts). 데모 주소 /kiosk?mode=ai-perfumer&lab=video 와 같은 화면을 매장 키오스크에서 운영 모드로 고른다.
+const AI_PERFUMER_VIDEO: KioskMode = {
+  ...AI_PERFUMER,
+  id: 'ai-perfumer-video',
+  label: 'AI 조향사 · 영상판',
+  note: '행사 · 팝업용 · 조향사 하린의 영상 속에서 향 레시피 (퍼퓸 10ml)',
+}
+
 export const KIOSK_MODES: KioskMode[] = [
   {
     id: 'wow',
@@ -187,103 +294,8 @@ export const KIOSK_MODES: KioskMode[] = [
     },
     defaultBackground: 'kiosk-event-kwave-2026',
   },
-  {
-    // AI 조향사 — 손님 본인 사진으로 향을 찾고 조향 레시피를 영수증으로 뽑는 행사·팝업용 모드(2026-10-26, 은평구 행사).
-    // 프로그램 하나뿐이라 고르기 화면 없이 바로 시작, 제품은 퍼퓸 10ml 로 고정(제품 단계 없음), 촬영은 키오스크 카메라가 먼저,
-    // 분석 문장은 존댓말(매장의 반말·주접 톤 대신).
-    // 행사가 정해지면 receipt.eventLines 에 행사명·장소·날짜를 넣는다.
-    id: 'ai-perfumer',
-    label: 'AI 조향사',
-    note: '행사 · 팝업용 · 본인 사진으로 향 레시피 (퍼퓸 10ml)',
-    brandName: "AI PERFUMER",
-    storeEvents: false,
-    programs: ['personal'],
-    fixedProduct: 'perfume_10ml',
-    gramsEqualMl: true,
-    politeTone: true,
-    design: 'perfumer',
-    poster: {
-      word: 'SCEN',
-      accent: 'T!',
-      line: '내 사진으로 찾는 나만의 향,',
-      main: 'AI 조향사',
-      mainEn: 'AI PERFUMER',
-      langs: 'English · 日本語 · 简体中文 · 繁體中文',
-    },
-    attract: {
-      ko: {
-        ticket: 'AI PERFUMER · MY PHOTO',
-        wordmark: 'SCENT!',
-        sub: '내 사진으로 찾는 나만의 향, AI 조향사',
-        cardNo: '01 PHOTO > 01 SCENT',
-        title1: '지금의 나,',
-        title2: '어떤 향이 어울릴까요?',
-        body1: '사진 한 장으로 나의 분위기를 읽고 어울리는 향을 찾아,',
-        body2: '나만의 조향 레시피를 영수증으로 뽑아드려요.',
-        tags: ['#나만의향', '#AI조향', '#조향체험'],
-      },
-      en: {
-        ticket: 'AI PERFUMER · MY PHOTO',
-        wordmark: 'SCENT!',
-        sub: 'An AI perfumer that reads your photo',
-        cardNo: '01 PHOTO > 01 SCENT',
-        title1: 'The you of today,',
-        title2: 'which scent suits you?',
-        body1: 'We read your mood from a single photo and find the scent that fits,',
-        body2: 'then print your own perfume recipe as a receipt.',
-        tags: ['#MyScent', '#AIPerfumer', '#ScentLab'],
-      },
-      ja: {
-        ticket: 'AI PERFUMER · MY PHOTO',
-        wordmark: 'SCENT!',
-        sub: '写真で見つける、私だけの香り',
-        cardNo: '01 PHOTO > 01 SCENT',
-        title1: '今のわたしに、',
-        title2: '似合う香りは？',
-        body1: '写真一枚から雰囲気を読み取り、似合う香りを見つけて、',
-        body2: 'あなただけの調香レシピをレシートでお渡しします。',
-        tags: ['#私だけの香り', '#AI調香', '#調香体験'],
-      },
-      'zh-Hans': {
-        ticket: 'AI PERFUMER · MY PHOTO',
-        wordmark: 'SCENT!',
-        sub: '用照片找到属于你的香气',
-        cardNo: '01 PHOTO > 01 SCENT',
-        title1: '现在的你，',
-        title2: '适合什么香气？',
-        body1: '从一张照片读取你的气质，找到适合你的香气，',
-        body2: '并把专属调香配方打印成小票。',
-        tags: ['#专属香气', '#AI调香', '#调香体验'],
-      },
-      'zh-Hant': {
-        ticket: 'AI PERFUMER · MY PHOTO',
-        wordmark: 'SCENT!',
-        sub: '用照片找到屬於你的香氣',
-        cardNo: '01 PHOTO > 01 SCENT',
-        title1: '現在的你，',
-        title2: '適合什麼香氣？',
-        body1: '從一張照片讀取你的氣質，找到適合你的香氣，',
-        body2: '並把專屬調香配方列印成收據。',
-        tags: ['#專屬香氣', '#AI調香', '#調香體驗'],
-      },
-    },
-    receipt: {
-      theme: 'scent',
-      subtitle: 'AI PERFUMER · SCENT RECIPE',
-      eventLines: [],
-      recipeBox: true,
-      // 2026-10-28 사용자: "레시피 부분이 눈에 띄게 크게 — 한눈에 봐도 이걸 보고 조향을 해야 하는구나 싶게"
-      recipeHero: true,
-      counterNotice: {
-        ko: ['이 영수증을 직원에게 보여주세요.', '적힌 레시피 그대로 조향을 하시면 됩니다.'],
-        en: ['Please show this receipt to our staff.', 'Blend your perfume exactly as the recipe says.'],
-        ja: ['このレシートをスタッフにお見せください。', '書かれたレシピ通りに調香してください。'],
-        'zh-Hans': ['请把这张小票出示给工作人员。', '按照上面的配方调香即可。'],
-        'zh-Hant': ['請把這張收據出示給工作人員。', '依照上面的配方調香即可。'],
-      },
-    },
-    defaultBackground: 'kiosk-study-01',
-  },
+  AI_PERFUMER,
+  AI_PERFUMER_VIDEO,
   {
     // AI 퍼스널 컬러 진단 — 프로그램 하나뿐인 모드라 첫 화면 다음에 바로 시작한다(고르기 화면 없음).
     // 향을 추천하지 않는다(진단서만). 행사가 정해지면 label·note·attract·receipt.eventLines 를 그 행사에 맞게 고친다.

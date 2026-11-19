@@ -17,6 +17,8 @@ export interface PerfumerCtx {
   step: PfStep
   /** 입력 단계(이름·성별 → 스타일 → 성격 → 매력 → 사진) — 점 표시와 '01 / 05' */
   inputSteps: PfStep[]
+  /** 'video' — SCENT! 영상판(모드 ai-perfumer-video · 데모 &lab=video, scent-plan.ts). 없으면 SCENT! 기본 화면 */
+  variant?: 'video'
   lang: KioskLang
   setLang: (lang: KioskLang) => void
   /** 분석을 시작하면 결과 문장이 그 언어로 만들어지므로 언어를 바꾸지 않는다 */
