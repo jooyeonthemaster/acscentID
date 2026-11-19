@@ -4,21 +4,37 @@
 // 색·글꼴·장식은 programs.css 의 프로그램별 테마가 맡는다(같은 부품이라도 프로그램마다 모양이 다르다).
 
 import { Check, Maximize, Pause, Play, Volume2, VolumeX } from 'lucide-react'
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { ProgramDef, ProgramOptionGroup } from '@/lib/booth/programs/catalog'
+import './book-panel.css'
 
 export function Wordmark({ program, size = 'lg' }: { program: ProgramDef; size?: 'sm' | 'lg' | 'xl' }) {
   return <span className={`pg-wordmark pg-wordmark--${size}`} aria-label={program.wordmark}>{program.wordmark}</span>
 }
 
-/** 왼쪽 큰 사진 · 오른쪽 선택 */
+/** 왼쪽 큰 사진 · 오른쪽 선택. 영상판이면 오른쪽 패널이 옛 책 한 권 — 표지가 장면마다 덮였다 열린다(book-panel.css) */
 export function Split({ visual, children, className }: { visual: ReactNode; children: ReactNode; className?: string }) {
+  const book = usePlain()
   return (
     <div className={`pg-split${className ? ` ${className}` : ''}`}>
       <div className="pg-visual">{visual}</div>
       <div className="pg-panel">{children}</div>
+      {book && <BookCover />}
     </div>
   )
+}
+
+/**
+ * 영상판 오른쪽 책의 표지(제목 쪽지 · 책등 실은 CSS) — 패널과 같은 칸에 겹친다.
+ * 장면이 바뀔 때 생긴 쪽이면 덮였다가(도착 전) 도착하면 열린다. 이미 도착한 장면에서 생긴 쪽(같은 장면 안 단계)은 펼친 채로(data-still) — 그리기 전에 정한다
+ */
+export function BookCover() {
+  const ref = useRef<HTMLElement>(null)
+  // 상태로 두지 않고 그 자리에서 표시만 붙인다(다시 그리지 않게) — React 가 그리는 속성이 아니라 덮어쓰지 않는다.
+  // 마이크로태스크로 한 박자 늦게 본다 — 자식(표지)의 layout effect 가 부모(흐름)의 장면 알림보다 먼저 돌아, 그 순간엔 장면이 바뀌었어도 아직 data-arrived 가 남아 있다.
+  // 부모가 layout effect 에서 바꾼 상태는 같은 일 안에서 그려지므로(화면에 칠하기 전) 마이크로태스크 때는 바뀐 data-arrived 를 본다
+  useLayoutEffect(() => { const el = ref.current; queueMicrotask(() => { if (el?.closest('.pg')?.hasAttribute('data-arrived')) el.dataset.still = '' }) }, [])
+  return <i ref={ref} className="pg-book-cover" aria-hidden="true" />
 }
 
 /** 영상판(&lab=video) — 제목 아래 설명 · 머리말 · 안내 같은 작은 설명 글을 그리지 않는다(2026-11-18 사용자 지시). ProgramApp 이 감싼다 */

@@ -13,6 +13,23 @@ export const ASV_FESTIVAL = {
   venue: '한양대학교 ERICA캠퍼스',
   theme: '디지털 교육 & 88로봇위크',
 } as const
+/**
+ * 인화물 글자 — 행사판(ANSAN)은 축제 공식 표기, 일반판(LATER! 나중 박사의 타임캡슐, catalog 'later')은 축제 표기 없이 프로그램 이름만.
+ * head: 머리 왼쪽 로고 옆 · tag: 머리 오른쪽 · title/sub: 프레임 아래 제목 둘 · foot/footSub: 기본 디자인 바닥 두 줄 · frameFoot: 프레임 바닥 한 줄
+ */
+export interface StripSign { head: string; tag: string; sub: string; foot: string; footSub: string; frameFoot: string }
+export const ASV_SIGN: StripSign = {
+  head: ASV_FESTIVAL.short, tag: 'AI PHOTO ZONE', sub: 'AI 포토존 · 미래로 가는 타임캡슐',
+  foot: ASV_FESTIVAL.name, footSub: `${ASV_FESTIVAL.dates} · ${ASV_FESTIVAL.venue}`, frameFoot: '2026 안산사이언스밸리 과학축제',
+}
+/** 일반판 LATER! — 나중 박사의 타임캡슐(부스 영상판, src/app/booth/programs/LaterFlow.tsx) */
+export const LATER_PROGRAM_ID = 'later'
+export const LATER_SIGN: StripSign = {
+  head: 'LATER!', tag: 'TIME CAPSULE', sub: '나중 박사의 타임캡슐',
+  foot: '나중 박사의 타임캡슐', footSub: '30년 뒤의 우리를 만나고 왔어요', frameFoot: '나중 박사와 다녀온 시간 여행',
+}
+export const stripSign = (programId: string): StripSign => (programId === LATER_PROGRAM_ID ? LATER_SIGN : ASV_SIGN)
+
 /** 함께 찍을 수 있는 사람 수 — 넘으면 얼굴이 섞이기 쉬워 다시 찍게 한다 */
 export const STRIP_MAX_PEOPLE = 4
 

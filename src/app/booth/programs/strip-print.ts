@@ -4,12 +4,12 @@
 // 여백은 넉넉히(2026-11-04 실물 시험): 드라이버 용지가 테두리 여분까지 찍는 (4x6) 면 원판이 3~4% 커져 위 제목이 종이 끝에 붙고
 // 아래 날짜가 반쯤 잘렸다 — 위아래 약 6~7mm · 좌우 약 4mm 를 비운다.
 // 기본 디자인 2종(renderStrip): 축제 공식 웹사이트 디자인(WHITEPRINT) — ASV 화이트(종이 · 잉크 · 볼트) / ASV 블랙(사이트 다크 섹션).
-// 로고 마크 · 거대 영문 LATER · 치수선 · 칸 모서리 크로스헤어 · 볼트 연도. 축제 표기는 ASV_FESTIVAL(공식 확정 카피) 그대로. 프레임 10종은 renderFrameStrip.
+// 로고 마크 · 거대 영문 LATER · 치수선 · 칸 모서리 크로스헤어 · 볼트 연도. 축제 표기는 ASV_SIGN(공식 확정 카피 ASV_FESTIVAL) — 일반판 LATER! 는 input.sign(LATER_SIGN). 프레임 10종은 renderFrameStrip.
 // 인쇄본에는 오른쪽 아래에 폰 저장 QR(StripQr)을 넣는다 — 기본 디자인의 'SEALED 날짜' 자리. QR 이 없으면(폰 저장본 · 올리기 실패) 예전 그대로.
 
 import QRCode from 'qrcode'
 import type { StripFrameDef } from '@/lib/booth/programs/strip-frames'
-import { ASV_FESTIVAL, STRIP_NOW_YEAR, STRIP_STEPS } from '@/lib/booth/programs/timecapsule-strip'
+import { ASV_SIGN, STRIP_NOW_YEAR, STRIP_STEPS, type StripSign } from '@/lib/booth/programs/timecapsule-strip'
 import { RESULT_PHOTO_TTL_HOURS } from '@/lib/photobooth/result-photo'
 import { bricolage, jetbrains } from './fonts'
 import { A, G, P, cover, rect, text, today, type Pic } from './print-designs'
@@ -30,6 +30,8 @@ export interface StripInput {
   now: Pic
   /** 10 · 20 · 30년 후 — 못 만든 칸은 null */
   future: (Pic | null)[]
+  /** 인화물 글자 — 없으면 ANSAN 축제 표기(ASV_SIGN) */
+  sign?: StripSign
 }
 
 /** 영문 디스플레이 · 모노 라벨 · 한글 */
@@ -130,6 +132,7 @@ function cell(ctx: Ctx, theme: Theme, pic: Pic | null, i: number, year: number, 
 /** 사진 한 장(600×1800) 캔버스 — qr 이 있으면 오른쪽 아래 'SEALED 날짜' 대신 QR(인쇄본) */
 export function renderStrip(design: 0 | 1, input: StripInput, qr: StripQr | null = null): HTMLCanvasElement {
   const theme = THEMES[design]
+  const sign = input.sign ?? ASV_SIGN
   const canvas = document.createElement('canvas')
   canvas.width = STRIP_W; canvas.height = STRIP_H
   const ctx = canvas.getContext('2d')!
@@ -142,8 +145,8 @@ export function renderStrip(design: 0 | 1, input: StripInput, qr: StripQr | null
   // 머리 — 로고 마크 · ASV 2026 · AI PHOTO ZONE
   ctx.save(); ctx.strokeStyle = theme.ink; ctx.lineWidth = 2; ctx.strokeRect(SIDE + 1, 67, 20, 20); ctx.restore()
   rect(ctx, SIDE + 6, 72, 12, 12, theme.volt)
-  text(ctx, ASV_FESTIVAL.short, SIDE + 34, 86, `800 25px ${D()}`, theme.ink, 'left', (c) => { c.letterSpacing = '-0.5px' })
-  text(ctx, 'AI PHOTO ZONE', STRIP_W - SIDE, 85, `500 14px ${M()}`, theme.mute, 'right', (c) => { c.letterSpacing = '2.5px' })
+  text(ctx, sign.head, SIDE + 34, 86, `800 25px ${D()}`, theme.ink, 'left', (c) => { c.letterSpacing = '-0.5px' })
+  text(ctx, sign.tag, STRIP_W - SIDE, 85, `500 14px ${M()}`, theme.mute, 'right', (c) => { c.letterSpacing = '2.5px' })
   // 거대 워드마크 + 한글 부제
   text(ctx, 'LATER', SIDE - 6, 166, `800 100px ${D()}`, theme.volt, 'left', (c) => { c.letterSpacing = '-4px' })
   text(ctx, '미래로 가는', STRIP_W - SIDE, 128, `800 23px ${K}`, theme.ink, 'right')
@@ -165,8 +168,8 @@ export function renderStrip(design: 0 | 1, input: StripInput, qr: StripQr | null
   const fy = cellY(4) + 16
   const box = qr ? qrBlock(ctx, qr, STRIP_W - SIDE, QR_BOTTOM) : null
   line(ctx, SIDE, fy, box ? box.x - 14 : STRIP_W - SIDE, fy, theme.line, 2)
-  text(ctx, ASV_FESTIVAL.name, SIDE, fy + 38, `800 23px ${K}`, theme.ink, 'left', (c) => { c.letterSpacing = '-0.5px' })
-  text(ctx, `${ASV_FESTIVAL.dates} · ${ASV_FESTIVAL.venue}`, SIDE, fy + 66, `600 15px ${K}`, theme.sub, 'left')
+  text(ctx, sign.foot, SIDE, fy + 38, `800 23px ${K}`, theme.ink, 'left', (c) => { c.letterSpacing = '-0.5px' })
+  text(ctx, sign.footSub, SIDE, fy + 66, `600 15px ${K}`, theme.sub, 'left')
   if (box) {
     text(ctx, 'SCAN', SIDE, fy + 93, `500 13px ${M()}`, theme.volt, 'left', (c) => { c.letterSpacing = '1.5px' })
     text(ctx, QR_CAPTION, SIDE + 46, fy + 93, `700 14px ${K}`, theme.volt, 'left')
@@ -221,20 +224,21 @@ export function renderFrameStrip(def: StripFrameDef, overlay: Pic, input: StripI
   STRIP_STEPS.forEach((step, i) => framePill(ctx, def, i + 1, step.year, step.label))
   // 아래 글자 구역(가로 80~520, 세로 1485~1735)
   const { title, sub, foot, footSub } = def.colors
+  const sign = input.sign ?? ASV_SIGN
   if (qr) {
     // 제목 둘은 가운데 그대로(조금 올려 QR 과 띄운다), 축제 · 날짜 · 안내는 QR 왼쪽 칸 가운데
     text(ctx, 'LATER!', STRIP_W / 2, 1554, `italic 900 78px ${P()}`, title)
-    text(ctx, 'AI 포토존 · 미래로 가는 타임캡슐', STRIP_W / 2, 1590, `700 21px ${G()}`, sub)
+    text(ctx, sign.sub, STRIP_W / 2, 1590, `700 21px ${G()}`, sub)
     const box = qrBlock(ctx, qr, FRAME_QR_RIGHT, QR_BOTTOM - 2, 10)
     const cx = Math.round((80 + box.x - 12) / 2)
-    text(ctx, '2026 안산사이언스밸리 과학축제', cx, 1652, `700 21px ${G()}`, foot)
+    text(ctx, sign.frameFoot, cx, 1652, `700 21px ${G()}`, foot)
     text(ctx, today(), cx, 1690, `22px ${A()}`, footSub, 'center', (c) => { c.letterSpacing = '6px' })
     text(ctx, QR_CAPTION, cx, 1720, `700 14px ${G()}`, footSub)
     return canvas
   }
   text(ctx, 'LATER!', STRIP_W / 2, 1562, `italic 900 78px ${P()}`, title)
-  text(ctx, 'AI 포토존 · 미래로 가는 타임캡슐', STRIP_W / 2, 1600, `700 21px ${G()}`, sub)
-  text(ctx, '2026 안산사이언스밸리 과학축제', STRIP_W / 2, 1642, `700 25px ${G()}`, foot)
+  text(ctx, sign.sub, STRIP_W / 2, 1600, `700 21px ${G()}`, sub)
+  text(ctx, sign.frameFoot, STRIP_W / 2, 1642, `700 25px ${G()}`, foot)
   text(ctx, today(), STRIP_W / 2, 1710, `22px ${A()}`, footSub, 'center', (c) => { c.letterSpacing = '6px' })
   return canvas
 }

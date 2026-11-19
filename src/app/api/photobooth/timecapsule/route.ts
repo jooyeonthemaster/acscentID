@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { IdolError, readIdolTicket, spendIdolTicket } from '@/lib/booth/idol-generate'
 import { DEMO_TICKET_OWNER, takeDemoGeneration } from '@/lib/booth/demo-server'
-import { ALL_STRIP_YEARS, generateSteps, planStrip, StripRetakeError } from '@/lib/booth/programs/timecapsule-server'
+import { ALL_STRIP_YEARS, generateSteps, planStrip, StripRetakeError, stripKey } from '@/lib/booth/programs/timecapsule-server'
 import { isStripYears, type StripResponse, type StripRetakeResponse, type StripYears } from '@/lib/booth/programs/timecapsule-strip'
 
 export const runtime = 'nodejs'
@@ -10,7 +10,8 @@ export const maxDuration = 120
 
 /**
  * ANSAN 타임캡슐(2026 안산사이언스밸리 과학축제 AI 포토존) — 부스 전용, 비로그인
- * POST /api/photobooth/timecapsule  { ticket, photo: 'data:image/jpeg;base64,…'(가로 3:2), years?: [10, 20, 30] }
+ * POST /api/photobooth/timecapsule  { ticket, photo: 'data:image/jpeg;base64,…'(가로 3:2), years?: [10, 20, 30], program?: 'later' }
+ * program 'later'(LATER! 일반판)는 사이트 기본 키로 만든다(stripKey) — ANSAN 은 부스 전용 키
  * → { people, images: [{ years, image: 'data:image/jpeg;base64,…' | null }] }  (못 만든 칸은 null — 부스가 그 칸만 다시 부탁)
  *
  * 사람 읽기(나이·얼굴 자리) → 사람마다 얼굴 클로즈업 → 고른 햇수를 동시에 생성(src/lib/booth/programs/timecapsule-server.ts).
@@ -32,9 +33,10 @@ export async function POST(request: NextRequest) {
 
     // 표는 먼저 확인만 — 인원이 넘쳐 다시 찍게 되는 경우엔 쓰지 않는다
     readIdolTicket(body?.ticket)
-    const plan = await planStrip(photo)
+    const key = stripKey(body?.program)
+    const plan = await planStrip(photo, key)
     if (spendIdolTicket(body?.ticket) === DEMO_TICKET_OWNER) await takeDemoGeneration()
-    const images = await generateSteps(plan, years)
+    const images = await generateSteps(plan, years, key)
     if (images.every((image) => !image)) throw new IdolError('AI 사진을 만들지 못했어요.', 502)
     const response: StripResponse = { people: plan.people?.length ?? 0, images: years.map((y, i) => ({ years: y, image: images[i] })) }
     return NextResponse.json(response, { headers: { 'Cache-Control': 'no-store' } })

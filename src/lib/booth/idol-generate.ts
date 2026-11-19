@@ -100,6 +100,8 @@ export interface BoothImageOptions {
   timeouts?: [number, number]
   /** 단체 사진은 여러 사람의 얼굴 유지를 위해 같은 모델로 재시도한다. 기본은 빠른 예비 모델. */
   retryModel?: 'fast' | 'primary'
+  /** 이 호출만 다른 키로(LATER! 일반판 — timecapsule-server.ts stripKey). 없으면 부스 전용 키 */
+  key?: string
 }
 
 type Part = { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }
@@ -118,7 +120,7 @@ async function requestImage(model: string, timeout: number, content: Part[], lab
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey()}`,
+        Authorization: `Bearer ${options.key || apiKey()}`,
         'Content-Type': 'application/json',
         'X-Title': "AC'SCENT photobooth",
       },
@@ -165,13 +167,13 @@ async function requestImage(model: string, timeout: number, content: Part[], lab
  * 사진을 보고 글(JSON)로 답을 받는다 — 같은 부스 전용 키(사이트 분석 메인 키와 비용을 섞지 않는다).
  * ANSAN 타임캡슐이 생성 전에 사람 수·나이·얼굴 자리를 읽는 데 쓴다. 실패·시간 초과면 null
  */
-export async function askBoothVision(model: string, timeout: number, prompt: string, images: string[]): Promise<string | null> {
-  if (!idolConfigured()) return null
+export async function askBoothVision(model: string, timeout: number, prompt: string, images: string[], key?: string): Promise<string | null> {
+  if (!key && !idolConfigured()) return null
   const started = Date.now()
   try {
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey()}`, 'Content-Type': 'application/json', 'X-Title': "AC'SCENT photobooth" },
+      headers: { Authorization: `Bearer ${key || apiKey()}`, 'Content-Type': 'application/json', 'X-Title': "AC'SCENT photobooth" },
       body: JSON.stringify({
         model,
         temperature: 0.1,
@@ -232,7 +234,7 @@ export async function generateBoothImage(prompt: string, photo: string, more: st
 
 /** 검증·횟수 제한·모델 재시도·JPEG 변환을 두 생성 경로가 함께 쓴다. */
 async function generateImage(content: Part[], label: string, options: BoothImageOptions = {}): Promise<string> {
-  if (!idolConfigured()) throw new IdolError('AI 사진 전용 키가 아직 설정되지 않았어요.', 503)
+  if (!options.key && !idolConfigured()) throw new IdolError('AI 사진 전용 키가 아직 설정되지 않았어요.', 503)
   const isImage = (value: string) => /^data:image\/(jpeg|png|webp);base64,/.test(value) && value.length <= 3_000_000
   if (content.some((part) => part.type === 'image_url' && !isImage(part.image_url.url))) {
     throw new IdolError('사진 형식이 올바르지 않아요.', 400)

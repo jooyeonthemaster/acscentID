@@ -27,6 +27,7 @@ import { CaptureStep, SaveStep } from './PhotoFlow'
 import { loadReadingPrintAssets, renderReadingPrint } from './reading-print'
 import { renderPortraitPrint, type FaceBox } from './portrait-print'
 import { loadSajuPrintAssets, renderSajuPrint } from './saju-print'
+import { SajuScroll } from './saju-scroll'
 import { Creative, Modal, OptionGroups, PanelHead, Split, Stages, useElapsed, usePlain } from './ui'
 import { loadImage } from './video'
 
@@ -98,6 +99,9 @@ async function readShot(url: string, subject: 'face' | 'palm'): Promise<Read> {
 
 interface Made { story: ReadingStory; engine: 'ai' | 'local'; saju?: SajuView; prints: [string, string]; /** AI 초상(받았으면) — 영상판 족자에 그린다 */ art?: string }
 
+/** 생년월일 칸의 옅은 예시(연 · 월 · 일 8자리) */
+const BIRTH_EXAMPLE = '19900515'
+
 export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
   const { program } = ctx
   const subject = program.reading?.subject ?? 'face'
@@ -127,6 +131,8 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
   const { setStep: showStep, setDirty, report } = ctx
   /** 영상판 관상 — 결과는 초상 포스터 하나, 인쇄하기를 누르면 바로 인쇄 */
   const simple = Boolean(report) && program.id === 'nh-face'
+  /** 영상판 사주 — 결과는 위에서 펼쳐지는 족자 한 폭(밤하늘 카드 하나, 고르기 없음 · saju-scroll.tsx) */
+  const scroll = Boolean(report) && program.id === 'nh-saju'
   // 영상판 — 단계가 바뀌면 장면을, 결과 · 저장에서는 고른 인화물을 족자에 얹게 알린다
   // 관상은 AI 초상을 족자 비단에 그리고, 사주는 고른 사주 카드(인화물)를 받침대 종이에 얹는다
   // 그리기 전에 알린다(useLayoutEffect) — 새 단계 화면이 한 프레임이라도 장면보다 먼저 보이지 않게(영상이 넘어간 뒤에 패널이 열린다)
@@ -212,7 +218,12 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
           </div>
         </Split>
       )}
-      {step === 'result' && made && !simple && (
+      {step === 'result' && made && scroll && <>
+        {/* 덮인 책 — 이동하는 동안 보이고, 도착해 족자가 펼쳐질 때 사라진다(book-panel.css pg-book-only) */}
+        <Split className="pg-book-only" visual={<div />}>{null}</Split>
+        <SajuScroll card={made.prints[0]} keyword={made.story.keyword} title={made.story.title} onHome={ctx.requestHome} onPrint={() => setStep('save')} />
+      </>}
+      {step === 'result' && made && !simple && !scroll && (
         <Split className="pg-result pg-reading-result" visual={<div className="pg-print-preview"><img src={made.prints[design]} alt="인화될 새해 카드" width={600} height={900} /></div>}>
           <PanelHead title={program.result.title} sub={program.result.sub} eyebrow={made.engine === 'ai' ? 'AI가 쓴 새해 이야기' : '미리 써 둔 새해 이야기'} />
           <div className="pg-reading-story">
@@ -362,11 +373,16 @@ function BirthStep({ initial, onBack, onNext, single = false }: { initial: FgBir
     try { sajuViewOf(birth) } catch (cause) { setError(cause instanceof Error ? cause.message : '날짜를 다시 확인해 주세요.'); return }
     onNext(birth)
   }, [birth, onNext])
-  const slot = (from: number, to: number, holder: string) => {
+  // 아무것도 누르지 않았을 때만 예시 날짜를 옅게 — 점(····)만 있으면 어떤 꼴로 넣는지 몰랐다(2026-11-18 사용자 지시).
+  // 한 자리라도 누르면 예시는 사라지고, 아직 안 누른 자리는 숫자 폭의 옅은 밑줄 — 예시 숫자가 섞여 넣은 값처럼 보이면 안 된다(같은 날 사용자 지시: 「2」만 눌렀는데 2990 처럼 보였다)
+  const slot = (from: number, to: number) => {
     const part = digits.slice(from, to)
-    return <span className="pg-birth-part" data-empty={!part || undefined} data-active={digits.length >= from && digits.length < to || undefined}>{part.padEnd(to - from, '·') || holder}</span>
+    const open = Array.from({ length: to - from - part.length }, (_, i) => digits ? <span key={i} className="pg-birth-blank" aria-hidden="true">0</span> : null)
+    return <span className="pg-birth-part" data-empty={!part || undefined} data-active={digits.length >= from && digits.length < to || undefined}>
+      {digits ? <>{part}{open}</> : <span className="pg-birth-ghost" aria-hidden="true">{BIRTH_EXAMPLE.slice(from, to)}</span>}
+    </span>
   }
-  const display = <div className="pg-birth-display" aria-live="polite">{slot(0, 4, 'YYYY')}<i>.</i>{slot(4, 6, 'MM')}<i>.</i>{slot(6, 8, 'DD')}</div>
+  const display = <div className="pg-birth-display" aria-live="polite" aria-label={digits ? undefined : `예: ${BIRTH_EXAMPLE.slice(0, 4)}년 ${Number(BIRTH_EXAMPLE.slice(4, 6))}월 ${Number(BIRTH_EXAMPLE.slice(6))}일`}>{slot(0, 4)}<i>.</i>{slot(4, 6)}<i>.</i>{slot(6, 8)}</div>
   const cal = (
     <div className="pg-birth-cal" role="radiogroup" aria-label="양력 · 음력">
       {(['solar', 'lunar'] as const).map((c) => <button key={c} type="button" role="radio" aria-checked={calendar === c} onClick={() => { setCalendar(c); setError(null) }}>{c === 'solar' ? '양력' : '음력'}</button>)}

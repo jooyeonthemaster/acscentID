@@ -12,6 +12,8 @@ export const PROGRAM_IDS = [
   'housing-movein', 'housing-cover', 'housing-2046',
   // 2026 안산사이언스밸리 과학축제(11-07~08) AI 포토존 — 운영 모드 'ANSAN'(modes.ts), docs/photobooth-programs.md 'ANSAN 타임캡슐'
   'ansan-2026',
+  // ANSAN 타임캡슐을 일반 프로그램으로(2026-11-18) — 오리지널 괴짜 발명가 「나중 박사」의 타임캡슐 영상판(흐름 LaterFlow.tsx, 영상 video-stage.tsx LATER)
+  'later',
   // 펀그라운드 별내(9~19세 공공시설) 상설 체험기 견적 A안의 새 프로그램(2026-11-14) — 펀그라운드 데모(/booth-demo/funground)에서만 연다(site)
   'quest', 'mvp',
   // 펀그라운드 A안 DREAM! 꿈의 직업 포토(2026-11-14) — 옷 · 배경만 바꾸는 사진형이라 Seedream($0.018)
@@ -599,6 +601,21 @@ export const PROGRAMS: ProgramDef[] = [
     creative: 'AI가 만든 재미로 보는 상상 사진이에요. 실제 미래 모습과는 달라요',
     intro: '/assets/booth-programs/asv/sample.webp', script: 'See you later!', designs: ['ASV 화이트', 'ASV 블랙'],
     card: { tag: 'LATER!', desc: '혼자~4명이 한 컷을 찍으면 지금·10년·20년·30년 뒤의 우리를 2×6 사진 네 컷으로 뽑아요.', color: '#5b55d6', badges: ['AI 생성', '1~4인', '2×6 사진'] },
+  },
+  // LATER! 나중 박사의 타임캡슐 — ANSAN 타임캡슐(위)을 행사 표기 없는 일반 프로그램으로. 늘 영상판(나중 박사의 창고 → 캡슐 안 일인칭 → 2036 · 2046 · 2056 → 돌아와 네 컷).
+  // 생성 · 인화물은 ANSAN 과 같다(/api/photobooth/timecapsule, strip-print.ts — 글자만 LATER_SIGN). 화면 LaterFlow.tsx · later.css, 그림 · 영상 public/assets/booth-programs/later-video
+  {
+    id: 'later', kind: 'strip', name: '나중 박사의 타임캡슐', wordmark: 'LATER!',
+    headline: '10년, 20년, 30년 뒤\n우리를 만나러 가요', lead: '나중 박사의 타임캡슐을 타고 미래의 우리를 만나 네 컷 사진으로 가져와요',
+    steps: ['캡슐 탑승 · 촬영', '시간 여행', '네 컷 인화'], startCta: '타임캡슐 타기',
+    capture: { title: '모두 화면 안에\n들어와 주세요', hint: '혼자도, 가족·친구와 함께도 좋아요(최대 4명). 아기는 안고 찍어도 돼요', people: 1, shots: 1, group: true },
+    options: { title: '', sub: '', cta: '', groups: [] },
+    generating: { title: '시간 여행 중', sub: '10년 · 20년 · 30년 뒤의 우리를 한꺼번에 만들고 있어요', stages: ['얼굴 확인', '미래 세 장면', '사진 완성'] },
+    result: { title: '미래의 우리를\n찍어 왔어요', sub: '이제 프레임을 고르고 인화해요' },
+    save: { title: '타임캡슐 사진을 가져가세요', sub: '아래 출구로 사진이 나와요 · 휴대폰에도 저장할 수 있어요' },
+    creative: 'AI가 만든 재미로 보는 상상 사진이에요. 실제 미래 모습과는 달라요',
+    intro: '/assets/booth-programs/later-video/garage.webp', script: 'See you later!', designs: ['화이트', '블랙'],
+    card: { tag: 'LATER!', desc: '나중 박사의 타임캡슐을 타고 10 · 20 · 30년 뒤의 우리를 만나요 — 혼자~4명 한 컷이 2×6 사진 네 컷으로.', color: '#1f4fd8', badges: ['AI 생성', '영상판', '1~4인', '2×6 사진'] },
   },
   // ───── 펀그라운드 별내(9~19세) 견적 A안 새 프로그램 — 얼굴은 그대로, 옷 · 배경만. 1~4명. 생성은 Seedream 5.0 Flash 먼저(image-models.ts) ─────
   {

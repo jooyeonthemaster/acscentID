@@ -1,0 +1,144 @@
+/* LATER! 나중 박사의 타임캡슐(LaterFlow.tsx) — 늘 영상판. 무대(1280×720) 뒤에 영상(video-stage.tsx · .vs), 위에 제목줄 · 오른쪽 패널 하나.
+   패널은 짙은 남색 유리 + 놋쇠 테 + 코발트 강조(박사의 캡슐 색 — 흰 몸체 · 놋쇠 · 파란 전구). 영상 속 박사 · 캡슐 · 조종석 콘솔은 화면 왼쪽 58% 안이라 패널은 오른쪽 37%.
+   관상 · 사주 영상판(data-video · video-stage.css · book-panel.css)과 겹치지 않게 data-later 아래에서만. 패널은 영상이 장면에 도착한 뒤(data-arrived) 떠오른다. */
+
+.pg[data-later] {
+  --lt-brass: #d8ad5a;
+  --lt-brass-deep: #9c7330;
+  --lt-cobalt: #3d6bff;
+  --lt-ivory: #fbf6ea;
+  --lt-glass: rgba(13, 20, 40, 0.86);
+  --pg-ink: var(--lt-ivory);
+  --pg-muted: #c8c0ad;
+  --pg-accent: var(--lt-brass);
+  --pg-on-accent: #1d1505;
+  --pg-surface: rgba(255, 255, 255, 0.06);
+  --pg-line: rgba(216, 173, 90, 0.34);
+  --pg-radius: 12px;
+  --pg-bg: #0d0b09;
+  color: var(--lt-ivory);
+}
+.pg[data-later] .pg-stage { background: #0d0b09; }
+.pg[data-later] .pg-stage::before { z-index: 3; }
+.pg[data-later] .pg-top, .pg[data-later] .pg-body { z-index: 1; }
+.pg[data-later] .pg-top { background: linear-gradient(rgba(8, 10, 18, 0.62), rgba(8, 10, 18, 0)); color: var(--lt-ivory); }
+.pg[data-later] .pg-top .pg-wordmark { color: var(--lt-brass); font-size: 30px; }
+.pg[data-later] .pg-top .pg-top-name { color: #e9e1cc; }
+.pg[data-later] .pg-icon-btn { color: var(--lt-ivory); }
+.pg[data-later] .pg-dots li { color: #d9d1bd; background: rgba(8, 10, 18, 0.35); }
+.pg[data-later] .pg-dots li[data-state='active'] { color: var(--pg-on-accent); background: var(--lt-brass); }
+.pg[data-later] .pg-dots li[data-state='done'] { color: var(--lt-brass); }
+
+/* 화면 내용은 영상이 도착한 뒤에 — 그 전엔 누를 수 없다 */
+.pg[data-later] .pg-body { pointer-events: none; }
+.pg[data-later][data-arrived] .pg-body { pointer-events: auto; }
+
+/* ── 패널 ── */
+.lt-layout { position: absolute; inset: 0; display: flex; justify-content: flex-end; padding: 4px 26px 22px; }
+.lt-panel {
+  position: relative; display: flex; flex-direction: column; gap: 14px; width: 472px; height: 100%; min-height: 0; padding: 18px 22px 20px;
+  border-radius: 20px; background: var(--lt-glass); border: 1.5px solid rgba(216, 173, 90, 0.55);
+  box-shadow: inset 0 0 0 5px rgba(13, 20, 40, 0.6), inset 0 0 0 6px rgba(216, 173, 90, 0.22), 0 26px 64px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15);
+}
+/* 놋쇠 리벳 네 모서리 */
+.lt-panel::before, .lt-panel::after { content: ''; position: absolute; top: 9px; width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff2cf, var(--lt-brass) 45%, var(--lt-brass-deep)); box-shadow: 0 calc(100% + 0px) 0 0 transparent; }
+.lt-panel::before { left: 9px; }
+.lt-panel::after { right: 9px; }
+.pg[data-later]:not([data-arrived]) .lt-panel { opacity: 0; transform: translateX(30px); }
+.pg[data-later][data-arrived] .lt-panel { opacity: 1; transform: none; transition: opacity 0.5s ease 0.1s, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s; }
+
+/* 나중 박사 말풍선(무전) */
+.lt-say { margin: 0; display: grid; gap: 6px; padding: 12px 14px 13px; border-radius: 14px; background: rgba(251, 246, 234, 0.96); color: #1c2033; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); position: relative; }
+.lt-say::after { content: ''; position: absolute; left: -9px; top: 22px; border: 9px solid transparent; border-right-color: rgba(251, 246, 234, 0.96); border-left: 0; }
+.lt-say-who { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: var(--lt-brass-deep); letter-spacing: 0.02em; }
+.lt-say-text { font-size: 21px; font-weight: 800; line-height: 1.38; letter-spacing: -0.02em; word-break: keep-all; animation: lt-say-in 0.45s ease both; }
+@keyframes lt-say-in { from { opacity: 0; transform: translateY(4px); } }
+
+.lt-content { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
+.lt-actions { display: flex; gap: 10px; justify-content: flex-end; flex: none; }
+.lt-actions .pg-btn { min-height: 60px; height: 60px; font-size: 19px; }
+.lt-actions .lt-go { flex: 0 0 62%; }
+.lt-actions .pg-btn--line { flex: 1 1 0; min-width: 0; padding: 0 12px; font-size: 17px; background: rgba(255, 255, 255, 0.06); border-color: rgba(216, 173, 90, 0.45); color: var(--lt-ivory); }
+.pg[data-later] .lt-go { background: linear-gradient(180deg, #f0cf86, var(--lt-brass) 55%, #b98a3e); color: #1d1505; border: 0; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 18px rgba(0, 0, 0, 0.3); }
+/* 레버 당겨 출발 — 캡슐 레버의 빨간 손잡이 색 */
+.pg[data-later] .lt-lever { background: linear-gradient(180deg, #ff6a57, #d83a2b 60%, #a8241a); color: #fff8ef; }
+
+/* ── 시작 ── */
+.lt-start .lt-content { justify-content: center; gap: 16px; }
+.lt-wordmark { font-family: var(--pg-f-anton), Impact, sans-serif; font-size: 104px; line-height: 0.9; color: var(--lt-brass); letter-spacing: 0.01em; text-shadow: 0 4px 0 rgba(0, 0, 0, 0.25); }
+.lt-headline { margin: 0; display: grid; font-size: 34px; font-weight: 800; line-height: 1.25; letter-spacing: -0.03em; }
+.lt-years { margin: 0; display: flex; gap: 8px; }
+.lt-years b { flex: 1; text-align: center; padding: 6px 0; border-radius: 8px; border: 1px solid rgba(216, 173, 90, 0.4); font-family: var(--pg-f-anton), Impact, sans-serif; font-weight: 400; font-size: 24px; letter-spacing: 0.04em; color: #e9e1cc; }
+.lt-years b[data-now] { background: var(--lt-cobalt); border-color: var(--lt-cobalt); color: #fff; }
+
+/* ── 촬영(조종석) ── */
+.lt-cam { position: relative; width: 100%; aspect-ratio: 3 / 2; flex: none; overflow: hidden; border-radius: 14px; background: #0a0d18; display: grid; place-items: center;
+  border: 5px solid var(--lt-brass); box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.4), 0 10px 26px rgba(0, 0, 0, 0.35); }
+.lt-cam > img { width: 100%; height: 100%; object-fit: cover; }
+.lt-cam--off { gap: 8px; align-content: center; color: #b9b3a5; font-size: 16px; font-weight: 700; }
+.lt-cam--off p { margin: 0; }
+.lt-count { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--pg-f-anton), Impact, sans-serif; font-weight: 400; font-size: 150px; color: #fff; text-shadow: 0 6px 24px rgba(0, 0, 0, 0.5); }
+.lt-consent { margin: 0; font-size: 12px; line-height: 1.5; color: #cfc7b4; word-break: keep-all; }
+.lt-consent b { color: var(--lt-ivory); }
+.lt-warn { margin: 0; display: grid; gap: 4px; padding: 10px 12px; border-radius: 10px; background: rgba(255, 196, 92, 0.14); border: 1px solid rgba(255, 196, 92, 0.5); color: #ffe2ad; font-size: 15px; font-weight: 700; line-height: 1.4; word-break: keep-all; }
+.lt-warn b { display: flex; align-items: center; gap: 6px; color: #fff0d2; }
+p.lt-warn { display: flex; align-items: flex-start; gap: 6px; }
+
+/* ── 시간 터널(생성) ── */
+.lt-gen .lt-content { justify-content: center; }
+.lt-meter { display: grid; gap: 14px; }
+.lt-meter-year { font-family: var(--pg-f-anton), Impact, sans-serif; font-weight: 400; font-size: 148px; line-height: 0.9; text-align: center; color: #fff; letter-spacing: 0.02em; text-shadow: 0 0 28px rgba(61, 107, 255, 0.85), 0 0 4px rgba(255, 255, 255, 0.6); font-variant-numeric: tabular-nums; }
+.lt-meter-bar { display: block; height: 10px; border-radius: 99px; background: rgba(255, 255, 255, 0.1); overflow: hidden; border: 1px solid rgba(216, 173, 90, 0.4); }
+.lt-meter-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--lt-cobalt), #9fd0ff); transition: width 1s linear; box-shadow: 0 0 12px rgba(61, 107, 255, 0.8); }
+.lt-meter-marks { display: flex; justify-content: space-between; }
+.lt-meter-marks i { font-style: normal; font-family: var(--pg-f-anton), Impact, sans-serif; font-size: 20px; color: rgba(233, 225, 204, 0.45); }
+.lt-meter-marks i[data-on] { color: var(--lt-brass); }
+.lt-meter p { margin: 0; text-align: center; font-size: 15px; font-weight: 700; color: #cfc7b4; }
+.lt-meter p span { color: var(--lt-ivory); font-variant-numeric: tabular-nums; }
+
+/* ── 10 · 20 · 30년 ── */
+.lt-photo { position: relative; margin: 0; width: 100%; aspect-ratio: 3 / 2; flex: none; overflow: hidden; border-radius: 14px; background: #0a0d18; display: grid; place-items: center;
+  border: 5px solid var(--lt-brass); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45); animation: lt-develop 1.4s ease both 0.35s; }
+@keyframes lt-develop { from { filter: brightness(2.4) saturate(0) blur(6px); } 60% { filter: brightness(1.2) saturate(0.7) blur(0); } }
+.lt-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.lt-photo figcaption { position: absolute; left: 10px; bottom: 10px; display: flex; align-items: baseline; gap: 8px; padding: 4px 14px 5px; border-radius: 999px; background: rgba(13, 20, 40, 0.82); font-size: 15px; font-weight: 800; color: var(--lt-ivory); }
+.lt-photo figcaption b, .lt-four figcaption b { font-family: var(--pg-f-anton), Impact, sans-serif; font-weight: 400; font-size: 26px; letter-spacing: 0.03em; color: #9fb6ff; }
+.lt-photo-empty { font-size: 18px; font-weight: 800; color: #cfc7b4; }
+.lt-dial { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
+.lt-dial li { flex: 1; text-align: center; padding: 7px 0; border-radius: 10px; border: 1px solid rgba(216, 173, 90, 0.35); font-family: var(--pg-f-anton), Impact, sans-serif; font-size: 22px; letter-spacing: 0.04em; color: rgba(233, 225, 204, 0.5); }
+.lt-dial li[data-state='done'] { color: var(--lt-brass); }
+.lt-dial li[data-state='active'] { background: var(--lt-cobalt); border-color: var(--lt-cobalt); color: #fff; box-shadow: 0 0 16px rgba(61, 107, 255, 0.6); }
+
+/* ── 네 컷 ── */
+.lt-four { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-content: center; flex: 1; }
+.lt-four figure { position: relative; margin: 0; aspect-ratio: 3 / 2; overflow: hidden; border-radius: 10px; border: 3px solid var(--lt-brass); background: #0a0d18; display: grid; place-items: center; }
+.lt-four img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.lt-four figcaption { position: absolute; left: 6px; bottom: 6px; display: flex; align-items: baseline; gap: 5px; padding: 2px 9px 3px; border-radius: 999px; background: rgba(13, 20, 40, 0.82); font-size: 12px; font-weight: 800; }
+.lt-four figcaption b { font-size: 18px; }
+.lt-four figure:nth-child(1) { animation: lt-develop 1s ease both 0.3s; }
+.lt-four figure:nth-child(2) { animation: lt-develop 1s ease both 0.6s; }
+.lt-four figure:nth-child(3) { animation: lt-develop 1s ease both 0.9s; }
+.lt-four figure:nth-child(4) { animation: lt-develop 1s ease both 1.2s; }
+
+/* ── 프레임 · 장수 ── */
+.lt-frame-body, .lt-save-body { flex: 1; min-height: 0; display: grid; grid-template-columns: auto 1fr; gap: 14px; }
+.lt-strip { height: 100%; min-height: 0; aspect-ratio: 1 / 3; display: grid; place-items: center; background: rgba(255, 255, 255, 0.05); border-radius: 6px; }
+.lt-strip img { width: 100%; height: 100%; object-fit: contain; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45); }
+.lt-frame-side { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.lt-frame-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+.lt-frame-grid button { position: relative; padding: 0; border: 2px solid transparent; border-radius: 8px; background: none; overflow: hidden; }
+.lt-frame-grid button[aria-checked='true'] { border-color: var(--lt-brass); box-shadow: 0 0 0 2px rgba(216, 173, 90, 0.35); }
+.lt-frame-grid button i { position: absolute; right: 3px; top: 3px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--lt-brass); color: #1d1505; }
+.lt-thumb { display: block; aspect-ratio: 1 / 1.3; overflow: hidden; background-size: 100% auto; background-position: top center; background-repeat: no-repeat; border-radius: 6px; }
+.lt-thumb img { display: block; width: 100%; height: auto; }
+.lt-count-pick { display: flex; gap: 6px; }
+.lt-count-pick button { flex: 1; min-height: 46px; border-radius: 10px; border: 1.5px solid rgba(216, 173, 90, 0.45); background: rgba(255, 255, 255, 0.05); color: var(--lt-ivory); font-size: 17px; font-weight: 800; }
+.lt-count-pick button[aria-checked='true'] { background: var(--lt-brass); border-color: var(--lt-brass); color: #1d1505; }
+
+/* ── 인화 · 저장 ── */
+.lt-save-cards { min-width: 0; display: grid; gap: 10px; align-content: start; }
+.lt-save-cards .pg-card { padding: 12px 14px; gap: 6px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(216, 173, 90, 0.35); color: var(--lt-ivory); }
+.lt-save-cards .pg-card svg { width: 30px; height: 30px; }
+.lt-save-cards .pg-card .pg-btn--line { min-height: 46px; font-size: 16px; background: rgba(255, 255, 255, 0.06); color: var(--lt-ivory); border-color: rgba(216, 173, 90, 0.45); }
+.lt-save-cards .pg-qr-img, .lt-save-cards .pg-card img { max-width: 132px; height: auto; background: #fff; padding: 4px; border-radius: 6px; }

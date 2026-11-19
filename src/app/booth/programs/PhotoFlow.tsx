@@ -246,7 +246,8 @@ export function CaptureStep({ ctx, shots, shotUrls, setShot, onNext, fge }: {
           <canvas ref={camera.liveRef} className="pg-cam-video" hidden={camera.source !== 'dslr'} />
           <div className={`pg-guide pg-guide--${program.capture.group ? 'group' : program.capture.people === 2 && need === 1 ? 2 : 1}`} aria-hidden="true"><i /><i /></div>
           {camera.state === 'starting' && <p className="pg-cam-note">카메라를 켜는 중…</p>}
-          {camera.state === 'ready' && <p className="pg-cam-ready"><i />카메라 준비 완료</p>}
+          {/* 영상판 사주는 카메라가 둥근 구리거울 안에 떠서, 이 표시가 거울 속 버튼처럼 보였다 — 그리지 않는다(2026-11-18 사용자 지시) */}
+          {camera.state === 'ready' && !(ctx.report && ctx.program.id === 'nh-saju') && <p className="pg-cam-ready"><i />카메라 준비 완료</p>}
           {need > 1 && <p className="pg-cam-turn">{active === 0 ? '첫 번째 사람' : '두 번째 사람'} · 촬영 중</p>}
           {count !== null && count > 0 && <b className="pg-count" aria-live="assertive">{count}</b>}
         </div>

@@ -57,7 +57,7 @@ const FACE: VideoPlan = {
   frame: { scene: 'scroll', x: 703, y: 218, w: 361, h: 650 },
 }
 
-/** SAJU! 사주 — 관상감 천문 관원 「하율」: 밤의 관상감 마당 → 만세력 서고(생년월일) → 구리거울(촬영) → 관측대 별밤(사주 세우기) → 정미년 첫 해돋이(사주 카드) → 접어 건네고 다시 마당 */
+/** SAJU! 사주 — 관상감 천문 관원 「하율」: 밤의 관상감 마당 → 만세력 서고(생년월일) → 구리거울(촬영) → 관측대 별밤(사주 세우기) → 정미년 첫 해돋이(사주 카드 — 이젤 없이, 결과는 족자 UI) → 합장해 배웅하고 다시 마당 */
 const SAJU: VideoPlan = {
   base: '/assets/booth-programs/nh-saju-video',
   start: 'gate', firstFlow: 'library',
@@ -70,13 +70,37 @@ const SAJU: VideoPlan = {
     'library>mirror': { src: 'move-mirror', out: 3.6, in: 5.2, len: 8 },
     'mirror>sky': { src: 'move-sky', out: 2, in: 5.4, len: 8 },
     'sky>card': { src: 'move-card', out: 8, in: 8, len: 8, walk: 1.4 },
-    'card>gate': { src: 'move-gate', out: 3.75, in: 5.65, len: 8 },
+    // 결과 장면 이젤 없이 다시 만든 판(2026-11-18) — 합장해 인사 → 오른쪽으로 걸어 나감(4.4) → 마당으로 → 왼쪽에서 걸어 들어옴(4.9)
+    'card>gate': { src: 'move-gate', out: 4.4, in: 4.9, len: 8 },
   },
-  // 받침대의 빈 종이(x 650~1298 · y 352~875) 중 결과 패널(화면 x 1164~)에 가리지 않는 왼쪽에 사주 카드(3:2)를 — 하율의 손끝은 SilkArt 가 종이 색이 아닌 곳으로 알아보고 남긴다
-  frame: { scene: 'card', x: 662, y: 430, w: 490, h: 360 },
+  // 결과 장면에는 이젤 · 종이가 없다(2026-11-18 사용자 지시) — 하율이 왼쪽에서 오른쪽을 가리키고, 결과는 그 자리에 위에서 펼쳐지는 족자(saju-scroll.tsx)가 크게 보여 준다.
+  //   장소 그림 card.webp = design-review/nh-saju-art/s5-dawn(s5-card 에서 받침대만 지움), 영상 hi · idle · move-card · move-gate 다시(clips-dawn)
 }
 
-export const VIDEO_PLANS: Partial<Record<ProgramId, VideoPlan>> = { 'nh-face': FACE, 'nh-saju': SAJU }
+/**
+ * LATER! 나중 박사의 타임캡슐(일반 프로그램, 늘 영상판 — LaterFlow.tsx) — 실험실 하나: 박사의 창고 → 손님이 캡슐에 타면 일인칭 조종석 → 레버가 덜컥 · 시간 터널
+ * → 창밖 2036 · 2046 · 2056(손님이 버튼으로 넘긴다) → 착륙 · 연기 속에 그을린 박사(네 컷 · 프레임 · 인화) → 그을음 닦고 처음으로.
+ * 박사는 캡슐에서 내릴 때까지 안 나온다(사용자 지시). 이동 영상은 걷기 구간이 없어 out = in = len, walk 는 영상 전체 빠르기.
+ * 원본 design-review/later-art(시트 · 그림 · spec later-clips.json · clips)
+ */
+const LATER: VideoPlan = {
+  base: '/assets/booth-programs/later-video',
+  start: 'garage', firstFlow: 'cockpit',
+  steps: { capture: 'cockpit', generating: 'warp', y10: 'w2036', y20: 'w2046', y30: 'w2056', result: 'back', frame: 'back', save: 'back' },
+  pics: { garage: 'garage', cockpit: 'cockpit', warp: 'warp', w2036: 'w2036', w2046: 'w2046', w2056: 'w2056', back: 'back' },
+  idles: 2,
+  moves: {
+    'garage>cockpit': { src: 'move-cockpit', out: 8, in: 8, len: 8, walk: 1.4 },
+    'cockpit>warp': { src: 'move-warp', out: 5, in: 5, len: 5, walk: 1.1 },
+    'warp>w2036': { src: 'move-w2036', out: 5, in: 5, len: 5, walk: 1.2 },
+    'w2036>w2046': { src: 'move-w2046', out: 5, in: 5, len: 5, walk: 1.2 },
+    'w2046>w2056': { src: 'move-w2056', out: 5, in: 5, len: 5, walk: 1.2 },
+    'w2056>back': { src: 'move-back', out: 8, in: 8, len: 8, walk: 1.3 },
+    'back>garage': { src: 'move-garage', out: 8, in: 8, len: 8, walk: 1.5 },
+  },
+}
+
+export const VIDEO_PLANS: Partial<Record<ProgramId, VideoPlan>> = { 'nh-face': FACE, 'nh-saju': SAJU, later: LATER }
 
 /** 주소의 &lab= 값(서버 렌더에서는 null) */
 export function useLab(): string | null {
@@ -297,7 +321,7 @@ function SilkArt({ frame, art, video, leaving, style }: {
     void paintArt(art, w, h).then((paint) => {
       const out = ref.current?.getContext('2d')
       if (stop || !out) return
-      let ref0: [number, number, number] | null = null
+      let ref0: [number, number, number] | null = null, frames = 0
       const tick = () => {
         if (stop) return
         const v = video()
@@ -306,12 +330,15 @@ function SilkArt({ frame, art, video, leaving, style }: {
           const k = v.videoWidth / 1920
           wg.drawImage(v, frame.x * k, frame.y * k, w * k, h * k, 0, 0, w, h)
           const px = wg.getImageData(0, 0, w, h), d = px.data, p = paint.data
-          // 비단 기준색 — 처음 프레임 가운데 줄의 밝은 곳 평균
-          if (!ref0) {
+          // 비단 기준색 — 가운데 줄의 밝은 곳 평균. 밝은 프레임에서만 정하고(막 시작한 영상의 첫 프레임이 검게 읽히면 기준이 0 이 되어
+          // 모든 칸이 NaN → 그림이 통째로 투명해졌다 — 사파리에서 족자가 빈 채로 보인 까닭, 2026-11-19), 2초마다 다시 잰다
+          if (!ref0 || frames % 120 === 0) {
             let r = 0, gg = 0, b = 0, n = 0
             for (let y = Math.round(h * 0.2); y < h * 0.8; y += 4) for (let x = Math.round(w * 0.4); x < w * 0.95; x += 4) { const i = (y * w + x) * 4; r += d[i]; gg += d[i + 1]; b += d[i + 2]; n++ }
-            ref0 = [r / n, gg / n, b / n]
+            if ((r + gg + b) / n > 360) ref0 = [r / n, gg / n, b / n]
           }
+          frames++
+          if (!ref0) { raf = requestAnimationFrame(tick); return }
           const [R, G, B] = ref0, S = R + G + B, cr = R / S, cg = G / S
           for (let i = 0; i < d.length; i += 4) {
             const r = d[i], g = d[i + 1], b = d[i + 2], s = r + g + b + 1

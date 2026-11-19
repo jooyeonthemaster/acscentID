@@ -157,11 +157,12 @@
 
 /* 장면이 먼저, 패널은 나중에(2026-11-18 사용자 지시: 영상 전환이 다 끝난 뒤 패널이 스르륵 열리고 그때부터 누를 수 있게).
    단계가 바뀌면 화면 내용(패널 · 카메라 칸)을 바로 숨기고, 영상이 다음 장면에 도착하면(ProgramApp data-arrived — 도착 인사 조각이 그려진 때) 떠오른다.
-   pg-body 에는 transform 을 주지 않는다(사주 구리거울 카메라의 position: fixed 기준이 바뀐다) — 위로 떠오르는 건 패널만 */
-.pg[data-video] .pg-body { opacity: 0; pointer-events: none; }
-.pg[data-video] .pg-body .pg-split > .pg-panel { transform: translateY(16px); }
-.pg[data-video][data-arrived] .pg-body { opacity: 1; pointer-events: auto; transition: opacity .55s ease .08s; }
-.pg[data-video][data-arrived] .pg-body .pg-split > .pg-panel { transform: none; transition: transform .7s cubic-bezier(.2, .8, .2, 1) .08s; }
+   pg-body 에는 transform 을 주지 않는다(사주 구리거울 카메라의 position: fixed 기준이 바뀐다) — 위로 떠오르는 건 패널만
+   (2026-11-18 바뀜: 오른쪽 패널은 옛 책 — 장면이 바뀌면 표지가 덮이고, 도착하면 열린다. 책 · 쪽 안 글은 book-panel.css. 여기서는 패널 밖(왼쪽 칸 카메라 등)만 도착 뒤에 보인다) */
+.pg[data-video] .pg-body { pointer-events: none; }
+.pg[data-video][data-arrived] .pg-body { pointer-events: auto; }
+.pg[data-video] .pg-body .pg-split > .pg-visual { opacity: 0; }
+.pg[data-video][data-arrived] .pg-body .pg-split > .pg-visual { opacity: 1; transition: opacity .55s ease .08s; }
 
 /* 촬영(영상판) — 카메라를 오른쪽 패널 안에(관상 등, 사주는 구리거울 그대로). 제목 아래 남는 높이를 카메라가 채우고, 버튼 줄은 늘 같은 자리 */
 .pg[data-video][data-kind] .pg-capture-step--panel > .pg-panel::before { flex-grow: 0; }

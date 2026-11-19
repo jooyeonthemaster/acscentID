@@ -865,6 +865,10 @@ canvas.pg-cam-video { transform: none; }
 .pg-birth-display i { font-style: normal; color: var(--pg-muted); font-size: 60px; }
 .pg-birth-part { padding: 0 4px 6px; border-bottom: 2px solid transparent; }
 .pg-birth-part[data-empty] { color: #4a4844; }
+/* 아무것도 누르지 않았을 때의 예시 날짜(ReadingFlow BIRTH_EXAMPLE) — 숫자 폭은 같고 색만 옅게 */
+.pg-birth-ghost { color: var(--pg-ink); opacity: .22; }
+/* 누르기 시작한 뒤 아직 안 누른 자리 — 글자는 안 보이고(숫자 폭만 차지) 아래쪽에 짧은 옅은 밑줄 */
+.pg-birth-blank { color: transparent; background: linear-gradient(var(--pg-muted), var(--pg-muted)) 50% 92% / 62% 3px no-repeat; opacity: .45; }
 .pg-birth-part[data-active] { border-bottom-color: var(--pg-accent); }
 .pg-birth-cal { display: flex; gap: 10px; }
 .pg-birth-cal button { min-width: 112px; min-height: 56px; padding: 0 20px; border-radius: var(--pg-radius); border: 1px solid #55524d; background: transparent; font-size: 19px; font-weight: 600; color: var(--pg-ink); }

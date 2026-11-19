@@ -24,10 +24,11 @@ import { MvFlow } from './MvFlow'
 import { MovieFlow } from './MovieFlow'
 import { StripFlow } from './StripFlow'
 import { ReadingFlow } from './ReadingFlow'
-import { Modal, PlainText, Wordmark } from './ui'
+import { Modal, PlainText, Wordmark, BookCover } from './ui'
 import { AsvStart, AsvTopBar } from './AsvParts'
 import { FgeStart, FgeTopBar, useFgEditorial } from './funground-editorial'
 import { preloadVideoPlan, useLab, VIDEO_PLANS, VideoStage, type StageArt } from './video-stage'
+import { LaterFlow, LaterStart } from './LaterFlow'
 import './programs.css'
 import './asv.css'
 import './funground-editorial.css'
@@ -59,7 +60,9 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
   const fge = useFgEditorial(program)
   // 영상판(&lab=video) — 관상 등 영상 계획이 있는 프로그램만(video-stage.tsx). 아니면 undefined 라 예전 화면 그대로
   const lab = useLab()
-  const plan = lab === 'video' ? VIDEO_PLANS[program.id] : undefined
+  // LATER! 나중 박사의 타임캡슐은 늘 영상판(주소 &lab 없이도) — 화면 · CSS 는 따로(LaterFlow.tsx · later.css, 관상 · 사주의 옛 책 패널을 쓰지 않게 data-video 대신 data-later)
+  const later = program.id === 'later'
+  const plan = later || lab === 'video' ? VIDEO_PLANS[program.id] : undefined
   const [flowView, setFlowView] = useState<{ step: string; overlay: StageArt | null }>({ step: '', overlay: null })
   const report = useCallback((step: string, overlay: StageArt | null) => setFlowView((v) => (v.step === step && v.overlay?.art === overlay?.art && v.overlay?.title === overlay?.title ? v : { step, overlay })), [])
   useEffect(() => { if (plan) preloadVideoPlan(plan) }, [plan])
@@ -151,20 +154,21 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
   }
 
   return (
-    <div className={`pg ${FONT_VARS}${program.kind === 'strip' ? ' asv' : ''}`} data-program={program.id} data-kind={program.kind} data-site={fge ? 'funground' : undefined} data-video={plan ? '' : undefined} data-arrived={plan && scene && arrived === scene ? '' : undefined}>
+    <div className={`pg ${FONT_VARS}${program.kind === 'strip' && !later ? ' asv' : ''}`} data-program={program.id} data-kind={program.kind} data-site={fge ? 'funground' : undefined} data-video={plan && !later ? '' : undefined} data-later={later ? '' : undefined} data-arrived={plan && scene && arrived === scene ? '' : undefined}>
       <div className="pg-stage" style={{ '--pg-scale': scale } as CSSProperties}>
         {plan && scene && <VideoStage plan={plan} scene={scene} overlay={flowView.overlay} onArrive={setArrived} />}
         {/* ANSAN(띠지 kind)은 축제 공식 웹사이트 디자인(AsvParts · asv.css) */}
-        {program.kind === 'strip'
+        {program.kind === 'strip' && !later
           ? <AsvTopBar program={program} flow={screen === 'flow'} step={step} onHome={requestHome} onHelp={() => setHelp(true)} />
           : fge ? <FgeTopBar step={screen === 'start' ? 1 : screen === 'pass' ? 2 : step} onHome={requestHome} />
             : <TopBar program={program} screen={screen} step={step} onHome={requestHome} onHelp={() => setHelp(true)} />}
         <main className="pg-body"><PlainText.Provider value={Boolean(plan)}>
-          {screen === 'start' && (program.kind === 'strip' ? <AsvStart program={program} onStart={start} /> : fge ? <FgeStart program={program} art={fge} onStart={start} /> : <StartScreen program={program} onStart={start} plain={Boolean(plan)} />)}
+          {screen === 'start' && (later ? <LaterStart program={program} onStart={start} /> : program.kind === 'strip' ? <AsvStart program={program} onStart={start} /> : fge ? <FgeStart program={program} art={fge} onStart={start} /> : <StartScreen program={program} onStart={start} plain={Boolean(plan)} />)}
           {screen === 'pass' && <PassScreen onBack={home} onTicket={(t) => { ticketRef.current = t; setScreen('flow') }} />}
           {screen === 'flow' && (
             program.kind === 'photo' ? <PhotoFlow key={session} ctx={ctx} />
               : program.kind === 'mv' ? <MvFlow key={session} ctx={ctx} />
+                : later ? <LaterFlow key={session} ctx={ctx} />
                 : program.kind === 'strip' ? <StripFlow key={session} ctx={ctx} />
                   : program.kind === 'reading' ? <ReadingFlow key={session} ctx={ctx} />
                   : <MovieFlow key={session} ctx={ctx} />
@@ -256,6 +260,7 @@ function StartScreen({ program, onStart, plain = false }: { program: ProgramDef;
         </>}
         <button type="button" className="pg-btn pg-btn--accent pg-btn--hero" onClick={onStart}>{program.startCta}<span aria-hidden="true">→</span></button>
       </div>
+      {plain && <BookCover />}
     </div>
   )
 }

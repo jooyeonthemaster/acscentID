@@ -28,7 +28,7 @@ type Step = 'capture' | 'generating' | 'result' | 'frame' | 'save'
 const COUNTDOWN_S = 5
 
 /** 찍은 사진을 화면과 같은 가로 3:2 로(가운데) — 미리보기 칸이 3:2 cover 라 손님이 본 그대로 */
-function crop32(src: HTMLCanvasElement | HTMLImageElement): HTMLCanvasElement {
+export function crop32(src: HTMLCanvasElement | HTMLImageElement): HTMLCanvasElement {
   const w = src instanceof HTMLImageElement ? src.naturalWidth : src.width
   const h = src instanceof HTMLImageElement ? src.naturalHeight : src.height
   const cw = Math.min(w, h * 1.5), ch = cw / 1.5
@@ -41,7 +41,7 @@ function crop32(src: HTMLCanvasElement | HTMLImageElement): HTMLCanvasElement {
 /** 고를 수 있는 사진 — 기본 디자인(basic) 또는 프레임(frame) */
 interface StripChoice { id: string; name: string; basic?: 0 | 1; frame?: StripFrameDef }
 /** 다시 찍기 안내 — 무엇이 문제인지(title)와 어떻게 찍으면 되는지(tip) */
-interface RetakeNotice { title: string; tip?: string }
+export interface RetakeNotice { title: string; tip?: string }
 
 /** 인화로 넘기는 것 — strip · sheet 는 QR 없는 사진(폰 저장 · QR 을 못 넣었을 때 인쇄), render 는 같은 디자인에 QR 을 넣어 다시 그린다 */
 interface StripOrder { strip: string; sheet: string; copies: number; count: number; render: (qr: StripQr) => Promise<HTMLCanvasElement> }
@@ -390,6 +390,49 @@ const ro = (word: string) => { const jong = (word.charCodeAt(word.length - 1) - 
 /** 기다리는 동안 바뀌는 한 줄 — 컷마다 가는 곳 */
 const TRAVEL = STRIP_STEPS.map((s) => `${s.label} ${s.place}${ro(s.place)} 가는 중…`)
 
+/**
+ * 미래 세 장 만들기(/api/photobooth/timecapsule) — 못 만든 칸만 한 번 더 부탁하고, 그래도 없으면 null(‘도착하는 중’ 칸).
+ * onStage: 0 얼굴 확인 · 1 미래 세 장면 · 2 사진 완성. 다시 촬영이 필요하면 Error 에 retake(안내)를 붙여 던진다. LATER!(LaterFlow)도 같이 쓴다
+ */
+export async function makeFuture(ctx: FlowCtx, shot: HTMLCanvasElement, signal: AbortSignal, onStage: (stage: number) => void): Promise<{ images: (HTMLImageElement | null)[]; people: number }> {
+  const ask = async (years: StripYears[], photo: string): Promise<StripResponse> => {
+    const ticket = await ctx.getTicket()
+    const res = await fetch('/api/photobooth/timecapsule', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, signal,
+      body: JSON.stringify({ ticket, photo, years, program: ctx.program.id }),
+    })
+    const data = await res.json().catch(() => ({}))
+    // 다시 촬영 — 서버가 보낸 이유로 무엇이 문제고 어떻게 찍으면 되는지(이유가 없으면 서버 문장 그대로)
+    if (res.status === 422) {
+      const reason = (data as { retake?: StripRetake }).retake
+      const notice: RetakeNotice = reason?.reason ? stripRetakeCopy(reason) : { title: data.error || '다시 찍어 주세요.' }
+      throw Object.assign(new Error(notice.title), { retake: notice })
+    }
+    if (!res.ok || !Array.isArray(data.images)) throw new Error(data.error || `AI 사진을 만들지 못했어요 (${res.status}).`)
+    return data as StripResponse
+  }
+  onStage(0)
+  const photo = toRequestJpeg(shot, 2048)
+  const stageTimer = window.setTimeout(() => onStage(1), 4500)
+  const first = await ask(STRIP_STEPS.map((s) => s.years), photo).finally(() => window.clearTimeout(stageTimer))
+  const byYears = new Map(first.images.map((i) => [i.years, i.image]))
+  // 못 만든 칸만 한 번 더(같은 표의 두 번째) — 이것도 안 되면 '도착하는 중' 칸으로
+  const missing = STRIP_STEPS.map((s) => s.years).filter((y) => !byYears.get(y))
+  if (missing.length) {
+    onStage(1)
+    const again = await ask(missing, photo).catch(() => null)
+    again?.images.forEach((i) => { if (i.image) byYears.set(i.years, i.image) })
+  }
+  onStage(2)
+  const [images] = await Promise.all([
+    Promise.all(STRIP_STEPS.map((s) => { const src = byYears.get(s.years); return src ? loadImage(src) : Promise.resolve(null) })),
+    loadCanvasFonts(),
+  ])
+  // 찍힌 인원수 — 서버 사람 읽기(아기까지 센다), 실패하면 브라우저 얼굴 검출(자동 인화수용)
+  const people = first.people > 0 ? first.people : Math.max(0, Math.min(await countFaces(shot), STRIP_MAX_PEOPLE))
+  return { images, people }
+}
+
 function Generate({ ctx, shot, shotUrl, onDone, onRetake }: {
   ctx: FlowCtx
   shot: HTMLCanvasElement
@@ -410,43 +453,9 @@ function Generate({ ctx, shot, shotUrl, onDone, onRetake }: {
     const abort = new AbortController()
     ctx.setBusy(true)
     setError(null); setStage(0)
-    const ask = async (years: StripYears[], photo: string): Promise<StripResponse> => {
-      const ticket = await ctx.getTicket()
-      const res = await fetch('/api/photobooth/timecapsule', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: abort.signal,
-        body: JSON.stringify({ ticket, photo, years }),
-      })
-      const data = await res.json().catch(() => ({}))
-      // 다시 촬영 — 서버가 보낸 이유로 무엇이 문제고 어떻게 찍으면 되는지(이유가 없으면 서버 문장 그대로)
-      if (res.status === 422) {
-        const reason = (data as { retake?: StripRetake }).retake
-        const notice: RetakeNotice = reason?.reason ? stripRetakeCopy(reason) : { title: data.error || '다시 찍어 주세요.' }
-        throw Object.assign(new Error(notice.title), { retake: notice })
-      }
-      if (!res.ok || !Array.isArray(data.images)) throw new Error(data.error || `AI 사진을 만들지 못했어요 (${res.status}).`)
-      return data as StripResponse
-    }
     ;(async () => {
       try {
-        const photo = toRequestJpeg(shot, 2048)
-        const stageTimer = window.setTimeout(() => setStage(1), 4500)
-        const first = await ask(STRIP_STEPS.map((s) => s.years), photo)
-        window.clearTimeout(stageTimer)
-        const byYears = new Map(first.images.map((i) => [i.years, i.image]))
-        // 못 만든 칸만 한 번 더(같은 표의 두 번째) — 이것도 안 되면 '도착하는 중' 칸으로
-        const missing = STRIP_STEPS.map((s) => s.years).filter((y) => !byYears.get(y))
-        if (missing.length) {
-          setStage(1)
-          const again = await ask(missing, photo).catch(() => null)
-          again?.images.forEach((i) => { if (i.image) byYears.set(i.years, i.image) })
-        }
-        setStage(2)
-        const [images] = await Promise.all([
-          Promise.all(STRIP_STEPS.map((s) => { const src = byYears.get(s.years); return src ? loadImage(src) : Promise.resolve(null) })),
-          loadCanvasFonts(),
-        ])
-        // 찍힌 인원수 — 서버 사람 읽기(아기까지 센다), 실패하면 브라우저 얼굴 검출(자동 인화수용)
-        const people = first.people > 0 ? first.people : Math.max(0, Math.min(await countFaces(shot), STRIP_MAX_PEOPLE))
+        const { images, people } = await makeFuture(ctx, shot, abort.signal, setStage)
         if (!abort.signal.aborted) done.current.onDone(images, people)
       } catch (cause) {
         if (abort.signal.aborted) return

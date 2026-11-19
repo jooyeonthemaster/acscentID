@@ -1,0 +1,63 @@
+/* SAJU! 영상판 결과 족자(saju-scroll.tsx) — 밤하늘 사주 카드를 쪽빛 비단에 배접한 족자 한 폭. 화면 오른쪽에 걸려 위에서 아래로 펼쳐진다.
+   시간표(결과 장면 도착 data-arrived 부터): 0~.35초 위 축이 내려옴 · .3~1.5초 비단이 펼쳐지고 아래 축이 따라 내려감 · 1.35초~ 글 · 카드 · 버튼이 떠오름
+   움직임은 prefers-reduced-motion 에 묶지 않는다(부스 · 키오스크 장비는 그 설정이 켜져 있을 수 있다) */
+
+.ss { --ss-rod: 24px; --ss-gold: #d7b36a; --ss-silk: #1a2150; position: absolute; top: 2px; right: 28px; bottom: 12px; width: min(56%, 1080px); z-index: 4; pointer-events: none; }
+.pg[data-arrived] .ss { pointer-events: auto; }
+.ss-scroll { position: relative; height: 100%; padding: var(--ss-rod) 0; filter: drop-shadow(0 30px 50px rgba(0, 0, 0, .55)); }
+
+/* 축 — 짙은 나무에 금빛 축머리(양 끝이 비단보다 조금 나온다) */
+.ss-rod { position: absolute; left: -22px; right: -22px; height: var(--ss-rod); border-radius: 13px;
+  background: linear-gradient(#7a5233, #4a2f1b 45%, #2a190d 55%, #5b3b22); box-shadow: inset 0 2px 2px rgba(255, 230, 190, .25), 0 4px 10px rgba(0, 0, 0, .45); }
+.ss-rod::before, .ss-rod::after { content: ''; position: absolute; top: -3px; bottom: -3px; width: 30px; border-radius: 8px;
+  background: linear-gradient(#f3dca0, #b88d3e 50%, #7d5a20 60%, #d8b56b); box-shadow: inset 0 1px 2px rgba(255, 255, 255, .5); }
+.ss-rod::before { left: -6px; }
+.ss-rod::after { right: -6px; }
+.ss-rod--top { top: 0; }
+/* 위 축의 걸이 끈 */
+.ss-scroll::before { content: ''; position: absolute; left: 50%; top: -26px; width: 30%; height: 30px; translate: -50% 0; z-index: -1;
+  background: linear-gradient(to top right, transparent calc(50% - 1px), var(--ss-gold) 50%, transparent calc(50% + 1px)) left / 50% 100% no-repeat,
+              linear-gradient(to top left, transparent calc(50% - 1px), var(--ss-gold) 50%, transparent calc(50% + 1px)) right / 50% 100% no-repeat; opacity: .8; }
+
+/* 비단(장황) — 쪽빛 바탕에 은은한 구름무늬, 안쪽 금선 두 줄. 펼쳐지는 동안 위에서부터 드러난다 */
+.ss-silk { position: relative; height: 100%; padding: 16px;
+  background:
+    radial-gradient(ellipse 22px 9px at 18% 12%, rgba(215, 179, 106, .09), transparent 70%),
+    radial-gradient(ellipse 26px 10px at 78% 32%, rgba(215, 179, 106, .08), transparent 70%),
+    radial-gradient(ellipse 22px 9px at 30% 68%, rgba(215, 179, 106, .08), transparent 70%),
+    radial-gradient(ellipse 26px 10px at 82% 86%, rgba(215, 179, 106, .07), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 4px),
+    var(--ss-silk);
+  box-shadow: inset 0 0 0 7px var(--ss-silk), inset 0 0 0 8px rgba(215, 179, 106, .65), inset 0 0 0 11px var(--ss-silk), inset 0 0 0 12px rgba(215, 179, 106, .35);
+  clip-path: inset(0 0 100% 0); }
+.ss-paper { display: flex; flex-direction: column; gap: 10px; height: 100%; padding: 14px 20px 16px; border-radius: 2px;
+  background: linear-gradient(rgba(10, 14, 38, .55), rgba(10, 14, 38, .78)); box-shadow: inset 0 0 0 1px rgba(215, 179, 106, .3); color: #f3ead6; }
+
+.ss-head { display: grid; justify-items: center; gap: 2px; text-align: center; }
+.ss-eyebrow { margin: 0; font-family: 'nh-myeongjo', 'Noto Serif KR', serif; font-size: 13px; letter-spacing: .2em; color: rgba(231, 214, 178, .75); }
+.ss-head h2 { margin: 0; font-family: 'nh-brush', 'nh-myeongjo', serif; font-weight: 400; font-size: 48px; line-height: 1.05; color: #f6e7c4; letter-spacing: .02em; text-shadow: 0 2px 18px rgba(215, 179, 106, .25); }
+.ss-title { margin: 0; font-family: 'nh-myeongjo', 'Noto Serif KR', serif; font-size: 15px; letter-spacing: .06em; color: var(--ss-gold); }
+
+/* 카드 — 남는 높이를 다 쓰고 3:2 그대로(가운데 접는 선이 보이게 아주 옅은 그림자) */
+.ss-card { flex: 1 1 0; min-height: 0; display: grid; place-items: center; container-type: size; }
+.ss-card img { display: block; max-width: 100cqw; max-height: 100cqh; width: auto; height: auto; border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(215, 179, 106, .45), 0 14px 34px rgba(0, 0, 0, .5); }
+
+.ss-note { margin: 0; font-size: 12px; line-height: 1.5; color: rgba(231, 214, 178, .6); text-align: center; word-break: keep-all; }
+.ss-actions { display: flex; gap: 12px; }
+.ss-actions .pg-btn { flex: 1 1 0; min-width: 0; min-height: 64px; }
+.ss-actions .pg-btn--accent { flex: 1.4 1 0; }
+
+/* 아래 축 — 비단과 같은 높이의 길(track)에 붙어, 길째 위로 올려 두었다가(-100%) 펼쳐지는 동안 제자리로 */
+.ss-track { position: absolute; left: 0; right: 0; top: var(--ss-rod); bottom: 0; transform: translateY(-100%); pointer-events: none; }
+.ss-rod--bottom { bottom: 0; }
+
+/* 펼치기 — 결과 장면에 도착하면 */
+.ss-scroll { opacity: 0; transform: translateY(-14px); }
+.ss-paper > * { opacity: 0; transform: translateY(8px); }
+.pg[data-arrived] .ss-scroll { opacity: 1; transform: none; transition: opacity .3s ease-out, transform .45s cubic-bezier(.2, .8, .2, 1); }
+.pg[data-arrived] .ss-silk { clip-path: inset(0); transition: clip-path 1.2s cubic-bezier(.45, .05, .2, 1) .3s; }
+.pg[data-arrived] .ss-track { transform: none; transition: transform 1.2s cubic-bezier(.45, .05, .2, 1) .3s; }
+.pg[data-arrived] .ss-paper > * { opacity: 1; transform: none; transition: opacity .5s ease 1.35s, transform .6s cubic-bezier(.2, .8, .2, 1) 1.35s; }
+.pg[data-arrived] .ss-paper > .ss-card { transition-delay: 1.45s; }
+.pg[data-arrived] .ss-paper > :is(.ss-note, .ss-actions) { transition-delay: 1.6s; }

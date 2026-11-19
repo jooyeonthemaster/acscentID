@@ -12,7 +12,7 @@
 
 import sharp from 'sharp'
 import { askBoothVision, generateBoothImage, IdolError } from '../idol-generate'
-import { STRIP_MAX_PEOPLE, STRIP_STEPS, stripRetakeCopy, type StripRetake, type StripYears } from './timecapsule-strip'
+import { LATER_PROGRAM_ID, STRIP_MAX_PEOPLE, STRIP_STEPS, stripRetakeCopy, type StripRetake, type StripYears } from './timecapsule-strip'
 import { buildFaceReferences, createFaceReferences } from './timecapsule-faces'
 import { buildStepPrompt } from './timecapsule-prompt'
 
@@ -118,11 +118,20 @@ const VISION_DOWN = 'AI 서버가 잠시 응답하지 않아요. [다시 만들�
  * 사진 속 사람 읽기 — 상자가 믿을 만한 첫 답. 모두 이상하면 가장 많이 찾은 답, 답은 왔는데 형식이 모두 틀리면 null(다시 촬영).
  * 두 모델 모두 답이 없으면 503 — 다시 촬영이 아니라 같은 사진으로 다시 시도(생성 표는 아직 쓰지 않았다)
  */
-export async function readPeople(photo: string): Promise<StripPerson[] | null> {
+/**
+ * 생성 키 — LATER! 일반판(catalog 'later')은 다른 영상판(SIP! · SAJU! · COLOR! 등)과 같은 사이트 기본 키(OPENROUTER_API_KEY, 2026-11-19 사용자 지시),
+ * 따로 두려면 OPENROUTER_LATER_API_KEY. ANSAN 은 undefined — 부스 전용 키(idol-generate.ts) 그대로
+ */
+export function stripKey(program: unknown): string | undefined {
+  if (program !== LATER_PROGRAM_ID) return undefined
+  return process.env.OPENROUTER_LATER_API_KEY || process.env.OPENROUTER_API_KEY || undefined
+}
+
+export async function readPeople(photo: string, key?: string): Promise<StripPerson[] | null> {
   let best: StripPerson[] | null = null
   let answered = false
   for (const [model, timeout] of VISION_MODELS) {
-    const text = await askBoothVision(model, timeout, PEOPLE_PROMPT, [photo])
+    const text = await askBoothVision(model, timeout, PEOPLE_PROMPT, [photo], key)
     if (text) answered = true
     const people = text ? parsePeople(text) : null
     if (!people) {
@@ -192,8 +201,8 @@ function requireReferences(people: StripPerson[], faces: string[], problem: 'too
 }
 
 /** 생성 준비 — 각자 깨끗한 얼굴 참고를 확보해야 생성 표를 사용한다. 실패하면 422(이유와 함께)로 다시 촬영. */
-export async function planStrip(photo: string): Promise<StripPlan> {
-  const [read, main] = await Promise.all([readPeople(photo), mainPhoto(photo)])
+export async function planStrip(photo: string, key?: string): Promise<StripPlan> {
+  const [read, main] = await Promise.all([readPeople(photo, key), mainPhoto(photo)])
   const people = requirePeople(read)
   const { faces, problem } = await buildFaceReferences(photo, people).catch(() => ({ faces: [] as string[], problem: 'invalid' as const }))
   requireReferences(people, faces, problem)
@@ -201,12 +210,12 @@ export async function planStrip(photo: string): Promise<StripPlan> {
 }
 
 /** 고른 햇수만큼 동시에 — 못 만든 칸은 null(부스가 그 칸만 다시 부탁한다) */
-export async function generateSteps(plan: StripPlan, steps: StripYears[]): Promise<(string | null)[]> {
+export async function generateSteps(plan: StripPlan, steps: StripYears[], key?: string): Promise<(string | null)[]> {
   const people = requirePeople(plan.people)
   requireReferences(people, plan.faces)
   return Promise.all(steps.map((years) =>
     generateBoothImage(buildStepPrompt(years, people, true), plan.photo, plan.faces, {
-      aspectRatio: '3:2', imageSize: '1K', timeouts: STEP_TIMEOUTS,
+      aspectRatio: '3:2', imageSize: '1K', timeouts: STEP_TIMEOUTS, key,
       // 단체는 같은 모델로 재시도해 여러 얼굴 참고를 다루는 생성 품질을 유지한다.
       retryModel: people.length > 1 ? 'primary' : 'fast',
     })

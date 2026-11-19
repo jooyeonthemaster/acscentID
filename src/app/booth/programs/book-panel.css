@@ -1,0 +1,177 @@
+/* 부스 영상판(&lab=video) 오른쪽 패널 = 옛 선장본(실로 꿰맨 책) 한 권(2026-11-18 사용자 지시: 흑색 유리판 대신 동양풍 책 — 펼쳐졌다가, 넘어갈 때는 접히고, 다음 단계에서 다시 열린다).
+   - 책등은 오른쪽(옛 책처럼 오른쪽을 꿰맨다) — 다섯 땀 실(오침안정) · 책등 그늘. 표지는 오른쪽을 축으로 손님 쪽으로 넘어가며 열린다.
+   - 장면이 바뀌면(ProgramApp 에서 data-arrived 가 빠지면) 글이 먼저 사라지고 표지가 덮인다 → 영상이 이동하는 동안 덮인 책 → 다음 장면에 도착하면 표지가 열리고 글이 떠오른다.
+   - 같은 장면 안에서 단계만 바뀌면(관상 주제 → 생성, 사주 결과 → 저장 등) 덮지 않고 펼친 채로.
+   - 표지(BookCover, ui.tsx)는 패널과 같은 칸(grid 2열 1행)에 겹쳐 그린다 — .pg-split > .pg-panel 규칙들은 그대로.
+   - 책 쪽 글색은 먹색 · 한지(패널 안 변수만 바꾼다). 프로그램마다 표지 색 · 제목 · 강조색: 사주 쪽빛, 관상 주홍빛 갈색.
+   움직임은 prefers-reduced-motion 에 묶지 않는다(행사 기기 설정과 상관없이 같은 화면). */
+
+.pg[data-video] { --book-spine: 30px; --book-title: '이야기 책'; --book-cover: #1d2450; --book-accent: #27346f; --book-thread: #dcc48e; }
+.pg[data-video][data-program='nh-saju'] { --book-title: '정미년 사주 이야기'; --book-cover: #1d2450; --book-accent: #27346f; --book-thread: #dcc48e; }
+.pg[data-video][data-program='nh-face'] { --book-title: '새해 관상 이야기'; --book-cover: #5a2219; --book-accent: #a8291f; --book-thread: #e6cf9f; }
+
+/* 3D 원근은 표지 transform 안에(perspective()) — .pg-split 에 perspective 를 주면 그 안 position: fixed(사주 구리거울 카메라)의 기준이 바뀐다 */
+
+/* 칸 자리를 못 박는다 — 표지가 2열 1행을 차지하면 자동 배치되는 패널이 아랫줄로 밀린다 */
+.pg[data-video] .pg-split > .pg-visual { grid-column: 1; grid-row: 1; }
+.pg[data-video] .pg-split > .pg-panel { grid-column: 2; grid-row: 1; }
+
+/* 펼친 쪽(패널) — 한지 · 먹색 글 · 가는 테(광곽) · 오른쪽 책등의 실. 영상판 유리판 규칙(video-stage.css)보다 앞서게 .pg-body 를 붙인다.
+   쪽 안 색 변수는 모든 단계에, 바탕 · 테는 관상 결과(한지 서책 — 붉은 두 줄 테 · 낙관, video-stage.css)만 빼고 */
+.pg[data-video][data-kind] .pg-body .pg-split > .pg-panel {
+  --pg-ink: #2a1f16; --pg-muted: #7d6a55; --pg-line: rgba(120, 70, 35, .26); --pg-surface: rgba(255, 251, 242, .6);
+  --pg-accent: var(--book-accent); --pg-on-accent: #f8efdd; --vs-panel-solid: #ece2cb;
+  color: var(--pg-ink); padding-right: calc(24px + var(--book-spine));
+}
+.pg[data-video][data-kind] .pg-body .pg-split:not(.pg-reading-simple) > .pg-panel {
+  border: 0; border-radius: 3px 7px 7px 3px;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  background:
+    /* 다섯 땀 — 세로 실과 가장자리로 감기는 가로 실, 땀 구멍 */
+    linear-gradient(var(--book-thread), var(--book-thread)) right 15px top 7% / 2px 86% no-repeat,
+    linear-gradient(var(--book-thread), var(--book-thread)) right 0 top 7% / 16px 2px no-repeat,
+    linear-gradient(var(--book-thread), var(--book-thread)) right 0 top 28.5% / 16px 2px no-repeat,
+    linear-gradient(var(--book-thread), var(--book-thread)) right 0 top 50% / 16px 2px no-repeat,
+    linear-gradient(var(--book-thread), var(--book-thread)) right 0 top 71.5% / 16px 2px no-repeat,
+    linear-gradient(var(--book-thread), var(--book-thread)) right 0 top 93% / 16px 2px no-repeat,
+    /* 책등 그늘 · 한지 결 */
+    linear-gradient(to left, rgba(70, 40, 15, .2), rgba(70, 40, 15, .06) var(--book-spine), transparent calc(var(--book-spine) + 24px)),
+    radial-gradient(ellipse 140% 90% at 40% 0%, rgba(255, 255, 255, .5), transparent 60%),
+    radial-gradient(circle at 18% 82%, rgba(160, 120, 70, .08), transparent 40%),
+    repeating-linear-gradient(97deg, rgba(120, 90, 50, .035) 0 2px, transparent 2px 7px),
+    #ece2cb;
+  box-shadow: inset 0 0 0 10px #ece2cb, inset 0 0 0 11px rgba(120, 60, 30, .38), 0 26px 60px rgba(0, 0, 0, .45), 0 2px 0 #d9ccae, 0 4px 0 #cfc0a0;
+}
+/* 관상 결과(한지 서책)에도 책등 쪽 모서리 */
+.pg[data-video][data-kind] .pg-body .pg-split.pg-reading-simple > .pg-panel { border-radius: 3px 7px 7px 3px; }
+
+/* 어두운 읽기 테마(programs.css data-kind='reading')에 박힌 색을 한지 쪽에 맞게 */
+.pg[data-video][data-kind] .pg-body .pg-split > .pg-panel :is(.pg-birth-cal button, .pg-btn--line) { border-color: rgba(90, 55, 30, .4); color: var(--pg-ink); background: transparent; }
+.pg[data-video][data-kind] .pg-body .pg-split > .pg-panel .pg-birth-cal button[aria-checked='true'] { background: var(--pg-accent); border-color: var(--pg-accent); color: var(--pg-on-accent); }
+.pg[data-video][data-kind] .pg-body .pg-split > .pg-panel .pg-birth-keypad button { border-color: rgba(90, 55, 30, .28); background: rgba(255, 251, 242, .35); }
+.pg[data-video][data-kind] .pg-body .pg-split > .pg-panel .pg-birth-keypad button:active { background: rgba(120, 70, 35, .16); }
+
+/* 쪽 안 글 — 도착 전에는 숨기고(표지가 덮이는 동안 빈 쪽), 표지가 넘어간 뒤 떠오른다 */
+.pg[data-video] .pg-split > .pg-panel > * { opacity: 0; transition: opacity .12s linear; }
+/* 표지가 다 넘어간 뒤(약 0.75초)에 — 넘어가는 도중에 글이 보이면 아직 덮인 오른쪽이 잘려 보였다 */
+.pg[data-video][data-arrived] .pg-split > .pg-panel > * { opacity: 1; transition: opacity .4s ease .8s; }
+
+/* 표지 — 비단 · 왼쪽 위 제목 쪽지(제첨) · 오른쪽 책등 실. 오른쪽을 축으로 열린다(뒷면은 그리지 않아 90° 를 넘으면 사라진다) */
+.pg-book-cover { display: none; }
+.pg[data-video] .pg-split > .pg-book-cover {
+  display: block; grid-column: 2; grid-row: 1; position: relative; z-index: 3; pointer-events: none;
+  border-radius: 3px 7px 7px 3px; transform-origin: right center; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  background:
+    linear-gradient(var(--book-thread), var(--book-thread)) right 15px top 7% / 2px 86% no-repeat,
+    linear-gradient(var(--book-thread), var(--book-thread)) right 0 top 7% / 16px 2px no-repeat,
+    linear-gradient(var(--book-thread), var(--book-thread)) right 0 top 28.5% / 16px 2px no-repeat,
+    linear-gradient(var(--book-thread), var(--book-thread)) right 0 top 50% / 16px 2px no-repeat,
+    linear-gradient(var(--book-thread), var(--book-thread)) right 0 top 71.5% / 16px 2px no-repeat,
+    linear-gradient(var(--book-thread), var(--book-thread)) right 0 top 93% / 16px 2px no-repeat,
+    linear-gradient(to left, rgba(0, 0, 0, .28), rgba(0, 0, 0, .1) var(--book-spine), transparent calc(var(--book-spine) + 1px)),
+    /* 비단 무늬 — 마름모 결 · 은은한 빛 */
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .025) 0 2px, transparent 2px 14px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, .025) 0 2px, transparent 2px 14px),
+    radial-gradient(ellipse 120% 80% at 30% 10%, rgba(255, 255, 255, .12), transparent 60%),
+    var(--book-cover);
+  box-shadow: inset 0 0 0 1px rgba(255, 240, 210, .12), 0 26px 60px rgba(0, 0, 0, .5);
+  transform: perspective(2000px);
+}
+/* 제목 쪽지 — 한지 바탕 · 붓글씨 세로쓰기 · 가는 두 줄 테 */
+.pg[data-video] .pg-split > .pg-book-cover::before {
+  content: var(--book-title); position: absolute; left: 34px; top: 34px; box-sizing: border-box; padding: 26px 20px; max-height: calc(100% - 68px); overflow: hidden;
+  writing-mode: vertical-rl; text-orientation: upright; white-space: nowrap; /* 글자 수만큼 길이 — 한 줄로 */
+  font-family: 'nh-brush', 'nh-myeongjo', 'Noto Serif KR', serif; font-size: 32px; line-height: 1; letter-spacing: .16em; color: #241810;
+  background: linear-gradient(rgba(255, 255, 255, .35), transparent), #efe5cf;
+  box-shadow: inset 0 0 0 4px #efe5cf, inset 0 0 0 5px rgba(120, 60, 30, .55), inset 0 0 0 7px #efe5cf, inset 0 0 0 8px rgba(120, 60, 30, .35), 0 2px 6px rgba(0, 0, 0, .3);
+}
+
+/* 덮이기 — 장면이 바뀌어 새 단계 쪽이 막 생기면(도착 전) 표지가 넘어와 덮인다 */
+.pg[data-video]:not([data-arrived]) .pg-split > .pg-book-cover { animation: pg-book-shut .55s cubic-bezier(.5, 0, .6, 1) both; }
+@keyframes pg-book-shut { from { transform: perspective(2000px) rotateY(96deg); } to { transform: perspective(2000px); } }
+/* 열리기 — 다음 장면에 도착하면 표지가 오른쪽 축으로 손님 쪽으로 넘어간다.
+   transition 이 아니라 animation — 덮이기 animation 이 빠지는 순간의 transition 은 브라우저가 건너뛰어 표지가 한 프레임에 사라졌다(매 프레임 재서 확인) */
+.pg[data-video][data-arrived] .pg-split > .pg-book-cover { animation: pg-book-open .9s cubic-bezier(.4, .05, .35, 1) .05s both; }
+@keyframes pg-book-open { from { transform: perspective(2000px); } 85% { opacity: 1; } to { transform: perspective(2000px) rotateY(100deg); opacity: 0; } }
+/* 다 넘어간 표지는 아예 지운다 — 사파리는 뒷면을 감춘 표지의 제목 쪽지(::before)를 책 오른쪽 끝에 한 줄로 남겼다 */
+/* 같은 장면 안에서 단계만 바뀌어 생긴 쪽(BookCover data-still) — 그 자리에서 덮였다가 다시 열린다(같은 날 사용자 지시: 닫히고 열리는 모션이 빠진 곳이 있다) */
+.pg[data-video][data-arrived] .pg-split > .pg-book-cover[data-still] { animation: pg-book-flip 1.45s cubic-bezier(.45, .05, .4, 1) both; }
+@keyframes pg-book-flip {
+  0% { transform: perspective(2000px) rotateY(96deg); opacity: 1; }
+  36%, 50% { transform: perspective(2000px); }
+  92% { opacity: 1; }
+  100% { transform: perspective(2000px) rotateY(100deg); opacity: 0; }
+}
+/* 그때 새 쪽의 글은 표지가 덮였다 다시 다 넘어간 뒤에 */
+.pg[data-video][data-arrived] .pg-split:has(> .pg-book-cover[data-still]) > .pg-panel > * { transition: none; animation: pg-page-in 1.75s both; }
+@keyframes pg-page-in { 0%, 78% { opacity: 0; } 100% { opacity: 1; } }
+
+/* 사주 결과(족자 saju-scroll.tsx) — 쪽 없이 책만: 이동하는 동안 덮인 책, 도착해 족자가 펼쳐질 때 책은 스르륵 사라진다 */
+.pg[data-video] .pg-split.pg-book-only { pointer-events: none; }
+.pg[data-video][data-arrived] .pg-split.pg-book-only > .pg-book-cover { animation: none; transform: perspective(2000px); }
+.pg[data-video][data-arrived] .pg-split.pg-book-only { opacity: 0; transition: opacity .45s ease .1s; }
+
+/* 쪽 배치(2026-11-18 사용자 지시: 여백이 너무 많다 — 요소 배치 · 크기를 맞춰 일관되게, 큰 빈칸 없이).
+   규칙 하나로: 제목은 위 · 내용은 남는 높이를 채우거나(키패드 · 주제 타일 · 카메라) 그 가운데에 크게 · 앞으로 가는 버튼은 늘 오른쪽 아래(video-stage.css 그대로).
+   버튼을 아래로 미는 빈 칸(::before, 늘어남)을 '자동 여백'으로 바꿔, 제목 뒤 첫 내용의 자동 여백과 남는 높이를 반씩 나눈다 → 내용 묶음이 제목과 버튼 사이 가운데.
+   크기는 무대(1280×720) 기준 px — 부스 화면은 1280×720 무대를 통째로 키워 보여 주므로(1920×1080 이면 1.5배) vh 를 쓰면 화면마다 배치가 달라진다(처음에 vh 로 했다가 1080 에서 QR · 글이 1.5배로 커져 고침) */
+.pg[data-video][data-kind] .pg-body .pg-split > .pg-panel::before { flex-grow: 0; margin-top: auto; }
+.pg[data-video][data-kind] .pg-body .pg-split > .pg-panel > .pg-head + * { margin-top: auto; }
+.pg[data-video][data-kind] .pg-body .pg-split.pg-capture-step--panel > .pg-panel > .pg-head + * { margin-top: 0; }
+
+/* 시작 — 워드마크 · 한 줄 소개를 크게, 쪽 가운데 */
+.pg[data-video][data-kind] .pg-body .pg-start > .pg-panel > .pg-wordmark { margin-top: auto; font-size: 140px; }
+.pg[data-video][data-kind] .pg-body .pg-start > .pg-panel > .pg-headline { font-size: 36px; }
+
+/* 생년월일 — 날짜를 크게, 키패드가 남는 높이를 채운다 */
+.pg[data-video][data-kind] .pg-body .pg-birth--single > .pg-panel .pg-birth-display { font-size: 72px; }
+.pg[data-video][data-kind] .pg-body .pg-birth--single > .pg-panel > .pg-birth-keypad { flex: 1 1 0; min-height: 0; grid-auto-rows: 1fr; }
+.pg[data-video][data-kind] .pg-body .pg-birth--single > .pg-panel > .pg-birth-keypad button:not(:last-child):not([aria-label='지우기']) { font-size: 38px; }
+
+/* 사주 촬영 · 확인(카메라는 구리거울) — 쪽에는 제목뿐이라, 제목을 크게 쪽 가운데에 */
+.pg[data-video][data-kind] .pg-body .pg-capture-step:not(.pg-capture-step--panel) > .pg-panel > .pg-head { margin-top: auto; }
+.pg[data-video][data-kind] .pg-body .pg-capture-step:not(.pg-capture-step--panel) > .pg-panel > .pg-head + * { margin-top: 0; }
+.pg[data-video][data-kind] .pg-body .pg-capture-step:not(.pg-capture-step--panel) > .pg-panel > .pg-head h2 { font-size: 40px; line-height: 1.35; }
+
+/* 관상 주제 — 네 타일이 남는 높이를 2×2 로 채운다(그림 · 이름도 크게) */
+.pg[data-video][data-kind] .pg-body .pg-options > .pg-panel > .pg-groups { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+.pg[data-video][data-kind] .pg-body .pg-options > .pg-panel > .pg-groups > .pg-group { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+.pg[data-video][data-kind] .pg-body .pg-options > .pg-panel .pg-group-items { flex: 1 1 0; min-height: 0; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 12px; }
+.pg[data-video][data-kind] .pg-body .pg-options > .pg-panel .pg-opt { height: auto; min-height: 0; }
+.pg[data-video][data-kind] .pg-body .pg-options > .pg-panel .pg-opt-label { font-size: 26px; }
+
+/* 만드는 중 — 초 · 단계를 크게, 제목 아래 가운데 */
+.pg[data-video][data-kind] .pg-body .pg-generating > .pg-panel .pg-reading-elapsed { font-size: 170px; }
+.pg[data-video][data-kind] .pg-body .pg-generating > .pg-panel .pg-stages { gap: 12px; margin-top: 14px; }
+.pg[data-video][data-kind] .pg-body .pg-generating > .pg-panel .pg-stages li { font-size: 16px; gap: 8px; }
+.pg[data-video][data-kind] .pg-body .pg-generating > .pg-panel .pg-stages i { width: 44px; height: 44px; font-size: 18px; }
+
+/* 관상 결과(한지 서책) — 키워드 · 이야기를 크게, 가운데 */
+.pg[data-video][data-program='nh-face'][data-kind] .pg-body .pg-reading-simple > .pg-panel .pg-reading-story b { font-size: 64px; line-height: 1.15; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-body .pg-reading-simple > .pg-panel .pg-reading-story span { font-size: 20px; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-body .pg-reading-simple > .pg-panel .pg-reading-lines { gap: 7px; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-body .pg-reading-simple > .pg-panel .pg-reading-lines p { font-size: 17px; line-height: 1.6; }
+.pg[data-video][data-program='nh-face'][data-kind] .pg-body .pg-reading-simple > .pg-panel .pg-reading-lines .pg-reading-wish { font-size: 30px; line-height: 1.3; }
+
+/* 저장 — QR · 인쇄 칸을 크게, 제목 아래 가운데 */
+.pg[data-video][data-kind] .pg-body .pg-save > .pg-panel .pg-save-cards { gap: 14px; }
+.pg[data-video][data-kind] .pg-body .pg-save > .pg-panel .pg-card { padding: 20px; }
+.pg[data-video][data-kind] .pg-body .pg-save > .pg-panel .pg-qr-code { flex: none; width: 160px; height: 160px; }
+.pg[data-video][data-kind] .pg-body .pg-save > .pg-panel .pg-qr-code img { width: calc(100% - 10px); height: calc(100% - 10px); }
+.pg[data-video][data-kind] .pg-body .pg-save > .pg-panel .pg-qr { grid-template-columns: auto 1fr; gap: 20px; }
+.pg[data-video][data-kind] .pg-body .pg-save > .pg-panel .pg-card b { font-size: 18px; white-space: nowrap; }
+.pg[data-video][data-kind] .pg-body .pg-save > .pg-panel .pg-print { grid-template-columns: auto minmax(0, 1fr) auto; }
+.pg[data-video][data-kind] .pg-body .pg-save > .pg-panel .pg-qr-text { min-width: 0; }
+
+/* 궁서체(2026-11-19 사용자 지시: 사주 · 관상 부스 프로그램 글꼴을 궁서체로) — 영상판 관상 · 사주의 화면 글 모두(제목줄 · 책 쪽 · 표지 제목 · 버튼 · 키패드 · 사주 결과 족자).
+   윈도 궁서(Gungsuh)는 웹에 실을 수 없어 조선궁서체(조선일보 · 방일영문화재단, 개인 · 기업 무료, 웹 · 임베딩 허용, 파일 수정 · 재배포 금지)를
+   배포처 주소(jsDelivr, noonnu 안내 코드) 그대로 쓴다 — 파일을 저장소에 넣지 않는다. 약 3.6MB, 처음 한 번 받으면 캐시.
+   남기는 것: 워드마크(SAJU! · FACE! 영문 표기) · 낙관 丁未(한자 글꼴) · 인화물 안 글(캔버스로 그린다). 궁서는 굵기가 하나라 가짜 굵게는 끈다 */
+@font-face { font-family: 'nh-gungseo'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunGs.woff') format('woff'); font-weight: normal; font-display: swap; }
+.pg[data-video]:is([data-program='nh-saju'], [data-program='nh-face']) { --nh-gungseo: 'nh-gungseo', 'Gungsuh', '궁서', 'GungSeo', serif; font-synthesis-weight: none; }
+.pg[data-video]:is([data-program='nh-saju'], [data-program='nh-face']) :is(.pg-top, .pg-body) :not(.pg-wordmark, .pg-wordmark *, svg, svg *),
+.pg[data-video]:is([data-program='nh-saju'], [data-program='nh-face']) .pg-split > .pg-book-cover::before {
+  font-family: var(--nh-gungseo) !important; font-weight: 400 !important; letter-spacing: 0;
+}
+/* 궁서는 글자 폭이 넓어 줄이 자주 바뀐다 — 낱말 가운데서 끊기지 않게 */
+.pg[data-video]:is([data-program='nh-saju'], [data-program='nh-face']) :is(.pg-top, .pg-body) { word-break: keep-all; overflow-wrap: anywhere; }
