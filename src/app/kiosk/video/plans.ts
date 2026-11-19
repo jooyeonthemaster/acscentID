@@ -22,6 +22,11 @@ export interface VideoProgram {
   tag: string
   name: string
   guide: string
+  /** 대사판 이름 줄 — 이름 · 영문 역할(SIP! 의 「해나 SOMMELIER」처럼) */
+  guideName: string
+  guideRole: string
+  /** 장소 한글 이름 — 위 띠 · 도착 제목(영문은 places) */
+  placesKo: Record<string, string>
   tone: string
   toneLight: string
   plan: KxVideoPlan
@@ -40,7 +45,8 @@ const pose = (src: string) => ({ src, out: 4, in: 4, len: 4 })
 
 export const VIDEO_PROGRAMS: Record<KxVideoProgram, VideoProgram> = {
   color: {
-    id: 'color', tag: 'COLOR!', name: 'AI 퍼스널 컬러', guide: '컬러리스트 서하', tone: '#26307a', toneLight: '#c9d1ff',
+    id: 'color', tag: 'COLOR!', name: 'AI 퍼스널 컬러', guide: '컬러리스트 서하', guideName: '서하', guideRole: 'COLORIST',
+    placesKo: { door: '색의 아틀리에', desk: '상담 탁자', window: '북쪽 창가', drape: '드레이프', mirror: '거울 앞' }, tone: '#26307a', toneLight: '#c9d1ff',
     plan: {
       base: base('color'), scenes: ['door', 'desk', 'window', 'drape', 'mirror'], idles: 2,
       moves: {
@@ -61,7 +67,8 @@ export const VIDEO_PROGRAMS: Record<KxVideoProgram, VideoProgram> = {
     art: () => '/assets/kiosk-video/color/sample.webp',
   },
   draw: {
-    id: 'draw', tag: 'DRAW!', name: '캐리커처', guide: '거리 화가 모루', tone: '#d9472e', toneLight: '#ffd2c4',
+    id: 'draw', tag: 'DRAW!', name: '캐리커처', guide: '거리 화가 모루', guideName: '모루', guideRole: 'STREET PAINTER',
+    placesKo: { steps: '화가의 골목', frame: '언덕 위 화실', measure: '언덕 위 화실', tools: '그림 도구', paint: '그리는 중', reveal: '짜잔!' }, tone: '#d9472e', toneLight: '#ffd2c4',
     plan: {
       base: base('draw'), scenes: ['steps', 'frame', 'measure', 'tools', 'paint', 'reveal'], idles: 2,
       moves: {
@@ -70,7 +77,8 @@ export const VIDEO_PROGRAMS: Record<KxVideoProgram, VideoProgram> = {
         'measure>frame': pose('move-measure-frame'), 'reveal>tools': pose('move-reveal-tools'), 'reveal>steps': walk('move-reveal-steps', 2.5, 5),
         'paint>tools': pose('move-paint-tools'),
       },
-      surface: { scene: 'reveal', x: 50, y: 268, w: 276, h: 362 },
+      // 이젤 캔버스 — 비스듬해서 네 모서리(reveal.webp 실측: 변마다 직선을 맞춰 만난 점)로 원근대로 얹는다
+      surface: { scene: 'reveal', x: 36, y: 250, w: 322, h: 394, quad: [[41, 277], [310, 255], [352, 584], [104, 639]] },
     },
     places: { steps: 'ARTIST ALLEY', frame: 'HILLTOP STUDIO', measure: 'HILLTOP STUDIO', tools: 'PICK A STYLE', paint: 'DRAWING…', reveal: 'TA-DA!' },
     first: 'steps',
@@ -85,7 +93,8 @@ export const VIDEO_PROGRAMS: Record<KxVideoProgram, VideoProgram> = {
     art: (pick) => `/assets/kiosk-experiences/draw-style-${pick ?? 'comic'}.webp`,
   },
   makeup: {
-    id: 'makeup', tag: 'MAKEUP!', name: '버추얼 메이크업', guide: '메이크업 아티스트 이안', tone: '#754f70', toneLight: '#f0cfe9',
+    id: 'makeup', tag: 'MAKEUP!', name: '버추얼 메이크업', guide: '메이크업 아티스트 이안', guideName: '이안', guideRole: 'MAKEUP ARTIST',
+    placesKo: { curtain: '백스테이지', vanity: '화장대', palette: '팔레트', hair: '헤어 스테이션', runway: '런웨이 입구' }, tone: '#754f70', toneLight: '#f0cfe9',
     plan: {
       base: base('makeup'), scenes: ['curtain', 'vanity', 'palette', 'hair', 'runway'], idles: 2,
       moves: {
@@ -94,9 +103,12 @@ export const VIDEO_PROGRAMS: Record<KxVideoProgram, VideoProgram> = {
         'hair>vanity': walk('move-hair-vanity', 3, 5), 'runway>vanity': walk('move-runway-vanity', 2.5, 4.8),
       },
       surface: { scene: 'runway', x: 362, y: 460, w: 273, h: 254 },
+      // 화장대 조각은 이안 마스크를 붙인 영상(위 영상 · 아래 마스크) — 거울 속 카메라 앞에 이안을 마스크대로(stage.tsx FrontOf, 만든 곳 design-review/kiosk-cast/tools/matte-clips.py)
+      matte: ['hi-vanity', 'idle-vanity-1', 'idle-vanity-2'],
     },
     /** 화장대 거울 유리(이안 앞쪽) — 촬영 카메라 · 편집 화면이 이 자리에 든다 */
-    mirror: { x: 127, y: 300, w: 340, h: 453 },
+    // 화장대 거울 유리 전체(전구 테 안쪽, vanity.webp 실측 x 128~580 · y 297~767) — 이안은 그 앞에(stage.tsx FrontOf)
+    mirror: { x: 128, y: 297, w: 452, h: 470 },
     places: { curtain: 'BACKSTAGE', vanity: 'THE VANITY', palette: 'MAKEUP', hair: 'HAIR STATION', runway: 'RUNWAY' },
     first: 'curtain',
     steps: {

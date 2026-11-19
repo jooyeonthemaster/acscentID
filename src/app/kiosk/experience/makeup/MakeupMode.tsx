@@ -36,7 +36,7 @@ type Picks = Record<Exclude<MakeupTool, 'lash' | 'shape'>, number>
 type Levels = Record<MakeupTool, number>
 const START_PICKS: Picks = { lip: 2, blush: 0, eye: 2, liner: 0, brow: 0, hair: 1 }
 /** 처음 보이는 룩 — 색조에 은은한 선과 보정. 머리 색은 손님이 켠다 */
-const START_LEVELS: Levels = { lip: 60, blush: 55, eye: 50, liner: 45, lash: 45, brow: 35, shape: 35, hair: 0 }
+export const START_LEVELS: Levels = { lip: 60, blush: 55, eye: 50, liner: 45, lash: 45, brow: 35, shape: 35, hair: 0 }
 
 /** 저장용 한 장 — 전후 사진과 이 룩의 색 */
 async function drawLookCard(t: MakeupText, before: string, after: string, lookName: string, picks: Picks, extras: string[]): Promise<Blob> {

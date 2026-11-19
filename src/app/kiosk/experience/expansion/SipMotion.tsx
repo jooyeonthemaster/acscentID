@@ -33,6 +33,8 @@ const FINISH_S = 1.8
 const FADE_MS = 150
 /** 조각 영상 길이(초) — 안전 타이머용 */
 const BEAT_S = 4
+/** 인사 뒤 조각(AFTER_HI)을 다 봤다고 미리 알리는 때 — 끝나기 이만큼 전 */
+const NEAR_S = 0.6
 
 /** 그 장소로 가는 이동 영상 — out: 해나가 화면 밖으로 다 나간 초, in: 해나가 걸어 들어오기 시작하는 초, len: 영상 길이(초) */
 type Move = { src: string; out: number; in: number; len: number }
@@ -47,8 +49,11 @@ const MOVE: Partial<Record<Scene, Move>> = {
 const moveMs = (m: Move) => Math.round(1000 * (m.out / WALK_RATE + (m.in - m.out) / FAST_RATE + (m.len - m.in) / WALK_RATE))
 
 /** 조각 하나 — at: 이 조각이 끝나는 장소(이동 영상이면 도착 장소) · id: 틀어 온 차례(화면 겹의 key) */
-type Clip = { src: string; at: Scene; move?: Move; id: number }
+type Clip = { src: string; at: Scene; move?: Move; id: number; len?: number }
 const hi = (s: Scene, id: number): Clip => ({ src: `hi-${s}`, at: s, id })
+/** 인사 뒤 한 번 트는 조각(장소의 주된 동작) — 수장고: 해나가 와인을 끝까지 뽑아 라벨을 들여다보고 불빛에 비춰 본 뒤 다시 넣는다(8초, 2026-11-18 사용자 지시: 고르는 과정을 다 보이게).
+ *  첫 · 끝 프레임은 그 장소 그림이라 인사 · 대기와 이음매 없이 붙는다. 다 틀면 onPlayed 로 알린다(화면이 그 뒤에 시음실로 간다) */
+const AFTER_HI: Partial<Record<Scene, { src: string; len: number }>> = { cellar: { src: 'pick-cellar', len: 8 } }
 const idle = (s: Scene, pick: number, id: number): Clip => ({ src: `idle-${s}-${pick + 1}`, at: s, id })
 /** 지금 조각 다음에 틀 조각 — 가야 할 장소가 바뀌었으면 이동 영상(바로 다음 장소가 아니면 그 장소 인사로 바로), 막 도착했으면 인사, 아니면 대기 */
 function after(cur: Clip, target: Scene, pick: number): Clip {
@@ -57,21 +62,24 @@ function after(cur: Clip, target: Scene, pick: number): Clip {
     const m = MOVE[target]
     return m && SCENES.indexOf(target) === SCENES.indexOf(cur.at) + 1 ? { src: m.src, at: target, move: m, id } : hi(target, id)
   }
-  return cur.move ? hi(cur.at, id) : idle(cur.at, pick, id)
+  if (cur.move) return hi(cur.at, id)
+  const extra = AFTER_HI[cur.at]
+  if (extra && cur.src === `hi-${cur.at}`) return { src: extra.src, at: cur.at, id, len: extra.len }
+  return idle(cur.at, pick, id)
 }
 const roll = () => Math.floor(Math.random() * IDLES)
 
 export function preloadMotion() {
   for (const s of SCENES) { const i = new Image(); i.src = `${ART}/${PIC[s]}.webp` }
   // 영상은 가는 차례대로 미리 받아 둔다(첫 손님 이동이 끊기지 않게)
-  for (const s of SCENES) for (const v of [MOVE[s]?.src, `hi-${s}`, ...Array.from({ length: IDLES }, (_, i) => `idle-${s}-${i + 1}`)]) if (v) void fetch(`${ART}/${v}.mp4`).catch(() => undefined)
+  for (const s of SCENES) for (const v of [MOVE[s]?.src, `hi-${s}`, AFTER_HI[s]?.src, ...Array.from({ length: IDLES }, (_, i) => `idle-${s}-${i + 1}`)]) if (v) void fetch(`${ART}/${v}.mp4`).catch(() => undefined)
 }
 
 /**
  * 움직이는 장면 — scene 은 가야 할 장소. 도착 장소 인사 영상이 화면에 그려져야 onSettle 로 알린다.
  * 이동 중에 장소가 또 바뀌면 지금 이동을 마치고(그 장소 인사 동작을 마저 틀고) 이어서 간다.
  */
-export function MotionScene({ scene, onSettle }: { scene: Scene; onSettle: (at: Scene) => void }) {
+export function MotionScene({ scene, onSettle, onPlayed }: { scene: Scene; onSettle: (at: Scene) => void; /** 조각 하나를 다 틀었다(영상이 깨지거나 멈춰 넘긴 때도) — 인사 뒤 조각(AFTER_HI)을 기다리는 화면용 */ onPlayed?: (src: string) => void }) {
   /** prev: 지금 조각이 그려질 때까지 마지막 프레임을 붙들고 있는 앞 조각 · cur: 트는 조각 · pick: 다음 대기 영상 · on: cur 가 화면에 그려졌다 */
   const [st, setSt] = useState<{ prev: Clip | null; cur: Clip; pick: number; on: boolean }>(() => ({ prev: null, cur: hi(scene, 0), pick: roll(), on: false }))
   const { prev, cur, on } = st
@@ -83,12 +91,14 @@ export function MotionScene({ scene, onSettle }: { scene: Scene; onSettle: (at: 
   const shown = (id: number) => setSt((x) => (x.cur.id === id ? { ...x, prev: null, on: true } : x))
   const endRef = useRef(ended)
   useEffect(() => { endRef.current = ended })
+  const playedRef = useRef(onPlayed)
+  useEffect(() => { playedRef.current = onPlayed })
 
   useEffect(() => { if (on && !cur.move) onSettle(cur.at) }, [on, cur, onSettle])
   // 안전장치 — 영상이 멈추거나 안 받아지면 다음 조각으로 넘긴다
   useEffect(() => {
-    const ms = (cur.move ? moveMs(cur.move) : BEAT_S * 1000) + 3000
-    const id = window.setTimeout(() => endRef.current(cur.id, after(cur, scene, 0)), ms)
+    const ms = (cur.move ? moveMs(cur.move) : (cur.len ?? BEAT_S) * 1000) + 3000
+    const id = window.setTimeout(() => { playedRef.current?.(cur.src); endRef.current(cur.id, after(cur, scene, 0)) }, ms)
     return () => window.clearTimeout(id)
   }, [cur, scene])
 
@@ -98,7 +108,9 @@ export function MotionScene({ scene, onSettle }: { scene: Scene; onSettle: (at: 
       <img className="sip-plate" src={`${ART}/${PIC[cur.move ? prev?.at ?? cur.at : cur.at]}.webp`} alt="" draggable={false} />
       {prev && <Film key={key(prev)} src={prev.src} play move={prev.move} />}
       <Film key={key(cur)} src={cur.src} play move={cur.move} finish={!cur.move && cur.at !== scene}
-        onFast={setFast} onShown={() => shown(cur.id)} onEnd={() => ended(cur.id, next)} />
+        onFast={setFast} onShown={() => shown(cur.id)} onEnd={() => { playedRef.current?.(cur.src); ended(cur.id, next) }}
+        // 인사 뒤 조각은 끝나기 조금 전에 다 봤다고 알린다 — 화면이 다음 장소를 정할 틈을 줘서, 끝나자마자 대기 없이 바로 이동한다
+        onNear={cur.len ? () => playedRef.current?.(cur.src) : undefined} />
       <Film key={key(next)} src={next.src} play={false} />
     </div>
     {cur.move && <i key={cur.id} className="sip-tv-lines" data-fast={fast || undefined} />}
@@ -109,14 +121,30 @@ export function MotionScene({ scene, onSettle }: { scene: Scene; onSettle: (at: 
  * 영상 한 겹 — 미리 받아 첫 프레임에 멈춰 있다가 play 가 되면 한 번 튼다. 첫 프레임이 실제로 그려진 뒤에야 보인다(그 전엔 아래 겹이 보인다).
  * finish: 남은 몫이 길면 조금 빨리 · move: 걷는 앞뒤는 WALK_RATE, 길은 FAST_RATE
  */
-function Film({ src, play, finish = false, move, onFast, onShown, onEnd }: {
+function Film({ src, play, finish = false, move, onFast, onShown, onEnd, onNear }: {
   src: string; play: boolean; finish?: boolean; move?: Move
   onFast?: (fast: boolean) => void; onShown?: () => void; onEnd?: () => void
+  /** 끝나기 NEAR_S 초 전에 한 번 */
+  onNear?: () => void
 }) {
   const ref = useRef<HTMLVideoElement>(null)
   const [seen, setSeen] = useState(false)
-  const cb = useRef({ onFast, onShown, onEnd })
-  useEffect(() => { cb.current = { onFast, onShown, onEnd } })
+  const cb = useRef({ onFast, onShown, onEnd, onNear })
+  useEffect(() => { cb.current = { onFast, onShown, onEnd, onNear } })
+
+  // 끝나기 조금 전 알림 — 남은 몫(빠르기로 나눈 실제 초)이 NEAR_S 아래로 내려가면 한 번
+  const near = Boolean(onNear)
+  useEffect(() => {
+    const v = ref.current
+    if (!v || !play || !near) return
+    let raf = 0, told = false
+    const tick = () => {
+      if (!told && Number.isFinite(v.duration) && v.duration > 0 && (v.duration - v.currentTime) / (v.playbackRate || 1) <= NEAR_S) { told = true; cb.current.onNear?.() }
+      if (!told) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [play, near])
 
   useEffect(() => {
     const v = ref.current

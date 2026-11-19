@@ -9,6 +9,7 @@ import { NO_PHOTO_IDS } from '@/lib/kiosk/expansion/housing'
 import { FAMILY_KO, noteAmount, noteDetail, noteGrams, noteLabel, RECIPE_COUNTER, type ScentRecipe } from '@/lib/kiosk/expansion/recipe'
 import { KxReceiptSheet, KxSaveSheet, useKx, useKxScreen } from '../kx'
 import type { KxShareFile } from '../kx-share'
+import type { KxReceipt } from '../kx-receipt'
 import { canvasBlob, drawCover, fontsReady, kxFontFamily, loadImage, makeCanvas, wrapLines } from '../kx-canvas'
 import { preloadVision } from '../kx-vision'
 import './camera-social.css'
@@ -207,7 +208,7 @@ export async function renderExperienceCard(id: ExpansionId, result: ExperienceRe
  * 결과 화면의 바닥 버튼 — 인쇄하기(누르면 바로 영수증, QR 이 같이 찍힌다) · 휴대폰으로 받기. 기존 체험과 같은 창(KxReceiptSheet · KxSaveSheet)을 쓴다.
  * 둘은 같은 결과 카드(+ AI 합성 그림) 업로드 한 번을 같이 쓴다. 촬영 사진은 어느 쪽에도 들어가지 않는다.
  */
-export function TakeActions({ result, image = null, imageLabel = 'AI 합성 이미지' }: { result: ExperienceResult; image?: string | null; imageLabel?: string }) {
+export function TakeActions({ result, image = null, imageLabel = 'AI 합성 이미지', receipt: custom }: { result: ExperienceResult; image?: string | null; imageLabel?: string; /** 영수증을 직접 정하는 화면(SIP! 영상판) — 없으면 체험 공용 영수증 */ receipt?: () => KxReceipt }) {
   const { id } = useKx()
   const [printing, setPrinting] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -217,7 +218,7 @@ export function TakeActions({ result, image = null, imageLabel = 'AI 합성 이�
     { name: 'experience-card.jpg', type: 'image/jpeg', label: result.title, blob: await renderExperienceCard(id as ExpansionId, result, image) },
     ...(image ? [{ name: 'ai-image.jpg', type: 'image/jpeg' as const, label: imageLabel, blob: await (await fetch(image)).blob() }] : []),
   ], [id, result, image, imageLabel])
-  const receipt = useCallback(() => expansionReceipt(id as ExpansionId, result, image ? { src: image, caption: imageLabel } : null), [id, result, image, imageLabel])
+  const receipt = useCallback(() => custom ? custom() : expansionReceipt(id as ExpansionId, result, image ? { src: image, caption: imageLabel } : null), [custom, id, result, image, imageLabel])
   return <>
     <PrimaryButton secondary onClick={() => setSaving(true)}><Smartphone size={21} />휴대폰으로 받기</PrimaryButton>
     <PrimaryButton onClick={() => setPrinting(true)}><Printer size={22} />인쇄하기</PrimaryButton>

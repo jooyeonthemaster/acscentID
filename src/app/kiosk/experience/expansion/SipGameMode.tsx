@@ -7,7 +7,7 @@
 // 장소를 옮길 때 지금 장면이 앞으로 다가오며(걸어 들어가며) 사라지고 다음 장면이 떠오른다. 대사는 한 줄씩 타자처럼, 다 찍히면 선택지가 뜬다.
 // 추천 구조는 그대로 — 규칙이 후보 4병(nh-sommelier.ts) → AI 가 한 병. 맛 선택지는 1 · 3 · 5 점으로 넣는다.
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Camera, Home } from 'lucide-react'
 import { applyAiAnalysis } from '@/lib/kiosk/expansion/ai'
 import { PHOTO_PLANS, readingLine, type PhotoReading } from '@/lib/kiosk/expansion/photo'
@@ -17,6 +17,7 @@ import { preloadVision } from '../kx-vision'
 import { useAiJob } from './ai-client'
 import { readPhoto } from './read-photo'
 import { TakeActions } from './shared'
+import { sipReceipt } from './sip-receipt'
 import { useWineDrop, WineBottle, WineGlass } from './nh-wine-art'
 import { MotionScene, preloadMotion } from './SipMotion'
 import './sip-game.css'
@@ -54,13 +55,41 @@ function readCounts(): PourCounts { try { return JSON.parse(localStorage.getItem
 function addCount(no: number) { try { const c = readCounts(); c[no] = (c[no] ?? 0) + 1; localStorage.setItem(countsKey(), JSON.stringify(c)) } catch { /* 세지 않는다 */ } }
 
 /** 대사 — 단어가 차례로 떠오른다. 다 뜨면(또는 누르면) done */
-function useWords(text: string) {
-  const words = text.split(' ')
-  const total = 300 + words.length * 70 + 450
-  const [all, setAll] = useState(false)
-  // 대사창은 줄마다 key 로 새로 만들어지므로 처음 false 에서 시작한다
-  useEffect(() => { const t = window.setTimeout(() => setAll(true), total); return () => window.clearTimeout(t) }, [total])
-  return { words, done: all, finish: () => setAll(true) }
+// 대사 — 키보드로 치듯 한 글자씩(2026-11-18 사용자 지시). 한글은 자모가 모이는 단계까지(ㅇ → 어 → 어서) 보이고, 문장 부호 뒤에서 잠깐 쉰다
+const JAMO_L = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'
+/** 글자 하나를 치는 단계들 — 한글 음절은 [초성, 초성+중성, 완성], 그 밖은 그 글자 하나 */
+function strokes(ch: string): string[] {
+  const c = ch.charCodeAt(0) - 0xac00
+  if (c < 0 || c > 11171) return [ch]
+  const l = Math.floor(c / 588), v = Math.floor((c % 588) / 28), t = c % 28
+  const lv = String.fromCharCode(0xac00 + l * 588 + v * 28)
+  return t ? [JAMO_L[l], lv, ch] : [JAMO_L[l], ch]
+}
+/** 타자 한 번의 간격(ms) — 자모 한 번 · 띄어쓰기 · 문장 부호 뒤 쉼 */
+const TYPE_MS = 26
+const SPACE_MS = 60
+const PAUSE_MS = 260
+function useTyping(text: string) {
+  // 화면에 찍을 단계 목록 — [보일 글, 그 단계 뒤 쉴 ms]
+  const frames = useMemo(() => {
+    const out: [string, number][] = []
+    let shown = ''
+    for (const ch of text) {
+      const st = strokes(ch)
+      st.forEach((part, i) => out.push([shown + part, i < st.length - 1 ? TYPE_MS : /[.,!?…~]/.test(ch) ? PAUSE_MS : ch === ' ' ? SPACE_MS : TYPE_MS + 14]))
+      shown += ch
+    }
+    return out
+  }, [text])
+  const [n, setN] = useState(0)
+  // 대사창은 줄마다 key 로 새로 만들어지므로 처음 0 에서 시작한다. 시작 전 잠깐 뜸
+  useEffect(() => {
+    if (n >= frames.length) return
+    const t = window.setTimeout(() => setN((x) => x + 1), n === 0 ? 260 : frames[n - 1][1])
+    return () => window.clearTimeout(t)
+  }, [n, frames])
+  const done = n >= frames.length
+  return { shown: done ? text : n ? frames[n - 1][0] : '', done, finish: () => setN(frames.length) }
 }
 
 /** 장면 — 바뀌면 이전 장면이 앞으로 다가오며(걸어 들어가며) 사라지고 새 장면이 떠오른다. 머무는 동안은 아주 천천히 숨 쉬듯 */
@@ -120,14 +149,20 @@ export default function SipGameMode({ motion = false }: { /** 실험판 2 — �
   const chosen = list.find((c) => c.id === pick) ?? list[0]
   const result = chosen && done?.analysis && chosen.id === pick ? applyAiAnalysis(chosen, done.analysis) : chosen
 
+  // 영상판 수장고 — AI 가 먼저 골라도 해나가 와인을 뽑아 들여다보고 다시 넣는 조각(pick-cellar)을 다 본 뒤에 시음실로(2026-11-18 사용자 지시: 일부러 오래).
+  // 실패(oops)는 기다리지 않는다
+  const [found, setFound] = useState(false)
+  const [picked, setPicked] = useState(false)
+  const onPlayed = useCallback((src: string) => { if (src === 'pick-cellar') setPicked(true) }, [])
+  if (step === 'cellar' && found && picked) setStep('reveal')
   const run = useCallback((made: NhBundle, read: PhotoReading | null) => {
     const candidates = [made.primary, ...made.alternatives].map((r) => ({ id: r.id, title: r.title, summary: nhCandidateSummary(findNhWine(r.id)!) }))
     void ai.run({ analysis: { id: ID, photo: shot, facts: read ? readingLine(read, PHOTO_PLANS[ID]) : '', answers: made.answers, candidates, context: '' } })
-      .then((finished) => setStep(finished ? 'reveal' : 'oops'))
-  }, [ai, shot])
+      .then((finished) => { if (!finished) setStep('oops'); else if (motion) setFound(true); else setStep('reveal') })
+  }, [ai, shot, motion])
   const find = async (kind: NhAnswers['kind']) => {
     const next = { ...answers, kind }
-    setAnswers(next); setStep('cellar')
+    setAnswers(next); setFound(false); setPicked(false); setStep('cellar')
     const read = reading.current ? await Promise.race([reading.current, new Promise<null>((ok) => setTimeout(() => ok(null), 4000))]) : null
     const made = recommendNhWine(next, read, readCounts())
     setBundle(made); counted.current = null
@@ -140,11 +175,18 @@ export default function SipGameMode({ motion = false }: { /** 실험판 2 — �
     counted.current = result.id; addCount(result.pour.no)
   }, [step, result])
 
+  // 영수증 맨 위 '포도밭에 선 나' 도장 — 기념사진을 찍는 순간 뒤에서 그려 둔다(맛 고르기 · 수장고를 지나는 동안 끝난다). 못 그리면 기본 도장
+  const [stamp, setStamp] = useState<string | null>(null)
+  const stampFor = useRef<string | null>(null)
   const took = (photo: string | null) => {
     setShot(photo)
+    setStamp(null); stampFor.current = photo
+    if (photo) void fetch('/api/kiosk/experience/sip-stamp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ photo }), signal: AbortSignal.timeout(120_000) })
+      .then((r) => r.json()).then((j: { image?: string }) => { if (stampFor.current === photo && typeof j.image === 'string') setStamp(j.image) }).catch(() => undefined)
     reading.current = photo ? readPhoto(photo, PHOTO_PLANS[ID]).catch(() => null) : null
     setStep(photo ? 'photo-done' : 'sweet')
   }
+  const receipt = useCallback(() => sipReceipt({ pour: result!.pour!, answers, note: result!.summary, stamp }), [result, answers, stamp])
   const taste = (key: 'sweet' | 'acid' | 'body', i: number) => {
     setAnswers((a) => ({ ...a, [key]: [1, 3, 5][i] }))
     setStep(key === 'sweet' ? 'acid' : key === 'acid' ? 'body' : 'kind')
@@ -160,7 +202,7 @@ export default function SipGameMode({ motion = false }: { /** 실험판 2 — �
 
   return <div className="sip" data-motion={motion || undefined} onPointerDown={drop}>
     {motion
-      ? <div className="sip-scene" aria-hidden="true"><MotionScene scene={scene} onSettle={setSettled} /><Atmosphere /></div>
+      ? <div className="sip-scene" aria-hidden="true"><MotionScene scene={scene} onSettle={setSettled} onPlayed={onPlayed} /><Atmosphere /></div>
       : <SceneLayer scene={scene} />}
     {step === 'title'
       ? <button type="button" className="sip-title" onClick={() => setStep('hello')} aria-label="터치하여 시작">
@@ -180,7 +222,7 @@ export default function SipGameMode({ motion = false }: { /** 실험판 2 — �
         {step === 'reveal' && result?.pour && <WineCard pour={result.pour} big />}
         {step === 'result' && result
           ? <Dialogue key={`r${result.id}`} lead={result.pour && <WineCard pour={result.pour} big={false} />} text={`${(done?.analysis?.headline ?? '오늘 밤 당신을 위한 한 잔이에요').replace(/[.!?。…\s]+$/, '')}. 번호를 직원에게 보여 주세요!`}>
-            <div className="sip-menu"><TakeActions result={result} /><Choice onClick={() => setAskHome(true)}>처음으로</Choice></div>
+            <div className="sip-menu"><TakeActions result={result} receipt={result.pour ? receipt : undefined} /><Choice onClick={() => setAskHome(true)}>처음으로</Choice></div>
           </Dialogue>
           : LINE[step] && step !== 'camera' && <Dialogue key={step} text={LINE[step]!} busy={step === 'cellar'}>{choices}</Dialogue>}
         </>}
@@ -193,13 +235,13 @@ export default function SipGameMode({ motion = false }: { /** 실험판 2 — �
 
 /** 대사 — 장면 위 유리판. 이름 · 단어가 차례로 떠오르는 한 줄 · 다 뜨면 선택지 */
 function Dialogue({ text, busy, lead, children }: { text: string; busy?: boolean; /** 늘 보이는 위쪽(결과의 와인 카드) */ lead?: ReactNode; children?: ReactNode }) {
-  const { words, done, finish } = useWords(text)
+  const { shown, done, finish } = useTyping(text)
   return <div className="sip-talk">
     {lead}
     {done && children}
     <div className="sip-box" onClick={finish} role="status" aria-live="polite" aria-label={text}>
       <p className="sip-who"><b>해나</b><small>SOMMELIER</small></p>
-      <p className="sip-line" data-all={done || undefined} aria-hidden="true">{words.map((w, i) => <span key={i} style={{ animationDelay: `${300 + i * 70}ms` }}>{w}&nbsp;</span>)}{busy && done && <span className="sip-wait"><i /><i /><i /></span>}</p>
+      <p className="sip-line sip-type" data-all={done || undefined} aria-hidden="true">{shown}{!done && <i className="sip-caret" />}{busy && done && <span className="sip-wait"><i /><i /><i /></span>}</p>
     </div>
   </div>
 }

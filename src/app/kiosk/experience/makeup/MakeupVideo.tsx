@@ -7,34 +7,81 @@
 //       → result 팔레트를 들고 런웨이 입구로(즉석 사진 안에 완성 사진). 다시 꾸미기는 런웨이 → 화장대, 처음으로는 런웨이 → 커튼.
 // 영상 · 계획: src/app/kiosk/video(plans.ts 의 makeup), 원리: .claude/skills/kiosk-video-flow. 대사는 기본 화면의 문구(5개 언어)를 그대로 쓴다.
 
-import { useEffect, type CSSProperties } from 'react'
-import { ArrowRight, Camera, Check, ChevronsLeftRight, Download, Home, RotateCcw, Scissors, Undo2, X } from 'lucide-react'
+import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { ArrowLeft, ArrowRight, Camera, Check, ChevronsLeftRight, Download, Printer, RotateCcw, Scissors, Undo2, X } from 'lucide-react'
 import { HAIR_STYLES } from '@/lib/kiosk/hair-styles'
-import { KxCamView, KxLang, KxSaveSheet, KxSpinner } from '../kx'
+import { KxCamView, KxLang, KxReceiptSheet, KxSaveSheet, KxSpinner, useKx } from '../kx'
 import { KxVideoStage, preloadPlan, rectStyle } from '@/app/kiosk/video/stage'
 import { VIDEO_PROGRAMS } from '@/app/kiosk/video/plans'
-import { VideoTalk, useVideoSettle } from '@/app/kiosk/video/ui'
+import { TITLE_TAG, VideoArrive, VideoTalk, VideoTitle, VideoTop, useVideoSettle } from '@/app/kiosk/video/ui'
+import { VIDEO_NOTE, useVideoStamp, videoReceipt } from '@/app/kiosk/video/video-receipt'
 import '@/app/kiosk/video/stage.css'
-import { LINERS, MAX_HAIR_AI, PALETTE, PARTS, TOOLS, swatches, useMakeupFlow } from './MakeupMode'
-import type { MakeupPart } from './text'
+import type { KioskLang } from '@/lib/kiosk/i18n'
+import { LINERS, MAX_HAIR_AI, PALETTE, PARTS, START_LEVELS, swatches, useMakeupFlow } from './MakeupMode'
+import type { MakeupPart, MakeupTool } from './text'
 import './makeup.css'
 
 const PROGRAM = VIDEO_PROGRAMS.makeup
 
+// 화장 단계(2026-11-18 사용자 지시: 실제 메이크업 차례대로 더 잘게) — 맨얼굴에서 시작해 단계마다 한 겹씩 얹는다.
+// 단계에 처음 들어오면 그 도구를 기본 세기(START_LEVELS)로 켜고, 이안이 그 단계를 말한다. 위 단계 칩으로 아무 단계나 다시 갈 수 있다.
+const ORDER: MakeupTool[] = ['shape', 'brow', 'eye', 'liner', 'lash', 'blush', 'lip', 'hair']
+const BARE = Object.fromEntries(ORDER.map((id) => [id, 0])) as Record<MakeupTool, number>
+const STAGE_LINE: Record<MakeupTool, Record<KioskLang, string>> = {
+  shape: { ko: '먼저 얼굴형부터 잡을게요. 윤곽을 살짝 살려 볼까요?', en: "Let's start with the face shape — a little contour first.", ja: 'まずは輪郭から。少しだけシェーディングを入れますね。', 'zh-Hans': '先从脸型开始，轻轻修饰一下轮廓。', 'zh-Hant': '先從臉型開始，輕輕修飾一下輪廓。' },
+  brow: { ko: '다음은 눈썹이에요. 얼굴 인상을 잡아 주는 곳이죠.', en: 'Now the brows — they frame your whole face.', ja: '次は眉。顔の印象を決めるところです。', 'zh-Hans': '接下来是眉毛，它决定整张脸的印象。', 'zh-Hant': '接下來是眉毛，它決定整張臉的印象。' },
+  eye: { ko: '아이섀도로 눈가에 색을 얹어요.', en: 'Eyeshadow next — a wash of color on the lids.', ja: 'アイシャドウでまぶたに色をのせます。', 'zh-Hans': '用眼影给眼皮铺上颜色。', 'zh-Hant': '用眼影給眼皮鋪上顏色。' },
+  liner: { ko: '아이라인으로 눈매를 또렷하게 그려요.', en: 'Eyeliner to define the eyes.', ja: 'アイラインで目元をくっきり。', 'zh-Hans': '用眼线让眼神更清晰。', 'zh-Hant': '用眼線讓眼神更清晰。' },
+  lash: { ko: '속눈썹을 올려 눈을 크게 열어 줄게요.', en: "Lashes up — let's open the eyes.", ja: 'まつげを上げて、目をぱっちり。', 'zh-Hans': '把睫毛刷翘，让眼睛更有神。', 'zh-Hant': '把睫毛刷翹，讓眼睛更有神。' },
+  blush: { ko: '볼에 블러셔로 생기를 더해요.', en: 'A touch of blush to bring the cheeks to life.', ja: 'チークで頬に血色をプラス。', 'zh-Hans': '用腮红给脸颊添点气色。', 'zh-Hant': '用腮紅給臉頰添點氣色。' },
+  lip: { ko: '마지막 색조는 립이에요. 오늘의 룩이 여기서 정해져요.', en: "Lips last — this is where today's look comes together.", ja: '仕上げのカラーはリップ。今日のルックがここで決まります。', 'zh-Hans': '最后是唇色，今天的妆容就在这里定下来。', 'zh-Hant': '最後是唇色，今天的妝容就在這裡定下來。' },
+  hair: { ko: '머리 색까지 바꿔 볼까요? 그대로 둬도 좋아요.', en: 'Want to try a new hair color? Leaving it as is works too.', ja: '髪色も変えてみますか？そのままでも素敵です。', 'zh-Hans': '要不要换个发色？保持原样也很好。', 'zh-Hant': '要不要換個髮色？保持原樣也很好。' },
+}
+const PREV: Record<KioskLang, string> = { ko: '이전', en: 'Back', ja: '戻る', 'zh-Hans': '上一步', 'zh-Hant': '上一步' }
+const NEXT: Record<KioskLang, string> = { ko: '다음', en: 'Next', ja: '次へ', 'zh-Hans': '下一步', 'zh-Hant': '下一步' }
+
 export default function MakeupVideo() {
-  const { t, k, lang, step, setStep, photo, scene: face, cam, hairBusy, tool, picks, levels, analyze, build, canvasRef, compareRef, drag, final, finish, hairFail, hairMask, hairReady, hairSheet, hairUsed, lookKey, lookName, noFace, restyle, saving, setHairSheet, setLevels, setNoFace, setPicks, setSaving, setScene, setTool, split, stage, wantHair, home } = useMakeupFlow()
+  const { t, k, lang, step, setStep, photo, scene: face, cam, hairBusy, tool, picks, levels, analyze, build, canvasRef, compareRef, drag, final, finish, hairFail, hairMask, hairReady, hairSheet, hairUsed, lookKey, lookName, extras, noFace, restyle, saving, setHairSheet, setLevels, setNoFace, setPicks, setSaving, setScene, setTool, split, stage, wantHair, home } = useMakeupFlow()
   const scene = step === 'start' ? 'curtain' : step === 'result' ? 'runway' : hairBusy ? 'hair' : 'vanity'
   const view = hairBusy ? 'hair' : step
   const { moving, said, onSettle } = useVideoSettle(scene, view)
   useEffect(() => { preloadPlan(PROGRAM.plan) }, [])
-  const who = lang === 'ko' ? PROGRAM.guide : 'IAN · makeup artist'
+  const who = lang === 'ko' ? PROGRAM.guideName : 'Ian'
+  const { c, pc } = useKx()
+  const [printing, setPrinting] = useState(false)
+  // 시작 화면(SIP! 처럼) — 누르면 이안의 인사. 결과에서 처음으로 가면 다시 시작 화면
+  const [titled, setTitled] = useState(false)
+  // 영수증 맨 위 '백스테이지의 나' 도장 — 얼굴을 찾은 뒤(머리 모양을 바꾸면 그 얼굴로 다시) 그리기 시작해 영수증을 열 때 받는다
+  const stampOf = useVideoStamp('makeup', face?.base ?? null, step === 'edit' || step === 'result')
+  const more = extras.join(' · ')
+  const receipt = useCallback(async () => videoReceipt({
+    program: 'makeup', lang, stamp: await stampOf(), sections: [
+      { kind: 'big', label: "TODAY'S LOOK", title: lookName, sub: more || undefined },
+      { kind: 'rows', label: 'THE RECIPE', rows: PARTS.map((id) => [t.parts[id], t.colors[id][picks[id]]] as [string, string]) },
+      { kind: 'note', label: "IAN'S NOTE", text: VIDEO_NOTE.makeup[lang] },
+    ],
+  }), [lang, stampOf, lookName, more, t, picks])
   const mirror = PROGRAM.mirror!
 
+  // 얼굴을 찾고 편집에 들어오는 순간 — 맨얼굴에서 첫 단계(얼굴형)만 켠다(렌더 중 상태 맞추기, 한 프레임도 완성 룩이 보이지 않게)
+  const [seen, setSeen] = useState<MakeupTool[]>([])
+  const [was, setWas] = useState(step)
+  if (was !== step) {
+    setWas(step)
+    if (step === 'edit' && was === 'finding') { setLevels({ ...BARE, [ORDER[0]]: START_LEVELS[ORDER[0]] }); setTool(ORDER[0]); setSeen([ORDER[0]]) }
+  }
+  const goStage = (id: MakeupTool) => {
+    setTool(id)
+    if (!seen.includes(id)) { setSeen((x) => [...x, id]); setLevels((prev) => ({ ...prev, [id]: prev[id] || START_LEVELS[id] })) }
+  }
+  const at = Math.max(0, ORDER.indexOf(tool))
+  const toolName = (id: MakeupTool) => (id === 'lip' || id === 'blush' || id === 'eye' ? t.parts[id] : t.tools[id])
+
   /** 처음으로 — 결과에서는 이안이 커튼으로 걸어 돌아간다(이어지는 영상). 다른 단계는 화면 틀의 처음으로(새로 시작) */
-  const restart = () => { if (step === 'result') setStep('start'); else home() }
+  const restart = () => { if (step === 'result') { setPrinting(false); setStep('start'); setTitled(false) } else home() }
 
   const shown = moving ? said : view
-  const line = shown === 'start' ? t.headline : shown === 'capture' ? t.captureTitle : shown === 'finding' ? t.finding : shown === 'edit' ? t.editTitle : shown === 'hair' ? t.hairAiWorking : shown === 'result' ? t.resultTitle : ''
+  const line = shown === 'start' ? t.headline : shown === 'capture' ? t.captureTitle : shown === 'finding' ? t.finding : shown === 'edit' ? STAGE_LINE[tool][lang] : shown === 'hair' ? t.hairAiWorking : shown === 'result' ? t.resultTitle : ''
 
   const body = () => {
     if (shown === 'start') return (
@@ -51,10 +98,10 @@ export default function MakeupVideo() {
       const picked = tool === 'lash' || tool === 'shape' ? 0 : picks[tool]
       const colorName = tool === 'liner' ? t.liners[picked] : tool === 'brow' ? t.brows[picked] : tool === 'hair' ? t.hairs[picked] : tool === 'lash' ? t.lashHint : tool === 'shape' ? t.shapeHint : t.colors[tool][picked]
       return <>
-        <div className="mku-tabs" role="tablist">
-          {TOOLS.map((id) => (
-            <button key={id} type="button" role="tab" aria-selected={tool === id} data-on={tool === id || undefined} data-off={levels[id] === 0 || undefined} onClick={() => setTool(id)}>
-              {id === 'lip' || id === 'blush' || id === 'eye' ? t.parts[id] : t.tools[id]}
+        <div className="mku-tabs kv-stages" role="tablist">
+          {ORDER.map((id, i) => (
+            <button key={id} type="button" role="tab" aria-selected={tool === id} data-on={tool === id || undefined} data-done={(seen.includes(id) && tool !== id) || undefined} data-off={levels[id] === 0 || undefined} onClick={() => goStage(id)}>
+              <small>{i + 1}</small>{toolName(id)}
             </button>
           ))}
         </div>
@@ -75,7 +122,12 @@ export default function MakeupVideo() {
           <input type="range" min={0} max={100} step={5} value={levels[tool]} style={{ '--v': `${levels[tool]}%` } as CSSProperties} onChange={(event) => setLevels((prev) => ({ ...prev, [tool]: Number(event.target.value) }))} />
           <output>{levels[tool]}%</output>
         </label>
-        <button type="button" className="kv-go" disabled={Boolean(hairBusy) || !stage} onClick={finish}>{t.toResult}<ArrowRight size={22} strokeWidth={2.2} aria-hidden="true" /></button>
+        <div className="kv-row">
+          <button type="button" className="kv-ghost" disabled={at === 0} onClick={() => goStage(ORDER[at - 1])}><ArrowLeft size={20} aria-hidden="true" />{PREV[lang]}</button>
+          {at < ORDER.length - 1
+            ? <button type="button" className="kv-go" onClick={() => goStage(ORDER[at + 1])}>{NEXT[lang]} · {toolName(ORDER[at + 1])}<ArrowRight size={22} strokeWidth={2.2} aria-hidden="true" /></button>
+            : <button type="button" className="kv-go" disabled={Boolean(hairBusy) || !stage} onClick={finish}>{t.toResult}<ArrowRight size={22} strokeWidth={2.2} aria-hidden="true" /></button>}
+        </div>
       </>
     }
     if (shown === 'result' && final) return <>
@@ -84,8 +136,9 @@ export default function MakeupVideo() {
       </ul>
       <div className="kv-row">
         <button type="button" className="kv-ghost" onClick={() => setStep('edit')}><RotateCcw size={20} aria-hidden="true" />{t.again}</button>
-        <button type="button" className="kv-go" onClick={() => setSaving(true)}><Download size={22} aria-hidden="true" />{t.save}</button>
+        {!pc && <button type="button" className="kv-ghost" onClick={() => setPrinting(true)}><Printer size={20} aria-hidden="true" />{c.receipt}</button>}
       </div>
+      <button type="button" className="kv-go" onClick={() => setSaving(true)}><Download size={22} aria-hidden="true" />{t.save}</button>
     </>
     return null
   }
@@ -115,19 +168,20 @@ export default function MakeupVideo() {
   const hairLeft = MAX_HAIR_AI - hairUsed
   return (
     <div className="kv" data-program="makeup" style={{ '--kv-tone': PROGRAM.tone, '--kv-tone-light': PROGRAM.toneLight } as CSSProperties}>
-      <KxVideoStage plan={PROGRAM.plan} scene={scene} onSettle={onSettle} art={step === 'result' && !moving ? final : null} inside={inMirror} />
-      <div className="kv-top">
-        <span className="kv-tag">MAKEUP!</span>
-        {!moving && <span key={scene} className="kv-place">{PROGRAM.places[scene]}</span>}
-        {step === 'start' ? <KxLang /> : <button type="button" className="kv-home" onClick={restart}><Home size={18} aria-hidden="true" />{t.home}</button>}
-      </div>
+      <KxVideoStage plan={PROGRAM.plan} scene={scene} onSettle={onSettle} art={step === 'result' && !moving ? final : null} inside={inMirror} front={inMirror && atVanity ? mirror : null} />
+      <i className="kv-shade" aria-hidden="true" />
+      {!titled && <VideoTitle mark="MAKEUP!" tag={TITLE_TAG.makeup[lang]} lang={lang} onStart={() => setTitled(true)} corner={<KxLang />} />}
+      {titled && <>
+      <VideoTop mark="MAKEUP!" place={moving ? null : PROGRAM.placesKo[scene]} onHome={restart} homeLabel={t.home} start={step === 'start' ? <KxLang /> : undefined} />
+      {!moving && scene !== 'runway' && scene !== 'vanity' && <VideoArrive key={`a-${scene}`} en={PROGRAM.places[scene]} ko={PROGRAM.placesKo[scene]} />}
       {shown && line && (
-        <VideoTalk key={moving ? `leave-${said}` : view} who={who} line={line} leave={moving} wait={shown === 'finding' || shown === 'hair'}
+        <VideoTalk key={moving ? `leave-${said}` : view} who={who} role={PROGRAM.guideRole} line={line} leave={moving} wait={shown === 'finding' || shown === 'hair'}
           note={shown === 'start' ? t.sub : shown === 'capture' && !noFace ? `${t.tips[0]} · ${t.tips[1]}` : shown === 'result' ? lookName : undefined}
-          wide={shown === 'edit'} light={shown === 'edit'}>
+          wide={shown === 'edit'} light={shown === 'edit'} inside={shown === 'edit'}>
           {body()}
         </VideoTalk>
       )}
+      </>}
       {hairSheet && face && (
         <div className="kx-sheet" role="dialog" aria-modal="true" aria-label={t.hairAiTitle} onPointerDown={(event) => { if (event.target === event.currentTarget) setHairSheet(false) }}>
           <div className="kx-sheet-card mku-hair-sheet">
@@ -142,7 +196,10 @@ export default function MakeupVideo() {
           </div>
         </div>
       )}
-      {photo && final && <KxSaveSheet open={saving} cacheKey={`${lang}|${lookKey}|${final.length}`} build={build} onClose={() => setSaving(false)} title={t.saveTitle} />}
+      {photo && final && <>
+        <KxSaveSheet open={saving} cacheKey={`${lang}|${lookKey}|${final.length}`} build={build} onClose={() => setSaving(false)} title={t.saveTitle} />
+        <KxReceiptSheet open={printing} cacheKey={`${lang}|${lookKey}|${final.length}`} build={build} receipt={receipt} onClose={() => setPrinting(false)} />
+      </>}
     </div>
   )
 }

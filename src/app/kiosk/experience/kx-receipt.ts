@@ -29,6 +29,8 @@ export interface KxReceipt {
   subtitle?: string
   blocks: KxReceiptBlock[]
   foot?: string
+  /** 영수증 한 장을 직접 그리는 체험(SIP! 영상판 — expansion/sip-receipt.ts). 있으면 위 칸 대신 이걸로 그린다 — 폭 W(512점), 흰 바탕 · 검정만 */
+  render?: (qr: KxReceiptQr | null, stamp: string) => Promise<HTMLCanvasElement>
 }
 
 export interface KxReceiptQr {
@@ -44,6 +46,10 @@ const M = 30
 const INK = '#000'
 
 export async function renderKxReceipt(receipt: KxReceipt, qr: KxReceiptQr | null, stamp: string): Promise<{ dataUrl: string; base64: string }> {
+  if (receipt.render) {
+    const dataUrl = (await receipt.render(qr, stamp)).toDataURL('image/png')
+    return { dataUrl, base64: dataUrl.split(',')[1] }
+  }
   const family = kxFontFamily()
   const sample = [receipt.title, receipt.subtitle ?? '', stamp, qr?.title ?? '', qr?.desc ?? '', qr?.until ?? '', receipt.foot ?? '', ...receipt.blocks.map((block) => JSON.stringify(block))].join(' ')
   await fontsReady(`900 30px ${family}`, `700 22px ${family}`, `500 20px ${family}`)

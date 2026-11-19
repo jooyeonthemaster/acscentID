@@ -145,3 +145,147 @@
 .kv-cam-card .kx-cam { width: 100%; height: auto; }
 /* 대사판 안 화면 키보드(COLOR! 이름) — 체험 화면의 키보드 스타일 그대로, 위 여백만 */
 .kv-talk .ksk-osk { margin: 0 -2cqw; padding-top: 2cqw; border-top-color: rgba(255, 255, 255, .5); }
+
+/* ───────── SIP! 기준(2026-11-18 사용자 지시: COLOR! · DRAW! · MAKEUP! 의 버튼 · 요소를 SIP! 영상판처럼) ─────────
+   sip-game.css 와 같은 짜임: 위 띠(둥근 처음으로 · 「— 장소」 · 세리프 표시) · 가운데 도착 제목 · 유리 대사판(이름 줄 + 타자 대사) ·
+   대사판 위에 따로 쌓인 유리 선택지(주 버튼은 SIP! 의 금색 대신 프로그램 색의 밝은 그라데이션 + 짙은 글자) · 위아래 가장자리 어둠 */
+.kv { --kv-glass: rgba(18, 12, 9, .52); --kv-line-c: rgba(255, 240, 210, .22); --kv-ink: #fff8ec;
+  --kv-main-bg: linear-gradient(135deg, color-mix(in srgb, var(--kv-tone-light, #ecd08f) 92%, #fff), color-mix(in srgb, var(--kv-tone-light, #ecd08f) 64%, var(--kv-tone, #c99a4a)));
+  --kv-main-ink: color-mix(in srgb, var(--kv-tone, #1c120a) 65%, #000); color: var(--kv-ink); }
+.kv-shade { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse 120% 80% at 50% 35%, transparent 55%, rgba(0, 0, 0, .5)), linear-gradient(rgba(0, 0, 0, .4), transparent 16%, transparent 50%, rgba(6, 4, 3, .78) 84%); }
+
+/* 위 띠 */
+.kv-bar { position: absolute; left: 0; right: 0; top: 0; z-index: 6; display: flex; align-items: center; justify-content: space-between; padding: 20px 22px; pointer-events: none; }
+.kv-bar > * { pointer-events: auto; }
+.kv .kv-icon { display: grid; place-items: center; width: 56px; height: 56px; padding: 0; border-radius: 50%; border: 1px solid var(--kv-line-c); background: var(--kv-glass); color: var(--kv-ink); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3); cursor: pointer; }
+.kv-where { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: rgba(255, 248, 236, .88); text-shadow: 0 1px 8px rgba(0, 0, 0, .7); animation: kv-rise .5s ease-out both; }
+.kv-where::before { content: ''; width: 22px; height: 1px; background: var(--kv-tone-light); }
+.kv-mark { min-width: 56px; text-align: right; font-family: 'nh-serif', 'Cormorant Garamond', 'Times New Roman', serif; font-size: 30px; font-weight: 500; color: var(--kv-tone-light); text-shadow: 0 2px 10px rgba(0, 0, 0, .6); white-space: nowrap; }
+/* 첫 화면 언어 고르기 — 둥근 유리 단추, 메뉴는 왼쪽으로 펼친다 */
+.kv-bar .kx-lang-btn { min-height: 56px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--kv-line-c); background: var(--kv-glass); color: var(--kv-ink); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.kv-bar .kx-lang-menu { left: 0; right: auto; transform-origin: top left; }
+
+/* 도착 — 가운데 큰 장소 제목 */
+.kv-arrive { position: absolute; left: 0; right: 0; top: 40%; z-index: 5; display: grid; justify-items: center; gap: 6px; pointer-events: none; text-align: center; animation: kv-arrive 2.8s .4s ease-in-out both; }
+.kv-arrive small { font-size: 14px; font-weight: 700; letter-spacing: .5em; color: var(--kv-tone-light); }
+.kv-arrive b { font-weight: 200; font-size: 46px; letter-spacing: .06em; color: var(--kv-ink); text-shadow: 0 4px 30px rgba(0, 0, 0, .8); }
+.kv-arrive i { width: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--kv-tone-light), transparent); animation: kv-arrive-line 2.8s .4s ease-in-out both; }
+@keyframes kv-arrive { 0% { opacity: 0; transform: translateY(10px); letter-spacing: .3em; } 20%, 70% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-6px); } }
+@keyframes kv-arrive-line { 20%, 70% { width: 220px; } 100% { width: 0; } }
+
+/* 대사판 묶음 — 위에 선택지, 아래 유리 대사판 */
+.kv-talk { left: 18px; right: 18px; bottom: max(44px, 7vh); padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; display: flex; flex-direction: column; gap: 12px; animation: none; }
+.kv-talk[data-leave] { animation: none; }
+.kv-box { position: relative; padding: 22px 26px 24px; border-radius: 26px; border: 1px solid var(--kv-line-c); background: linear-gradient(160deg, rgba(40, 26, 18, .62), rgba(12, 8, 6, .58)); backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3); box-shadow: 0 20px 50px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .08); cursor: pointer; animation: kv-panel .5s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes kv-panel { from { opacity: 0; transform: translateY(16px) scale(.98); } }
+.kv-talk[data-leave] .kv-box, .kv-talk[data-leave] .kv-body { animation: kv-sink .4s ease-in both; }
+.kv-who { display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; }
+.kv-who b { font-size: 19px; font-weight: 700; color: var(--kv-tone-light); letter-spacing: .04em; }
+.kv-who small { font-size: 14px; font-weight: 500; color: rgba(255, 248, 236, .55); letter-spacing: .12em; }
+.kv .kv-who { display: flex; }
+.kv-line { margin: 0; min-height: 2.9em; font-size: 26px; font-weight: 400; line-height: 1.45; letter-spacing: -.02em; word-break: keep-all; white-space: pre-wrap; }
+.kv-line span:not(.kv-wait) { opacity: 1; animation: none; }
+.kv-caret { display: inline-block; width: 2px; height: 1.05em; margin-left: 2px; vertical-align: -0.15em; background: var(--kv-tone-light); animation: kv-caret .9s steps(1) infinite; }
+@keyframes kv-caret { 50% { opacity: 0; } }
+.kv-note { margin: 8px 0 0; font-size: 16px; line-height: 1.5; opacity: .72; }
+.kv-wait { margin-left: 8px; vertical-align: middle; }
+.kv-wait i { background: var(--kv-tone-light); }
+.kv-body { margin: 0; display: grid; gap: 10px; }
+.kv-body > *, .kv-body .kv-row > *, .kv-body .kv-choices > * { animation: kv-choice .55s cubic-bezier(.2, .7, .2, 1) both; }
+.kv-body > :nth-child(2) { animation-delay: .07s; } .kv-body > :nth-child(3) { animation-delay: .14s; } .kv-body > :nth-child(4) { animation-delay: .21s; } .kv-body > :nth-child(5) { animation-delay: .28s; }
+@keyframes kv-choice { from { opacity: 0; transform: translateY(14px); } }
+
+/* 버튼 — 유리 선택지, 주 버튼은 밝은 그라데이션 */
+.kv .kv-go, .kv .kv-ghost, .kv .kv-choices button { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 74px; padding: 0 18px; border-radius: 20px; border: 1px solid var(--kv-line-c); background: var(--kv-glass); backdrop-filter: blur(16px) saturate(1.3); -webkit-backdrop-filter: blur(16px) saturate(1.3); color: var(--kv-ink); font: inherit; font-size: 22px; font-weight: 600; letter-spacing: -.01em; box-shadow: 0 10px 26px rgba(0, 0, 0, .3); transition: transform .15s, background .2s, border-color .2s; }
+.kv .kv-go, .kv .kv-choices button[data-main] { background: var(--kv-main-bg); color: var(--kv-main-ink); border-color: transparent; font-weight: 700; }
+.kv .kv-go:active, .kv .kv-ghost:active, .kv .kv-choices button:active { transform: scale(.97); }
+.kv .kv-go:disabled, .kv .kv-ghost:disabled { opacity: .45; }
+.kv .kv-row { display: flex; gap: 10px; }
+.kv .kv-row > .kv-go, .kv .kv-row > .kv-ghost { flex: 1 1 50%; min-width: 0; white-space: nowrap; font-size: 20px; padding-inline: 10px; }
+/* 고르기(혼자 · 같이, 성별, 과장 정도) — 유리, 고른 것은 프로그램 색 테두리 · 바탕 */
+.kv .kv-seg { gap: 10px; }
+.kv .kv-seg button { min-height: 64px; border-radius: 20px; border: 1px solid var(--kv-line-c); background: var(--kv-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: var(--kv-ink); font-size: 20px; font-weight: 600; box-shadow: 0 10px 26px rgba(0, 0, 0, .25); }
+.kv .kv-seg button[data-on] { background: color-mix(in srgb, var(--kv-tone) 62%, rgba(0, 0, 0, .3)); border-color: var(--kv-tone-light); color: #fff; }
+/* 화풍 견본 카드 */
+.kv .kv-cards { gap: 10px; }
+.kv .kv-cards button { border-radius: 18px; border: 1px solid var(--kv-line-c); background: var(--kv-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 10px 26px rgba(0, 0, 0, .3); }
+.kv .kv-cards button[data-on] { border: 2px solid var(--kv-tone-light); box-shadow: 0 0 0 3px color-mix(in srgb, var(--kv-tone-light) 35%, transparent), 0 10px 26px rgba(0, 0, 0, .3); }
+.kv-cards b { font-size: 18px; font-weight: 600; }
+/* 이름 칸 · 안내 · 경고 · 사진 · 레시피 · 추천 색 — 유리판 위 글 */
+.kv .kv-field { border-radius: 20px; border: 1px solid var(--kv-line-c); background: var(--kv-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: var(--kv-ink); font-size: 22px; padding: 16px 20px; }
+.kv .kv-field small { font-size: 14px; opacity: .6; }
+.kv .kv-field i { opacity: .5; }
+.kv-fine { margin: 0; padding: 0 6px; font-size: 15px; line-height: 1.5; color: rgba(255, 248, 236, .78); text-shadow: 0 1px 8px rgba(0, 0, 0, .8); }
+.kv-alert { border-radius: 18px; font-size: 16px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.kv-alert b { font-size: 18px; }
+.kv-thumb img { width: 120px; border-radius: 14px; }
+.kv-thumb img[data-wide] { width: 170px; }
+.kv-recipe li { border-radius: 18px; border: 1px solid var(--kv-line-c); background: var(--kv-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 12px; }
+.kv-recipe span { font-size: 15px; } .kv-recipe b { font-size: 17px; }
+.kv-swatch-row { padding: 12px 14px; border-radius: 20px; border: 1px solid var(--kv-line-c); background: var(--kv-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+
+/* MAKEUP! 화장 편집 — 도구는 대사판 안(밝은 판), 거울을 가리지 않게 낮게 */
+.kv-talk[data-wide] { bottom: 2.4cqh; left: 4cqw; right: 4cqw; }
+.kv-talk[data-wide] .kv-box { padding: 14px 18px 16px; cursor: default; }
+.kv-talk[data-light] .kv-box { background: rgba(255, 250, 248, .92); color: #4b2447; border-color: rgba(255, 255, 255, .7); }
+.kv-talk[data-light] .kv-who b { color: var(--kv-tone); }
+.kv-talk[data-light] .kv-who small { color: rgba(75, 36, 71, .55); }
+.kv-talk[data-light] .kv-line { min-height: 0; font-size: 20px; }
+.kv-talk[data-light] .kv-caret { background: var(--kv-tone); }
+.kv-talk[data-wide] .kv-body { margin-top: 8px; gap: 6px; }
+.kv-talk[data-light] .kv-go { min-height: 60px; font-size: 20px; background: linear-gradient(135deg, color-mix(in srgb, var(--kv-tone) 80%, #fff), var(--kv-tone)); color: #fff; }
+/* 겹 순서 — 도착 제목은 카메라 카드 · 대사판 아래 */
+.kv-arrive { z-index: 3; }
+.kv-cam-card { z-index: 4; }
+.kv-talk { z-index: 6; }
+/* 카메라 카드가 떠 있으면 장소 제목은 띄우지 않는다(카드 뒤로 반쯤 가려져 보였다) */
+.kv:has(.kv-cam-card) .kv-arrive { visibility: hidden; }
+
+/* ───────── 시작 화면(SIP! 의 .sip-title 과 같은 짜임) — 첫 장면 영상 위, 아래쪽에 큰 세리프 표시 · 소개 · 「터치하여 시작」 ───────── */
+.kv .kv-title { position: absolute; inset: 0; z-index: 7; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1.4cqw; margin: 0; padding: 0 5cqw 13cqh; border: 0; border-radius: 0; background: linear-gradient(transparent 50%, rgba(6, 4, 3, .5)); color: var(--kv-ink); font: inherit; cursor: pointer; min-height: 0; box-shadow: none; }
+.kv-title-logo { font-family: 'nh-serif', 'Cormorant Garamond', 'Times New Roman', serif; font-weight: 400; font-size: 13cqw; line-height: .9; letter-spacing: .01em; color: var(--kv-tone-light); text-shadow: 0 0 40px color-mix(in srgb, var(--kv-tone-light) 40%, transparent), 0 6px 26px rgba(0, 0, 0, .7); white-space: nowrap; animation: kv-t-rise 1.6s .3s cubic-bezier(.2, .7, .2, 1) both, kv-t-shine 4s 2s ease-in-out infinite; }
+@keyframes kv-t-shine { 50% { text-shadow: 0 0 60px color-mix(in srgb, var(--kv-tone-light) 65%, transparent), 0 0 18px rgba(255, 245, 230, .5), 0 6px 26px rgba(0, 0, 0, .7); } }
+.kv-title-tag { font-size: 3.6cqw; font-weight: 400; letter-spacing: .18em; color: rgba(255, 248, 236, .88); text-shadow: 0 2px 10px rgba(0, 0, 0, .8); animation: kv-t-rise 1.2s .9s both; }
+.kv-title-press { margin-top: 6cqw; display: inline-flex; align-items: center; gap: 12px; padding: 3.2cqw 8cqw; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--kv-tone-light) 60%, transparent); background: var(--kv-glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); font-size: 3.8cqw; font-weight: 600; letter-spacing: .1em; color: var(--kv-ink); animation: kv-t-rise 1s 1.4s both, kv-t-glow 2.6s 2.4s ease-in-out infinite; }
+@keyframes kv-t-rise { from { opacity: 0; transform: translateY(18px); } }
+@keyframes kv-t-glow { 50% { box-shadow: 0 0 30px color-mix(in srgb, var(--kv-tone-light) 45%, transparent); border-color: var(--kv-tone-light); } }
+/* 시작 화면 위 띠 — 언어 고르기만(왼쪽 위) */
+.kv-bar--title { z-index: 8; pointer-events: none; }
+.kv-bar--title > * { pointer-events: auto; }
+
+/* 거울 앞 길잡이(FrontOf) — 카메라 · 비교 화면 위, 누르기는 아래로 통과 */
+.kv-front { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+/* 거울 전체 비교 화면 — 오른쪽(이안 뒤)에 가려지지 않게 '적용' 표는 나누는 선 바로 오른쪽에 */
+.kv-mirror .mku-tag[data-side='right'] { right: auto; left: calc(var(--split) + 10px); }
+
+/* MAKEUP! 화장 단계 칩 — 번호 · 이름, 지나온 단계는 점 */
+.kv .kv-stages button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.kv .kv-stages button small { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; font-weight: 800; background: rgba(120, 70, 100, .14); }
+.kv .kv-stages button[data-on] small { background: rgba(255, 255, 255, .28); }
+.kv .kv-stages button[data-done] small { background: var(--kv-tone); color: #fff; }
+/* 언어 고르기 글자 — COLOR! 는 화면 틀(.kx-root)의 글자색이 짙은 남색이라 유리 위에서 안 보였다 */
+.kv .kv-bar .kx-lang-btn { color: var(--kv-ink); }
+/* 밝은 편집판(MAKEUP! 화장 단계)의 '이전' — 흰 버튼 */
+.kv .kv-talk[data-light] .kv-ghost { min-height: 60px; font-size: 20px; background: #fff; color: #4b2447; border: 1px solid rgba(75, 36, 71, .16); box-shadow: 0 2px 8px rgba(75, 36, 71, .08); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.kv .kv-talk[data-light] .kv-ghost:disabled { opacity: .4; }
+
+/* ───────── COLOR! 결과 장면 영수증 — 프린터 입구(검은 띠)에서 종이가 내려온다. 종이 안은 위아래로 밀어 끝까지 본다 ───────── */
+.kv-slip { z-index: 4; margin: 0; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 2cqh 3cqh rgba(0, 0, 0, .5)); animation: kv-rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+.kv-slip-slot { position: relative; z-index: 1; flex: none; width: 100%; height: 3.4cqw; border-radius: 999px; background: linear-gradient(#3a342e, #0d0b09 70%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 .6cqw 1.4cqw rgba(0, 0, 0, .5); }
+.kv-slip-slot::after { content: ''; position: absolute; left: 5%; right: 5%; top: 50%; height: .5cqw; margin-top: -.25cqw; border-radius: 999px; background: #000; }
+.kv-slip-paper { position: relative; flex: 1; min-height: 0; width: 90%; margin-top: -1.7cqw; overflow: hidden; }
+.kv-slip-roll { height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; background: #fff; touch-action: pan-y; -webkit-mask-image: linear-gradient(#000 90%, transparent); mask-image: linear-gradient(#000 90%, transparent); animation: kv-slip-feed 2.4s cubic-bezier(.3, .1, .3, 1) both; }
+.kv-slip-roll::-webkit-scrollbar { display: none; }
+.kv-slip-roll img { display: block; width: 100%; height: auto; padding-top: 1.7cqw; background: #fff; pointer-events: none; }
+@keyframes kv-slip-feed { from { transform: translateY(-100%); } }
+.kv-slip-wait { position: absolute; left: 0; right: 0; top: 4cqw; display: flex; justify-content: center; gap: 1.4cqw; }
+.kv-slip-wait i { width: 1.6cqw; height: 1.6cqw; border-radius: 50%; background: rgba(255, 255, 255, .8); animation: kv-slip-dot 1.2s ease-in-out infinite; }
+.kv-slip-wait i:nth-child(2) { animation-delay: .2s; }
+.kv-slip-wait i:nth-child(3) { animation-delay: .4s; }
+@keyframes kv-slip-dot { 50% { opacity: .25; transform: translateY(-.6cqw); } }
+
+/* 영상판 화면 틀은 9:16 — 체험 틀(.kx-stage 폭 560px 상한)이 키 큰 창에서 9:16 보다 좁아져 영상 양옆(DRAW! 이젤 · MAKEUP! 거울)이 잘렸다. COLOR!(.kv--page)와 같게 */
+.kx-stage:has(> .kv) { max-width: min(100vw, calc(100dvh * 9 / 16)); }
+
+/* 마스크를 붙인 조각(위 영상 · 아래 마스크) — 화면에는 위 절반만 */
+.kv-film[data-matte] { height: 200%; clip-path: inset(0 0 50% 0); }

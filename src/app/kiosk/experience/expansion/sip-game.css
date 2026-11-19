@@ -142,3 +142,40 @@
 /* 영수증 미리보기(TakeActions 의 kx-sheet) — 대사판(.sip-talk) 안에 들어 있어 그 판 크기로 잘렸다. 게임 화면 전체를 덮게(.sip 가 fixed 의 기준이 되게) */
 .sip { contain: layout; }
 .sip-talk .kx-sheet { position: fixed; }
+
+/* 크게 · 위로(2026-11-18 사용자 지시: SIP! 버튼 · 글자가 너무 작고 화면 너무 아래) — 대사판을 바닥에서 7% 위로, 글자 · 버튼 25~30% 크게 */
+.sip-talk { left: 18px; right: 18px; bottom: max(44px, 7vh); gap: 12px; }
+.sip-box { padding: 22px 26px 24px; border-radius: 26px; }
+.sip-who { margin-bottom: 8px; }
+.sip-who b { font-size: 19px; }
+.sip-who small { font-size: 14px; }
+.sip-line { font-size: 26px; line-height: 1.45; min-height: 2.9em; }
+.sip-choices, .sip-menu { gap: 10px; }
+.kx-root .sip-choice { min-height: 74px; padding: 0 18px; border-radius: 20px; font-size: 22px; }
+.sip-choices[data-kinds] .sip-choice { min-height: 70px; }
+.kx-root .sip-menu .ex-button { min-height: 74px; border-radius: 20px; font-size: 22px; }
+.sip-menu > .sip-choice { min-height: 58px; font-size: 18px; }
+.sip-card { padding: 20px 24px 22px; }
+.sip-card h2 { font-size: 26px; }
+.sip-card p { font-size: 18px; }
+.sip-card span { font-size: 14px; padding: 3px 12px; }
+.sip-tag { font-size: 18px; }
+.sip-arrive small { font-size: 14px; }
+.kx-root .sip-skip { padding: 15px 30px; font-size: 19px; }
+.sip-confirm p { font-size: 23px; }
+/* 위 띠 — 처음으로 · 장소 이름 · SIP! 도 크게 */
+.sip-top { padding: 20px 22px; }
+.sip-icon { width: 56px; height: 56px; }
+.sip-icon svg { width: 26px; height: 26px; }
+.sip-where { font-size: 16px; }
+.sip-mark { width: 56px; font-size: 30px; }
+@media (max-height: 820px) {
+  .sip-talk { bottom: max(28px, 5vh); }
+  .sip-line { font-size: 23px; min-height: 2.8em; }
+  .kx-root .sip-choice, .kx-root .sip-menu .ex-button { min-height: 64px; font-size: 20px; }
+}
+
+/* 대사 — 키보드로 치듯(useTyping). 단어씩 떠오르던 효과는 끈다. 커서는 치는 동안만 깜빡인다 */
+.sip-type { white-space: pre-wrap; }
+.sip-caret { display: inline-block; width: 2px; height: 1.05em; margin-left: 2px; vertical-align: -0.15em; background: var(--gold); animation: sip-caret .9s steps(1) infinite; }
+@keyframes sip-caret { 50% { opacity: 0; } }
