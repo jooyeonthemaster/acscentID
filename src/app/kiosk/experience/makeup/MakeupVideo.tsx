@@ -1,14 +1,13 @@
 'use client'
-/* eslint-disable @next/next/no-img-element -- 방금 찍은 data: 사진 */
 
 // MAKEUP! 영상판(/kiosk?mode=studio-makeup&lab=video, 2026-11-18) — 패션쇼 백스테이지의 메이크업 아티스트 「이안」 영상 위에서 MAKEUP! 를 그대로 한다.
 // 촬영 · 얼굴 찾기 · 화장 그리기 · 머리 모양 바꾸기(/api/kiosk/experience/hairstyle) · 저장은 기본 화면과 같은 useMakeupFlow. 기본 화면(MakeupMode)은 그대로다.
-// 장면: start 커튼 → capture · edit 화장대(전구 거울 안이 카메라 · 전후 비교 화면) → 머리 모양을 바꾸는 동안 헤어 스테이션 → 화장대로 돌아옴
+// 장면: start 커튼 → capture · edit 화장대(전구 거울 안이 카메라 · 화장한 얼굴) → 머리 모양을 바꾸는 동안 헤어 스테이션 → 화장대로 돌아옴
 //       → result 팔레트를 들고 런웨이 입구로(즉석 사진 안에 완성 사진). 다시 꾸미기는 런웨이 → 화장대, 처음으로는 런웨이 → 커튼.
 // 영상 · 계획: src/app/kiosk/video(plans.ts 의 makeup), 원리: .claude/skills/kiosk-video-flow. 대사는 기본 화면의 문구(5개 언어)를 그대로 쓴다.
 
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
-import { ArrowLeft, ArrowRight, Camera, Check, ChevronsLeftRight, Download, Printer, RotateCcw, Scissors, Undo2, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Camera, Check, Download, Printer, RotateCcw, Scissors, Undo2, X } from 'lucide-react'
 import { HAIR_STYLES } from '@/lib/kiosk/hair-styles'
 import { KxCamView, KxLang, KxReceiptSheet, KxSaveSheet, KxSpinner, useKx } from '../kx'
 import { KxVideoStage, preloadPlan, rectStyle } from '@/app/kiosk/video/stage'
@@ -39,9 +38,11 @@ const STAGE_LINE: Record<MakeupTool, Record<KioskLang, string>> = {
 }
 const PREV: Record<KioskLang, string> = { ko: '이전', en: 'Back', ja: '戻る', 'zh-Hans': '上一步', 'zh-Hant': '上一步' }
 const NEXT: Record<KioskLang, string> = { ko: '다음', en: 'Next', ja: '次へ', 'zh-Hans': '下一步', 'zh-Hant': '下一步' }
+/** 팔레트 위 칸 팬의 색 — 고른 색. 속눈썹은 마스카라, 얼굴형은 셰이딩 */
+const panColor = (id: MakeupTool, picks: Record<Exclude<MakeupTool, 'lash' | 'shape'>, number>) => (id === 'lash' ? '#2b2523' : id === 'shape' ? '#b48467' : swatches(id)[picks[id]])
 
 export default function MakeupVideo() {
-  const { t, k, lang, step, setStep, photo, scene: face, cam, hairBusy, tool, picks, levels, analyze, build, canvasRef, compareRef, drag, final, finish, hairFail, hairMask, hairReady, hairSheet, hairUsed, lookKey, lookName, extras, noFace, restyle, saving, setHairSheet, setLevels, setNoFace, setPicks, setSaving, setScene, setTool, split, stage, wantHair, home } = useMakeupFlow()
+  const { t, k, lang, step, setStep, photo, scene: face, cam, hairBusy, tool, picks, levels, analyze, build, canvasRef, final, finish, hairFail, hairMask, hairReady, hairSheet, hairUsed, lookKey, lookName, extras, noFace, restyle, saving, setHairSheet, setLevels, setNoFace, setPicks, setSaving, setScene, setTool, stage, wantHair, home } = useMakeupFlow()
   const scene = step === 'start' ? 'curtain' : step === 'result' ? 'runway' : hairBusy ? 'hair' : 'vanity'
   const view = hairBusy ? 'hair' : step
   const { moving, said, onSettle } = useVideoSettle(scene, view)
@@ -97,33 +98,40 @@ export default function MakeupVideo() {
       const colors = swatches(tool)
       const picked = tool === 'lash' || tool === 'shape' ? 0 : picks[tool]
       const colorName = tool === 'liner' ? t.liners[picked] : tool === 'brow' ? t.brows[picked] : tool === 'hair' ? t.hairs[picked] : tool === 'lash' ? t.lashHint : tool === 'shape' ? t.shapeHint : t.colors[tool][picked]
+      const hint = tool === 'hair' && hairFail ? `${t.hairAiFailed[0]} ${t.hairAiFailed[1]}` : tool === 'hair' && wantHair && !hairReady ? t.hairFinding : tool === 'hair' && hairReady && !hairMask ? t.hairNone : colorName
       return <>
-        <div className="mku-tabs kv-stages" role="tablist">
-          {ORDER.map((id, i) => (
-            <button key={id} type="button" role="tab" aria-selected={tool === id} data-on={tool === id || undefined} data-done={(seen.includes(id) && tool !== id) || undefined} data-off={levels[id] === 0 || undefined} onClick={() => goStage(id)}>
-              <small>{i + 1}</small>{toolName(id)}
-            </button>
-          ))}
+        {/* 화장 팔레트(2026-11-19 사용자 지시) — 위 칸은 단계마다 고른 색의 팬, 아래 칸은 지금 단계의 색 · 농도. 얼굴을 가리지 않게 낮게 */}
+        <div className="mkv-palette">
+          <div className="mkv-pans" role="tablist">
+            {ORDER.map((id) => (
+              <button key={id} type="button" role="tab" aria-selected={tool === id} data-on={tool === id || undefined} data-off={levels[id] === 0 || undefined} onClick={() => goStage(id)}
+                style={{ '--pan': panColor(id, picks) } as CSSProperties}>
+                <i data-kind={id} aria-hidden="true" /><small>{toolName(id)}</small>
+              </button>
+            ))}
+          </div>
+          <div className="mkv-tray">
+            {colors.length > 0 && (
+              <div className="mkv-shades" role="radiogroup" aria-label={colorName} key={tool}>
+                {colors.map((hex, i) => (
+                  <button key={`${hex}${i}`} type="button" role="radio" aria-checked={picked === i} aria-label={tool === 'liner' ? t.liners[i] : tool === 'brow' ? t.brows[i] : tool === 'hair' ? t.hairs[i] : t.colors[tool as MakeupPart][i]} data-on={picked === i || undefined} data-wing={(tool === 'liner' && LINERS[i].wing) || undefined} style={{ '--pan': hex, '--i': i } as CSSProperties}
+                    onClick={() => { setPicks((prev) => ({ ...prev, [tool]: i })); if (levels[tool] === 0) setLevels((prev) => ({ ...prev, [tool]: tool === 'hair' ? 70 : 50 })) }}>
+                    {picked === i && <Check size={18} strokeWidth={2.8} aria-hidden="true" />}
+                  </button>
+                ))}
+                {tool === 'hair' && <button type="button" className="mkv-ai" disabled={Boolean(hairBusy)} onClick={() => setHairSheet(true)}><Scissors size={16} strokeWidth={2} aria-hidden="true" />{t.hairAi}</button>}
+              </div>
+            )}
+            {tool === 'hair' && hint !== colorName && <p className="mkv-alert" data-alert={hairFail || undefined}>{hint}</p>}
+            <label className="mkv-level">
+              <span key={`${tool}${picked}`}>{colors.length > 0 ? colorName : t.level}</span>
+              <input type="range" min={0} max={100} step={5} value={levels[tool]} aria-label={t.level} style={{ '--v': `${levels[tool]}%` } as CSSProperties} onChange={(event) => setLevels((prev) => ({ ...prev, [tool]: Number(event.target.value) }))} />
+              <output>{levels[tool]}%</output>
+            </label>
+          </div>
         </div>
-        <div className="mku-swatches" role="radiogroup" aria-label={colorName} key={tool} data-empty={colors.length === 0 || undefined}>
-          {colors.map((hex, i) => (
-            <button key={`${hex}${i}`} type="button" role="radio" aria-checked={picked === i} aria-label={tool === 'liner' ? t.liners[i] : tool === 'brow' ? t.brows[i] : tool === 'hair' ? t.hairs[i] : t.colors[tool as MakeupPart][i]} data-on={picked === i || undefined} data-wing={(tool === 'liner' && LINERS[i].wing) || undefined} style={{ background: hex, '--i': i } as CSSProperties}
-              onClick={() => { setPicks((prev) => ({ ...prev, [tool]: i })); if (levels[tool] === 0) setLevels((prev) => ({ ...prev, [tool]: tool === 'hair' ? 70 : 50 })) }}>
-              {picked === i && <Check size={22} strokeWidth={2.6} aria-hidden="true" />}
-            </button>
-          ))}
-          {tool === 'hair' && <button type="button" className="mku-ai" disabled={Boolean(hairBusy)} onClick={() => setHairSheet(true)}><Scissors size={20} strokeWidth={2} aria-hidden="true" />{t.hairAi}</button>}
-        </div>
-        <p className="mku-color-name" key={`${tool}${picked}${hairFail}`} data-alert={(tool === 'hair' && hairFail) || undefined}>
-          {tool === 'hair' && hairFail ? `${t.hairAiFailed[0]} ${t.hairAiFailed[1]}` : tool === 'hair' && wantHair && !hairReady ? t.hairFinding : tool === 'hair' && hairReady && !hairMask ? t.hairNone : colorName}
-        </p>
-        <label className="mku-level">
-          <b>{t.level}</b>
-          <input type="range" min={0} max={100} step={5} value={levels[tool]} style={{ '--v': `${levels[tool]}%` } as CSSProperties} onChange={(event) => setLevels((prev) => ({ ...prev, [tool]: Number(event.target.value) }))} />
-          <output>{levels[tool]}%</output>
-        </label>
-        <div className="kv-row">
-          <button type="button" className="kv-ghost" disabled={at === 0} onClick={() => goStage(ORDER[at - 1])}><ArrowLeft size={20} aria-hidden="true" />{PREV[lang]}</button>
+        <div className="kv-row mkv-row">
+          <button type="button" className="kv-ghost" disabled={at === 0} aria-label={PREV[lang]} onClick={() => goStage(ORDER[at - 1])}><ArrowLeft size={22} aria-hidden="true" /></button>
           {at < ORDER.length - 1
             ? <button type="button" className="kv-go" onClick={() => goStage(ORDER[at + 1])}>{NEXT[lang]} · {toolName(ORDER[at + 1])}<ArrowRight size={22} strokeWidth={2.2} aria-hidden="true" /></button>
             : <button type="button" className="kv-go" disabled={Boolean(hairBusy) || !stage} onClick={finish}>{t.toResult}<ArrowRight size={22} strokeWidth={2.2} aria-hidden="true" /></button>}
@@ -143,19 +151,13 @@ export default function MakeupVideo() {
     return null
   }
 
-  // 화장대 거울 안 — 촬영은 실시간 카메라, 얼굴 찾는 동안은 방금 찍은 사진, 편집은 전후 비교(왼쪽 원본 · 오른쪽 적용, 가운데 선을 끌어 비교)
+  // 화장대 거울 안 — 촬영은 실시간 카메라, 얼굴 찾는 동안은 방금 찍은 사진, 편집은 화장을 얹은 얼굴만(2026-11-19 사용자 지시: 전후 비교 없음)
   const atVanity = !moving && scene === 'vanity'
   // 이동 중에는 숨기기만 한다 — 빼면 편집 캔버스가 다시 붙을 때 그려지지 않는다(그리기는 값이 바뀔 때만 돈다)
   const inMirror = step === 'capture' || step === 'finding' || step === 'edit' ? (
     <div className="kv-slot kv-mirror" data-hidden={!atVanity || undefined} style={rectStyle(mirror)} key={step === 'edit' ? 'edit' : 'cam'}>
       {step === 'edit' && photo && face ? (
-        <div ref={compareRef} className="mku-compare" style={{ '--split': `${split * 100}%` } as CSSProperties} onPointerDown={drag} onPointerMove={drag}>
-          <img src={photo} alt="" draggable={false} />
-          <canvas ref={canvasRef} />
-          <span className="mku-tag" data-side="left">{t.original}</span>
-          <span className="mku-tag" data-side="right">{t.applied}</span>
-          <i className="mku-divider" aria-hidden="true"><b><ChevronsLeftRight size={20} strokeWidth={2.2} /></b></i>
-        </div>
+        <div className="mkv-after"><canvas ref={canvasRef} /></div>
       ) : (
         <KxCamView cam={step === 'capture' ? cam : null} photo={step === 'finding' ? photo : null} flash={step === 'finding'}>
           {step === 'capture' && <svg className="kx-cam-guide" viewBox="0 0 300 400" aria-hidden="true"><ellipse cx="150" cy="178" rx="92" ry="124" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeDasharray="7 7" /></svg>}

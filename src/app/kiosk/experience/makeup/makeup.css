@@ -87,3 +87,56 @@
 .mku-recipe .mku-extras { flex-direction: row; font-size: 13px; }
 .mku-extras em { color: var(--kx-soft); font-weight: 700; }
 .mku-extras span { padding: 2px 10px; border-radius: 999px; background: var(--kx-accent-soft); color: var(--kx-accent); font-weight: 700; }
+
+/* ───────── 영상판(MakeupVideo) 화장대 — 거울 안은 화장한 얼굴만, 아래는 화장 팔레트(2026-11-19 사용자 지시: 전후 비교 없음 · 얼굴 안 가리게 낮게) ───────── */
+/* 판 크기 단위 — 화면 틀 폭 520px 에서 1px, 더 좁은 틀(폰 · 작은 창)에서는 같이 줄어 거울을 덮지 않는다 */
+.kv { --u: min(1px, calc(100cqw / 520)); }
+.mkv-after { position: absolute; inset: 0; background: #efe3e6; }
+.mkv-after canvas { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* 대사판 — 이름과 대사를 한 줄로, 여백을 줄여 거울 아래에만 머문다 */
+.kv-talk[data-wide]:has(.mkv-palette) .kv-box { padding: calc(12 * var(--u)) calc(14 * var(--u)) calc(12 * var(--u)); }
+.kv-talk[data-wide]:has(.mkv-palette) .kv-who { float: left; margin: 0 calc(8 * var(--u)) 0 0; line-height: 1.45; }
+.kv-talk[data-wide]:has(.mkv-palette) .kv-who b { font-size: calc(17 * var(--u)); }
+.kv-talk[data-wide]:has(.mkv-palette) .kv-who small { display: none; }
+.kv-talk[data-wide]:has(.mkv-palette) .kv-line { font-size: calc(17 * var(--u)); line-height: 1.45; }
+.kv-talk[data-wide]:has(.mkv-palette) .kv-body { clear: both; margin-top: calc(8 * var(--u)); gap: calc(8 * var(--u)); }
+/* 팔레트 케이스 — 짙은 자두색 콤팩트, 금빛 테 */
+.mkv-palette { min-width: 0; padding: calc(8 * var(--u)) calc(8 * var(--u)) calc(8 * var(--u)); border-radius: calc(18 * var(--u)); border: 1px solid rgba(233, 205, 170, .6); background: linear-gradient(160deg, #4d2846, #2a1426); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 calc(6 * var(--u)) calc(16 * var(--u)) rgba(60, 20, 50, .25); color: #fff4ee; }
+.mkv-pans { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; }
+.kv .mkv-pans button { display: flex; flex-direction: column; align-items: center; gap: calc(4 * var(--u)); min-width: 0; padding: calc(5 * var(--u)) 0 calc(4 * var(--u)); border: 0; border-radius: calc(12 * var(--u)); background: transparent; color: rgba(255, 244, 238, .66); font: inherit; font-size: calc(12 * var(--u)); font-weight: 700; letter-spacing: -.05em; line-height: 1.1; white-space: nowrap; cursor: pointer; transition: background-color .2s ease, color .2s ease; }
+.kv .mkv-pans button[data-on] { background: rgba(255, 255, 255, .14); color: #fff; }
+.kv .mkv-pans button:active { transform: scale(.94); }
+.mkv-pans i { display: block; width: min(calc(36 * var(--u)), 100%); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 34% 28%, rgba(255, 255, 255, .55), transparent 42%), var(--pan); box-shadow: 0 0 0 2px #d9c09f, inset 0 2px calc(5 * var(--u)) rgba(0, 0, 0, .35); transition: transform .2s var(--kx-spring, ease), opacity .2s ease, box-shadow .2s ease; }
+.mkv-pans i[data-kind='lash'] { background: repeating-linear-gradient(100deg, #2b2523 0 2px, #4b403b 2px 4px); }
+.mkv-pans i[data-kind='shape'] { background: radial-gradient(circle at 34% 28%, rgba(255, 255, 255, .45), transparent 42%), linear-gradient(135deg, #e7c2a6 0 48%, var(--pan) 52%); }
+.mkv-pans button[data-off] i { opacity: .5; filter: saturate(.4); }
+.mkv-pans button[data-on] i { transform: scale(1.08); box-shadow: 0 0 0 2px #fff, 0 0 0 calc(4 * var(--u)) var(--kv-tone-light, #f3c6dc), inset 0 2px calc(5 * var(--u)) rgba(0, 0, 0, .3); opacity: 1; filter: none; }
+.mkv-pans small { max-width: 100%; overflow: hidden; text-overflow: clip; }
+/* 아래 칸 — 지금 단계의 색 팬 · 농도 */
+.mkv-tray { min-width: 0; display: grid; gap: calc(6 * var(--u)); margin-top: calc(6 * var(--u)); padding: calc(8 * var(--u)) calc(10 * var(--u)); border-radius: calc(12 * var(--u)); background: rgba(255, 255, 255, .08); }
+.mkv-shades { display: flex; align-items: center; justify-content: center; gap: calc(9 * var(--u)); min-width: 0; }
+.mkv-shades:has(.mkv-ai) { gap: calc(7 * var(--u)); }
+.kv .mkv-shades button:not(.mkv-ai) { flex: none; display: grid; place-items: center; width: calc(36 * var(--u)); height: calc(36 * var(--u)); padding: 0; border: 0; border-radius: 50%; background: radial-gradient(circle at 34% 28%, rgba(255, 255, 255, .5), transparent 42%), var(--pan); box-shadow: 0 0 0 2px #d9c09f, inset 0 2px calc(5 * var(--u)) rgba(0, 0, 0, .35); color: #fff; cursor: pointer; transition: transform .2s var(--kx-spring, ease), box-shadow .2s ease; animation: kx-pop .32s var(--kx-spring, ease) calc(var(--i) * .035s) backwards; }
+.kv .mkv-shades button[data-on] { transform: scale(1.1); box-shadow: 0 0 0 2px #fff, 0 0 0 calc(4 * var(--u)) var(--kv-tone-light, #f3c6dc); }
+.kv .mkv-shades button[data-wing] { border-radius: 50% 50% 50% 8%; }
+.kv .mkv-shades button:active { transform: scale(.9); }
+.mkv-shades svg { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .5)); }
+.kv .mkv-ai { flex: 0 1 auto; min-width: 0; display: inline-flex; align-items: center; gap: calc(5 * var(--u)); height: calc(40 * var(--u)); padding: 0 calc(10 * var(--u)); border: 1px solid rgba(233, 205, 170, .7); border-radius: calc(999 * var(--u)); background: rgba(255, 255, 255, .1); color: #fff4ee; font: inherit; font-size: calc(12 * var(--u)); font-weight: 800; line-height: 1.15; text-align: left; word-break: keep-all; cursor: pointer; }
+.kv .mkv-ai:disabled { opacity: .4; }
+.mkv-alert { margin: 0; font-size: calc(13 * var(--u)); font-weight: 700; text-align: center; color: #fff4ee; }
+.mkv-alert[data-alert] { color: #ffb4a8; }
+.mkv-level { display: grid; grid-template-columns: minmax(0, auto) 1fr auto; align-items: center; gap: calc(10 * var(--u)); }
+.mkv-level span { max-width: 7.5em; overflow: hidden; font-size: calc(13 * var(--u)); font-weight: 700; white-space: nowrap; text-overflow: ellipsis; color: rgba(255, 244, 238, .85); animation: kx-fade .25s ease-out; }
+.mkv-level output { min-width: calc(40 * var(--u)); font-size: calc(14 * var(--u)); font-weight: 800; text-align: right; }
+.mkv-level input { -webkit-appearance: none; appearance: none; width: 100%; height: calc(30 * var(--u)); margin: 0; background: transparent; touch-action: pan-y; cursor: pointer; }
+.mkv-level input::-webkit-slider-runnable-track { height: calc(6 * var(--u)); border-radius: calc(6 * var(--u)); background: linear-gradient(90deg, #f0a4b6 var(--v), rgba(255, 255, 255, .2) var(--v)); }
+.mkv-level input::-webkit-slider-thumb { -webkit-appearance: none; width: calc(24 * var(--u)); height: calc(24 * var(--u)); margin-top: -9px; border: calc(3 * var(--u)) solid var(--kv-tone-light, #f3c6dc); border-radius: 50%; background: #fff; box-shadow: 0 2px calc(6 * var(--u)) rgba(0, 0, 0, .4); }
+.mkv-level input::-moz-range-track { height: calc(6 * var(--u)); border-radius: calc(6 * var(--u)); background: rgba(255, 255, 255, .2); }
+.mkv-level input::-moz-range-progress { height: calc(6 * var(--u)); border-radius: calc(6 * var(--u)); background: #f0a4b6; }
+.mkv-level input::-moz-range-thumb { width: calc(18 * var(--u)); height: calc(18 * var(--u)); border: calc(3 * var(--u)) solid var(--kv-tone-light, #f3c6dc); border-radius: 50%; background: #fff; }
+/* 이전(아이콘만) · 다음 — 낮게 */
+.kv .kv-talk[data-light] .mkv-row .kv-ghost { flex: 0 0 calc(64 * var(--u)); min-height: calc(52 * var(--u)); padding: 0; }
+.kv .kv-talk[data-light] .mkv-row .kv-go { min-height: calc(52 * var(--u)); font-size: calc(19 * var(--u)); }
+.mkv-row svg { width: calc(22 * var(--u)); height: calc(22 * var(--u)); }
+.mkv-shades svg { width: calc(18 * var(--u)); height: calc(18 * var(--u)); }
+.mkv-ai svg { width: calc(16 * var(--u)); height: calc(16 * var(--u)); flex: none; }
