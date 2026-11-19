@@ -9,6 +9,7 @@
 //   v2 갈래(docs/scent-harin-route-v2.md): ♥(0~18) · 성향(진심 · 장난 · 호기심 대답 수) · 기억해 둔 일(이름 비밀 · 장미 · 할머니 향 · 나의 향 · 손목 · 알레르기 · 계속 보기) · 고른 꽃.
 //     장면 첫마디는 들어설 때의 ♥ 결(L · M · H), 조건 박자(펜 해프닝 · 되묻기 · 덧붙임)는 닿았을 때 맞으면만, 엔딩 6개(약속 · 티격태격 · 조향 동료 · 설렘 · 단골 · 첫 손님).
 //     엔딩의 손편지 한 줄은 영수증 사인 위에 찍힌다(scent-receipt setScentLetter).
+//   배경음악: harin-bgm.ts(ElevenLabs Music 두 곡 — 하린이 말할 때 작게, 부티크는 엔딩 곡).
 //   대본: harin-script.json(v2 — design-review/scent-art/tools/harin-v2-build.py 가 만든다). 음성 · 영상은 미리 만들어 이름을 부르지 않는다 — 대사창 글자에만 {name}.
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
@@ -26,6 +27,7 @@ import { KeyboardPop } from '../KeyboardPop'
 import type { PerfumerCtx, PfPickKind } from '../types'
 import { HARIN_BASE, HARIN_PLAN } from './harin-plan'
 import { HarinStage, type HarinSay } from './HarinStage'
+import { unlockHarinBgm, useHarinBgm } from './harin-bgm'
 import SCRIPT from './harin-script.json'
 import './harin.css'
 
@@ -160,6 +162,8 @@ export function HarinDate({ ctx }: { ctx: PerfumerCtx }) {
     ? (heard?.n === sayN ? speaking : heard?.line ?? null)
     : (beat?.choice || beat?.name || beat?.camera || beat?.go ? heard?.line ?? prevLine : null)
   const talking = Boolean(speaking && heard?.n === sayN)
+  // 배경음악 — 타이틀을 누른 뒤부터 첫 화면으로 돌아갈 때까지. 부티크(엔딩)는 다른 곡, 하린이 말하는 동안은 작게
+  useHarinBgm(onTitle ? null : target === 'boutique' ? 'ending' : 'main', talking)
 
   const choose = (o: Option) => {
     if (beat?.choice && beat.choice !== 'love') {
@@ -195,7 +199,7 @@ export function HarinDate({ ctx }: { ctx: PerfumerCtx }) {
       </div>
 
       {onTitle ? (
-        <button type="button" className="hd-title" onClick={() => setTitled(true)} aria-label="터치하여 시작">
+        <button type="button" className="hd-title" onClick={() => { unlockHarinBgm(); setTitled(true) }} aria-label="터치하여 시작">
           <span className="hd-logo">SCENT<em>!</em></span>
           <span className="hd-route">HARIN ROUTE · 하린 루트</span>
           <span className="hd-tag">향기로 기억해 줄래요?</span>
