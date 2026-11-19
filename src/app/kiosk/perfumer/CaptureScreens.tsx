@@ -11,7 +11,7 @@ import { PERFUMER_ART } from '@/lib/kiosk/perfumer-art'
 import type { PerfumerCtx } from './types'
 
 /** 액자 자리 + 3:4 액자 — 크기는 셸의 useCamFrame 이 잰다 */
-function CamSlot({ slotRef, size, photo, children }: {
+export function CamSlot({ slotRef, size, photo, children }: {
   slotRef: PerfumerCtx['frame']['slotRef']
   size: PerfumerCtx['frame']['size']
   photo?: boolean
@@ -25,7 +25,7 @@ function CamSlot({ slotRef, size, photo, children }: {
 }
 
 /** 카메라 영상 — 셸의 스트림이 이 요소에 붙는다(콜백 ref) */
-function LiveVideo({ bind }: { bind: PerfumerCtx['videoRef'] }) {
+export function LiveVideo({ bind }: { bind: PerfumerCtx['videoRef'] }) {
   return <video ref={bind} playsInline muted />
 }
 

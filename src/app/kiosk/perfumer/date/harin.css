@@ -1,0 +1,84 @@
+/* SCENT! 스핀오프 「하린 루트」(HarinDate.tsx) — 가까운 구도 영상 위에 미연시 대사창 · 선택지 · 호감도.
+   영상 상자(.scv-bg)는 SCENT! 영상판과 같다(../scent-motion.css — 화면 기둥 560×996 --u, 매장 키오스크 1080×1920).
+   움직임은 prefers-reduced-motion 에 묶지 않는다(매장 POS 는 그 설정이 켜져 있다 — kiosk-reduced-motion-trap). */
+
+.pf-root[data-harin] { background: #15120f; --rose: #ff7aa8; --glass: rgba(250, 248, 242, .9); }
+.pf-root[data-harin] .pf-top { color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, .35); z-index: 8; }
+.pf-root[data-harin] .pf-top .pf-wordmark em { color: #9fb2ff; }
+.pf-root[data-harin] .pf-lang-btn { display: none; }
+.pf-root[data-harin]::before { content: ''; position: absolute; inset: 0 0 auto; z-index: 1; height: calc(var(--u) * 150); background: linear-gradient(rgba(12, 10, 8, .5), rgba(12, 10, 8, 0)); pointer-events: none; }
+.pf-root[data-harin]:has(.hd[data-title])::before,
+.pf-root[data-harin]:has(.hd[data-title]) .pf-top { visibility: hidden; }
+
+.hd { position: absolute; inset: 0; }
+
+/* 대사 립싱크 영상 — 배경 대기 영상 위에 0.3초에 걸쳐 겹쳐 오고, 끝나면 사라진다 */
+.hd-talk { z-index: 2; opacity: 0; transition: opacity .3s ease; }
+.hd-talk[data-state='on'] { opacity: 1; }
+.hd-talk[data-state='off'] { opacity: 0; }
+
+/* 타이틀 — SCENT! · HARIN ROUTE · 한 줄 · 터치하여 시작 */
+.hd-title { position: absolute; left: 50%; top: 50%; z-index: 4; width: calc(var(--u) * 560); height: calc(var(--u) * 996); translate: -50% -50%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: calc(var(--u) * 6); padding: 0 var(--pad) calc(var(--u) * 58); border: 0; background: linear-gradient(rgba(12, 10, 8, 0) 52%, rgba(12, 10, 8, .55)); color: #fff; cursor: pointer; }
+.hd-title::before { content: ''; position: absolute; inset: calc(var(--u) * 10); border: 1px solid rgba(255, 236, 244, .55); pointer-events: none; }
+.hd-logo { font-family: var(--serif); font-weight: 800; font-size: calc(var(--u) * 108); line-height: .95; letter-spacing: -.045em; text-shadow: 0 0 calc(var(--u) * 40) rgba(255, 220, 235, .35), 0 calc(var(--u) * 6) calc(var(--u) * 26) rgba(0, 0, 0, .55); animation: hd-rise 1.6s .3s cubic-bezier(.2, .7, .2, 1) both; }
+.hd-logo em { font-style: normal; color: var(--rose); }
+.hd-route { font-family: var(--serif); font-size: calc(var(--u) * 15); font-weight: 700; letter-spacing: .32em; color: #ffd6e5; animation: hd-rise 1.2s .7s both; }
+.hd-tag { margin-top: calc(var(--u) * 6); font-size: calc(var(--u) * 19); font-weight: 600; letter-spacing: .06em; color: rgba(255, 252, 244, .95); text-shadow: 0 2px 10px rgba(0, 0, 0, .7); animation: hd-rise 1.2s .9s both; }
+.hd-press { margin-top: calc(var(--u) * 28); padding: calc(var(--u) * 14) calc(var(--u) * 32); border: 1px solid rgba(255, 220, 235, .7); border-radius: 999px; background: rgba(20, 16, 18, .42); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); font-size: calc(var(--u) * 17); font-weight: 600; letter-spacing: .1em; animation: hd-rise 1s 1.4s both, hd-glow 2.6s 2.4s ease-in-out infinite; }
+@keyframes hd-rise { from { opacity: 0; transform: translateY(calc(var(--u) * 18)); } }
+@keyframes hd-glow { 50% { box-shadow: 0 0 calc(var(--u) * 30) rgba(255, 122, 168, .5); border-color: #fff; } }
+
+/* 호감도 ♥ — 머리띠 아래 오른쪽 */
+.hd-hearts { position: absolute; z-index: 6; top: calc((100% - var(--u) * 996) / 2 + var(--u) * 92); right: calc(50% - var(--u) * 266); display: flex; gap: calc(var(--u) * 3); padding: calc(var(--u) * 7) calc(var(--u) * 12); border-radius: 999px; background: rgba(20, 16, 18, .38); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: rgba(255, 255, 255, .85); }
+.hd-hearts svg { width: calc(var(--u) * 20); height: calc(var(--u) * 20); fill: transparent; transition: fill .4s ease, color .4s ease; }
+.hd-hearts svg[data-fill='full'] { fill: var(--rose); color: var(--rose); }
+.hd-hearts svg[data-fill='half'] { fill: rgba(255, 122, 168, .45); color: var(--rose); }
+.hd-pop { position: absolute; right: calc(var(--u) * 10); top: 100%; font-size: calc(var(--u) * 20); font-weight: 900; color: var(--rose); text-shadow: 0 2px 8px rgba(0, 0, 0, .4); animation: hd-pop 1.6s ease-out both; pointer-events: none; }
+@keyframes hd-pop { 0% { opacity: 0; transform: translateY(calc(var(--u) * 10)) scale(.8); } 20% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(calc(var(--u) * -26)); } }
+
+/* 아래 — 선택지 · 대사창(영상 상자 아래 끝에서 14) */
+.hd-stage { position: absolute; z-index: 5; left: 50%; bottom: calc((100% - var(--u) * 996) / 2 + var(--u) * 14); width: calc(var(--u) * 532); translate: -50% 0; display: flex; flex-direction: column; gap: calc(var(--u) * 10); }
+.hd-choices { display: grid; gap: calc(var(--u) * 8); }
+.hd-choices button { padding: calc(var(--u) * 15) calc(var(--u) * 18); border: 1px solid rgba(255, 255, 255, .7); border-radius: calc(var(--u) * 16); background: rgba(250, 248, 242, .82); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 calc(var(--u) * 8) calc(var(--u) * 22) rgba(10, 8, 6, .22); font-size: calc(var(--u) * 19); font-weight: 700; color: var(--ink); text-align: center; animation: hd-in .4s calc(var(--i, 0) * 70ms + 150ms) cubic-bezier(.2, .8, .2, 1) both; }
+.hd-choices button:active { transform: scale(.98); background: #fff; }
+.hd-choices button[data-main] { border-color: var(--blue); background: var(--blue); color: #fff; }
+@keyframes hd-in { from { opacity: 0; transform: translateY(calc(var(--u) * 14)); } }
+
+.hd-box { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: calc(var(--u) * 8); width: 100%; min-height: calc(var(--u) * 150); padding: calc(var(--u) * 18) calc(var(--u) * 24) calc(var(--u) * 24); border: 1px solid rgba(255, 255, 255, .7); border-radius: calc(var(--u) * 24); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.15); backdrop-filter: blur(18px) saturate(1.15); box-shadow: 0 calc(var(--u) * 18) calc(var(--u) * 50) rgba(10, 8, 6, .28); color: var(--ink); text-align: left; animation: hd-in .35s ease-out both; }
+button.hd-box { cursor: pointer; }
+button.hd-box:disabled { cursor: default; }
+.hd-who { display: flex; align-items: baseline; gap: calc(var(--u) * 8); font-size: calc(var(--u) * 17); font-weight: 800; color: var(--rose); filter: saturate(1.2) brightness(.85); }
+.hd-who small { font-family: var(--serif); font-size: calc(var(--u) * 12); font-weight: 700; letter-spacing: .14em; color: var(--muted); }
+.hd-line { font-size: calc(var(--u) * 21); font-weight: 600; line-height: 1.55; letter-spacing: -.02em; word-break: keep-all; }
+.hd-line > span { opacity: 0; animation: hd-char .2s ease-out forwards; }
+@keyframes hd-char { to { opacity: 1; } }
+.hd-line--still { font-size: calc(var(--u) * 19); }
+.hd-more { position: absolute; right: calc(var(--u) * 20); bottom: calc(var(--u) * 14); font-size: calc(var(--u) * 14); color: var(--rose); opacity: 0; animation: hd-more 1s ease-in-out infinite; }
+@keyframes hd-more { 0%, 100% { opacity: .2; transform: translateY(0); } 50% { opacity: 1; transform: translateY(calc(var(--u) * 3)); } }
+.hd-dots { display: inline-flex; gap: calc(var(--u) * 6); }
+.hd-dots i { width: calc(var(--u) * 8); height: calc(var(--u) * 8); border-radius: 50%; background: var(--rose); opacity: .3; animation: hd-dot 1.2s ease-in-out infinite; }
+.hd-dots i:nth-child(2) { animation-delay: .2s; }
+.hd-dots i:nth-child(3) { animation-delay: .4s; }
+@keyframes hd-dot { 40% { opacity: 1; transform: translateY(calc(var(--u) * -3)); } }
+
+/* 단추(방명록에 남기기 · 촬영하기 · 이 사진으로) */
+.hd-ok { display: inline-flex; align-items: center; justify-content: center; gap: calc(var(--u) * 8); height: calc(var(--u) * 58); border: 0; border-radius: calc(var(--u) * 14); background: var(--blue); color: #fff; font-size: calc(var(--u) * 19); font-weight: 800; box-shadow: 0 calc(var(--u) * 8) calc(var(--u) * 18) rgba(36, 78, 234, .22); }
+.hd-ok:disabled { opacity: .45; box-shadow: none; }
+.hd-ok[data-ghost] { background: var(--white); color: var(--ink); border: 1.5px solid var(--line); box-shadow: none; }
+.hd-row { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: calc(var(--u) * 10); }
+
+/* 살롱 — 방명록 */
+.hd-name .pf-field { margin-top: calc(var(--u) * 4); }
+.hd-name .pf-gender { margin: 0; }
+
+/* 스튜디오 — 카메라(액자 자리는 남은 높이로 잰다) */
+.hd-camera { height: calc(var(--u) * 640); }
+.hd-camera .pf-cam-slot { flex: 1 1 auto; min-height: 0; margin-top: 0; }
+
+/* 부티크 결과 · 분석 실패 — 큰 유리판 안에 기존 화면 */
+.hd-panel { display: flex; flex-direction: column; height: calc(var(--u) * 720); border: 1px solid rgba(255, 255, 255, .7); border-radius: calc(var(--u) * 26); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.15); backdrop-filter: blur(18px) saturate(1.15); box-shadow: 0 calc(var(--u) * 18) calc(var(--u) * 50) rgba(10, 8, 6, .28); overflow: hidden; animation: hd-in .45s ease-out both; }
+.hd-panel .pf-screen { flex: 1 1 auto; padding-top: calc(var(--u) * 6); }
+.hd-panel .pf-bottom { background: none; padding: calc(var(--u) * 12) 0 calc(var(--u) * 16); }
+.hd-panel :is(.pf-error-art, .pf-qr-bg) { display: none; }
+.hd-ending { flex: none; display: flex; justify-content: space-between; margin: 0; padding: calc(var(--u) * 16) var(--pad) 0; font-family: var(--serif); font-size: calc(var(--u) * 14); font-weight: 700; letter-spacing: .2em; color: var(--rose); filter: brightness(.85); }
+.hd-ending span { letter-spacing: 0; }

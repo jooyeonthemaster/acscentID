@@ -292,7 +292,10 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
   const perfumerUi = design === 'perfumer' && kioskMode.design === 'perfumer'
   /** SCENT! 영상판(운영 모드 ai-perfumer-video, 데모 주소는 ai-perfumer + &lab=video) — 하린의 영상 화면에, 영수증 맨 위에 촬영 사진으로 만든 도장 · 맨 아래에 조향사 하린의 사인(../perfumer/scent-receipt.ts, 2026-11-18).
    *  AI 조향사(ai-perfumer) 기본 화면 · 영수증은 그대로다 */
-  const scentVideo = perfumerUi && (kioskMode.id === 'ai-perfumer-video' || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('lab') === 'video'))
+  /** SCENT! 스핀오프 「하린 루트」(ai-perfumer-harin) — 같은 셸 위에 하린 미연시 화면(../perfumer/date). 영수증도 영상판처럼 도장 · 사인 */
+  const harinRoute = perfumerUi && kioskMode.id === 'ai-perfumer-harin'
+  const scentVideoUi = perfumerUi && (kioskMode.id === 'ai-perfumer-video' || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('lab') === 'video'))
+  const scentVideo = harinRoute || scentVideoUi
   /** 그 사진의 도장 그림 요청 — 분석을 시작할 때 미리 보내 두고 영수증을 만들 때 기다린다(사진이 바뀌면 새로) */
   const scentStampRef = useRef<{ photo: string; image: Promise<string | null> } | null>(null)
   const pcFit = usePcFit(pc)
@@ -762,7 +765,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
     analysisAbort.current = controller
     const generation = ++analysisGeneration.current
     const isCurrent = () => generation === analysisGeneration.current
-    const perfumer = kioskMode.design === 'perfumer'  // AI 조향사 · 영상판
+    const perfumer = kioskMode.design === 'perfumer'  // AI 조향사 · 영상판 · 하린 루트
     const rotation = perfumer ? readPerfumerRotation() : null
     const requestTimeout = window.setTimeout(
       () => controller.abort(new DOMException('Analysis timed out', 'TimeoutError')),
@@ -1454,7 +1457,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
     const ctx: PerfumerCtx = {
       step: pfSteps.includes(step as PfStep) ? (step as PfStep) : 'attract',
       inputSteps: steps as PfStep[],
-      variant: scentVideo ? 'video' : undefined,
+      variant: harinRoute ? 'harin' : scentVideoUi ? 'video' : undefined,
       lang,
       setLang,
       langLocked: step === 'analyzing' || step === 'result',

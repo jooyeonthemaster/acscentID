@@ -17,6 +17,7 @@ import { ReceiptScreen, receiptPhaseOf } from './ReceiptScreens'
 import { IdleDialog, LanguageDialog, PrintFailDialog, QrExpiredDialog } from './Dialogs'
 import { TopBar } from './ui'
 import { KeyboardPop } from './KeyboardPop'
+import { HarinDate } from './date/HarinDate'
 import { KxVideoStage, preloadPlan } from '../video/stage'
 import { useVideoSettle } from '../video/ui'
 import { GUIDE, SCENE_OF, SCENT_PLAN } from './scent-plan'
@@ -61,6 +62,22 @@ export function PerfumerApp({ ctx }: { ctx: PerfumerCtx }) {
   else if (shown === 'capture') screen = <CaptureScreen ctx={ctx} />
   else if (shown === 'analyzing') screen = ctx.analyzeError ? <AnalyzeErrorScreen ctx={ctx} /> : <AnalyzingScreen ctx={ctx} />
   else if (shown === 'result') screen = receiptPhase ? <ReceiptScreen ctx={ctx} phase={receiptPhase} /> : <ResultScreen ctx={ctx} tab={tab} onTab={setTab} />
+
+  // SCENT! 스핀오프 「하린 루트」(모드 ai-perfumer-harin) — 같은 셸 위의 미연시 화면. 안내창(무입력 · 출력 실패 등)은 그대로
+  if (ctx.variant === 'harin') {
+    return (
+      <div className="pf-root" data-harin data-step={step} data-lang={ctx.lang} lang="ko">
+        <TopBar ctx={ctx} onLanguage={() => undefined} />
+        <HarinDate ctx={ctx} />
+        {qrExpired && <QrExpiredDialog ctx={ctx} />}
+        {ctx.printError && ctx.receipt && <PrintFailDialog ctx={ctx} />}
+        {ctx.idleLeft !== null && <IdleDialog ctx={ctx} />}
+        {ctx.toast && <div className="pf-toast" role="status">{ctx.toast}</div>}
+        {ctx.adminPanel}
+        {ctx.adminHotspot}
+      </div>
+    )
+  }
 
   return (
     <div

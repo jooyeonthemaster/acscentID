@@ -76,6 +76,7 @@ const MODE_COPY: Record<string, { name: string; lines: [string, string]; Icon: t
   'kwave-2026': { name: 'K-WAVE 사주', lines: ['사주 분석', '전용 배경 사용'], Icon: MoonStar },
   'ai-perfumer': { name: 'AI 조향사', lines: ['본인 사진으로 향 레시피', '퍼퓸 10ml 고정 · 전용 배경 사용'], Icon: FlaskConical },
   'ai-perfumer-video': { name: 'AI 조향사 · 영상판', lines: ['조향사 하린을 따라 향수 하우스 여정', '퍼퓸 10ml 고정 · 영상 화면 · 도장 영수증'], Icon: FlaskConical },
+  'ai-perfumer-harin': { name: '하린 루트', lines: ['조향사 하린과의 미연시 · 향 레시피', '퍼퓸 10ml 고정 · 립싱크 영상'], Icon: Heart },
   'ai-color': { name: 'AI 퍼스널 컬러', lines: ['사진 한 장으로 컬러 진단', '컬러 전용 디자인 사용'], Icon: Palette },
   'ai-tarot': { name: 'AI 타로', lines: ['과거 · 현재 · 미래 리딩', '타로 전용 디자인 사용'], Icon: GalleryHorizontalEnd },
 }

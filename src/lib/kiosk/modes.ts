@@ -297,6 +297,33 @@ export const KIOSK_MODES: KioskMode[] = [
   AI_PERFUMER,
   AI_PERFUMER_VIDEO,
   {
+    // SCENT! 스핀오프 「하린 루트」(2026-11-19) — 조향사 하린과 향수 하우스를 돌며 대화하는 미연시(연애 시뮬레이션). 대본 docs/scent-harin-route.md.
+    // 셸 · 촬영 · AI 분석 · 영수증은 AI 조향사(ai-perfumer)와 같고(퍼퓸 10ml 레시피), 화면만 하린의 립싱크 영상 + 대사창(src/app/kiosk/perfumer/date).
+    // 선택지가 스타일 · 성격 · 매력 키워드와 호감도를 정하고, 호감도로 엔딩(설렘 · 단골 · 첫 손님)이 갈린다. 한국어 전용.
+    id: 'ai-perfumer-harin',
+    label: '하린 루트 (SCENT! 미연시)',
+    note: '행사 · 데모 · 조향사 하린과의 미연시 + 향 레시피 (퍼퓸 10ml)',
+    brandName: 'SCENT! HARIN ROUTE',
+    storeEvents: false,
+    programs: ['personal'],
+    fixedProduct: 'perfume_10ml',
+    gramsEqualMl: true,
+    politeTone: true,
+    design: 'perfumer',
+    attract: {},
+    receipt: {
+      theme: 'scent',
+      subtitle: 'AI PERFUMER · SCENT RECIPE',
+      eventLines: [],
+      recipeBox: true,
+      recipeHero: true,
+      counterNotice: {
+        ko: ['이 영수증을 직원에게 보여주세요.', '적힌 레시피 그대로 조향을 하시면 됩니다.'],
+        en: ['Please show this receipt to our staff.', 'Blend your perfume exactly as the recipe says.'],
+      },
+    },
+  },
+  {
     // AI 퍼스널 컬러 진단 — 프로그램 하나뿐인 모드라 첫 화면 다음에 바로 시작한다(고르기 화면 없음).
     // 향을 추천하지 않는다(진단서만). 행사가 정해지면 label·note·attract·receipt.eventLines 를 그 행사에 맞게 고친다.
     id: 'ai-color',

@@ -27,6 +27,18 @@ const CARDS = [
   { id: 'makeup', mode: 'studio-makeup', desc: '백스테이지 메이크업 아티스트 이안의 전구 거울이 카메라이자 화장 화면이 되고, 런웨이 입구에서 완성 사진을 들어 보입니다.' },
 ] as const
 
+/** 영상판이 따로 계획(plans.ts) 밖에 있는 프로그램 — SCENT! 는 기본 SCENT! 화면에 영상판을 입혔다(src/app/kiosk/perfumer/scent-plan.ts) */
+const MORE_CARDS = [
+  { key: 'scent', tag: 'SCENT! · 영상판', name: 'AI 조향사 — 하린의 향수 하우스', color: '#244eea', screen: '/assets/kiosk-programs/perfumer/video/lane.webp', href: (k?: string) => kioskDemoCardHref({ mode: 'ai-perfumer', lab: 'video' }, k),
+    desc: '실사 조향사 하린을 따라 골목 입구 → 살롱 → 온실 → 증류실 → 향료 오르간 → 사진 스튜디오 → 블렌딩 랩 → 부티크를 걸으며 취향을 고르고 사진을 찍으면, AI가 나만의 향 레시피를 만들어 줍니다.', needs: ['카메라', 'AI', '레시피 출력'] },
+  // SCENT! 스핀오프 미연시(2026-11-19, 모드 ai-perfumer-harin, src/app/kiosk/perfumer/date) — 대본 docs/scent-harin-route.md
+  { key: 'harin', tag: 'SCENT! · 하린 루트', name: '하린과의 하루 — 향기로 기억해 줄래요?', color: '#d94f86', screen: '/assets/kiosk-programs/perfumer/date/lane.webp', href: (k?: string) => kioskDemoCardHref({ mode: 'ai-perfumer-harin' }, k),
+    desc: '조향사 하린과 마주 보고 이야기하는 미연시. 하린이 목소리로 말을 걸고, 고르는 대답마다 호감도와 나에게 맞는 향 키워드가 쌓여요. 사진을 찍으면 AI가 향을 만들고, 호감도에 따라 엔딩 셋 중 하나와 손편지 영수증을 받아요.', needs: ['카메라', 'AI', '음성 · 립싱크', '엔딩 3'] },
+  // 포토부스 일반 프로그램 LATER!(2026-11-19, 모드 later — 늘 영상판, src/app/booth/programs/LaterFlow.tsx) — 가로 화면
+  { key: 'later', device: 'booth' as const, tag: 'LATER! · 영상판', name: '나중 박사의 타임캡슐 — 10 · 20 · 30년 뒤의 우리', color: '#1f4fd8', screen: '/assets/booth-programs/later-video/garage.webp', href: (k?: string) => `${boothDemoHref({ mode: 'later' }, k)}&camera=webcam`,
+    desc: '가로 포토부스. 괴짜 발명가 나중 박사의 실험실에서 커다란 타임캡슐에 올라 조종석에서 한 컷 찍고 레버를 당기면, 창밖으로 2036 · 2046 · 2056년의 우리가 차례로 나타나요. 돌아오면 네 컷을 2×6 사진으로 뽑아 줍니다.', needs: ['카메라', 'AI 미래 사진', '1~4인', '2×6 인화 · QR'] },
+]
+
 /** 연말 시상식(2026-12-15) 영상판 — 다른 세션이 만든 것을 같은 데모에 모음(SIP! 키오스크 · FACE! · SAJU! 포토부스) */
 const EVENT_CARDS = [
   { key: 'sip', device: 'kiosk' as const, tag: 'SIP! · 영상판', name: 'AI 소믈리에 — 해나의 와이너리 여정', color: '#6b2941', screen: '/assets/booth-demo/nh/sip-video.webp', href: (k?: string) => kioskDemoCardHref({ mode: 'studio-sommelier-nh', lab: 'video' }, k),
@@ -46,7 +58,7 @@ const FEATURES = [
 const NOTES = [
   '카메라를 쓰는 프로그램이라 브라우저가 권한을 물으면 허용해 주세요.',
   '촬영 · AI 분석 · 결과는 기본 프로그램과 같습니다. 영상판은 화면 겉모습만 다릅니다.',
-  '영상을 처음 받는 동안(프로그램마다 15~23MB) 잠시 그림으로 보일 수 있습니다.',
+  '영상을 처음 받는 동안(프로그램마다 15~37MB) 잠시 그림으로 보일 수 있습니다.',
   '데모 화면에는 DEMO 워터마크가 표시됩니다.',
 ]
 const notes = (clean: boolean) => (clean ? NOTES.filter((n) => !n.includes('워터마크')) : NOTES)
@@ -74,7 +86,7 @@ export function VideoDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey
         <div id="demos" className="kd-demos">
           <section className="kd-group" aria-labelledby="kd-video">
             <div className="kd-group-head">
-              <h2 id="kd-video">체험 프로그램 영상판<span>{CARDS.length}</span></h2>
+              <h2 id="kd-video">체험 프로그램 영상판<span>{CARDS.length + MORE_CARDS.length}</span></h2>
               <p>기본 프로그램과 같은 촬영 · AI · 결과를, 길잡이 인물이 걸어 다니는 영상 위에서</p>
             </div>
             <ul className="kd-grid">
@@ -95,6 +107,22 @@ export function VideoDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey
                   </li>
                 )
               })}
+              {MORE_CARDS.map((card) => (
+                <li key={card.key}>
+                  <a className="kd-card" href={card.href(cleanKey)} target="_blank" rel="noopener" style={{ '--kd-tone': card.color } as CSSProperties}>
+                    {'device' in card && card.device === 'booth'
+                      ? <Booth><img src={card.screen} alt={`${card.name} 첫 장면`} width={1280} height={720} loading="lazy" decoding="async" /></Booth>
+                      : <Kiosk><img src={card.screen} alt={`${card.name} 첫 장면`} width={720} height={1280} loading="lazy" decoding="async" /></Kiosk>}
+                    <span className="kd-card-body">
+                      <span className="kd-tag">{card.tag}</span>
+                      <b>{card.name}</b>
+                      <span className="kd-desc">{card.desc}</span>
+                      <span className="kd-needs">{card.needs.map((n) => <i key={n}>{n}</i>)}</span>
+                      <span className="kd-open">데모 열기<ArrowUpRight size={18} strokeWidth={2.2} aria-hidden="true" /></span>
+                    </span>
+                  </a>
+                </li>
+              ))}
             </ul>
           </section>
           <section className="kd-group" aria-labelledby="kd-video-event">
