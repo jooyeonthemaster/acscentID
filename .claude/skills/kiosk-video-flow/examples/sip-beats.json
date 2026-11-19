@@ -1,0 +1,62 @@
+{
+  "_comment": "SIP! 영상판(2026-11-18) 앞 두 장소 + 이동 하나를 이 형식으로 옮긴 예. 실제로는 6곳 × 3 조각을 만들었다(design-review/nh-sip-art/tools/sip-wan-beats.mjs). 경로는 이 파일 기준.",
+  "imageDir": "../../../../design-review/nh-sip-art",
+  "outDir": "../../../../design-review/nh-sip-art/wan3",
+  "keyEnv": "OPENROUTER_KEY_RND",
+  "model": "alibaba/wan-3.0",
+  "resolution": "720p",
+  "aspect": "9:16",
+  "title": "R&D SIP wan beats",
+  "look": "Stylized high-end 3D game render look, exactly the same as the image. One continuous shot, no cuts. The camera stays still. The video starts and ends on exactly the same pose as the image. No text, no labels, no logos, no subtitles.",
+  "clips": [
+    {
+      "name": "hi-gate",
+      "first": "01-gate.jpg",
+      "last": "01-gate.jpg",
+      "duration": 4,
+      "prompt": "The sommelier (same woman, same face and outfit as the image) with her right hand raised, waves it a few times in a warm friendly welcome and smiles brightly, then holds the hand raised again exactly as in the image. The hanging lantern sways gently, the vines move in a soft evening breeze, clouds drift slowly in the golden sky."
+    },
+    {
+      "name": "idle-gate-1",
+      "first": "01-gate.jpg",
+      "last": "01-gate.jpg",
+      "duration": 4,
+      "prompt": "The sommelier (same woman, same face and outfit as the image) stays in her pose and looks at the viewer with a soft smile, breathes calmly, blinks naturally, and tilts her head very slightly. Very subtle, gentle motion only. The hanging lantern sways gently, the vines move in a soft evening breeze, clouds drift slowly in the golden sky."
+    },
+    {
+      "name": "idle-gate-2",
+      "first": "01-gate.jpg",
+      "last": "01-gate.jpg",
+      "duration": 4,
+      "prompt": "The sommelier (same woman, same face and outfit as the image) keeps her pose, glances briefly to the side as if noticing something, then looks back at the viewer with a small friendly nod. Gentle, small motion only. The hanging lantern sways gently, the vines move in a soft evening breeze, clouds drift slowly in the golden sky."
+    },
+    {
+      "name": "hi-vineyard",
+      "first": "02-vineyard.jpg",
+      "last": "02-vineyard.jpg",
+      "duration": 4,
+      "prompt": "The sommelier (same woman, same face and outfit as the image) lifts the instant camera up to her eye as if taking a photo of the viewer, then lowers it back to her chest with a cheerful smile, exactly as in the image. Grape leaves rustle in the breeze, warm sunlight flickers through the leaves."
+    },
+    {
+      "name": "idle-vineyard-1",
+      "first": "02-vineyard.jpg",
+      "last": "02-vineyard.jpg",
+      "duration": 4,
+      "prompt": "The sommelier (same woman, same face and outfit as the image) stays in her pose and looks at the viewer with a soft smile, breathes calmly, blinks naturally, and tilts her head very slightly. Very subtle, gentle motion only. Grape leaves rustle in the breeze, warm sunlight flickers through the leaves."
+    },
+    {
+      "name": "idle-vineyard-2",
+      "first": "02-vineyard.jpg",
+      "last": "02-vineyard.jpg",
+      "duration": 4,
+      "prompt": "The sommelier (same woman, same face and outfit as the image) keeps her pose, glances briefly to the side as if noticing something, then looks back at the viewer with a small friendly nod. Gentle, small motion only. Grape leaves rustle in the breeze, warm sunlight flickers through the leaves."
+    },
+    {
+      "name": "move-vineyard",
+      "first": "01-gate.jpg",
+      "last": "02-vineyard.jpg",
+      "duration": 8,
+      "prompt": "IMPORTANT: the sommelier never fades, dissolves, teleports or pops in or out — she only leaves and enters by physically walking on foot across the edge of the frame. She is the same woman in the same outfit throughout. At the start she smiles at the viewer, turns and walks on foot out of the frame past the right edge. Then the first-person camera walks forward quickly through the stone arch and down the dirt path into the rows of grapevines at golden hour, with a slight walking bob. At the end, she walks on foot into the frame from the left edge, holding her instant camera, and stops in her place facing the viewer with a smile."
+    }
+  ]
+}

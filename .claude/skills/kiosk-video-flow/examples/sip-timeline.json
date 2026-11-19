@@ -1,0 +1,17 @@
+{
+  "url": "http://localhost:3014/kiosk?mode=studio-sommelier-nh&demo=1&lab=video",
+  "viewport": [560, 996],
+  "visible": "video.sip-film[data-on]",
+  "move": "^move-",
+  "steps": [
+    { "wait": 3000 },
+    { "click": ".sip-title" },
+    { "click": "text=따라가기", "delay": 300 },
+    { "click": "text=다음에요", "delay": 2500 },
+    { "click": "text=적당히", "delay": 0 },
+    { "click": "text=적당히", "delay": 4200 },
+    { "click": "text=적당히", "delay": 1100 },
+    { "click": ".sip-choices[data-kinds] button >> nth=0", "delay": 500, "shot": "winery-pick" }
+  ],
+  "tail": 6000
+}
