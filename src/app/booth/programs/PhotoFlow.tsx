@@ -235,7 +235,8 @@ export function CaptureStep({ ctx, shots, shotUrls, setShot, onNext, fge }: {
             <p className="pg-cam-note"><UserRound size={56} aria-hidden="true" />다음 차례</p>
           ) : null}
           {need > 1 && <figcaption>{i === 0 ? '첫 번째 사람' : '두 번째 사람'}{shotUrls[i] ? ' · 완료' : i === active ? ' · 촬영 중' : ''}</figcaption>}
-          {shotUrls[i] && (
+          {/* 영상판은 사진 위 「다시 촬영」 없이 — 패널의 「모두 다시 촬영」 하나로(2026-11-19 사용자 지시: 사주 구리거울 안 버튼 빼기) */}
+          {shotUrls[i] && !video && (
             <button type="button" className="pg-btn pg-btn--chip pg-cam-retake" onClick={() => retake(i)}><RotateCcw size={18} />다시 촬영</button>
           )}
         </figure>

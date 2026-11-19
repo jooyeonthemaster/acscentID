@@ -191,6 +191,11 @@ export function ReadingFlow({ ctx }: { ctx: FlowCtx }) {
           </div>
         </Split>
       )}
+      {/* 영상판 사주 — 「이 사진으로」를 누르면 구리거울 속 사진이 한 번에 꺼지지 않고 거울 자리에서 스르륵 사라진다(2026-11-19 사용자 지시).
+          촬영 칸은 단계가 바뀌면 바로 없어지므로, 같은 자리 · 같은 모양의 사진을 split 밖(pg-body 바로 아래 — 도착 전 숨김 규칙을 안 받는다)에 그려 흐리게 지운다(video-stage.css pg-mirror-fade) */}
+      {scroll && step === 'generating' && shotUrls[0] && (
+        <div className="pg-mirror-fade" aria-hidden="true"><img src={shotUrls[0]} alt="" /></div>
+      )}
       {step === 'generating' && shots[0] && (
         <Generate
           ctx={ctx} shot={shots[0]} shotUrl={shotUrls[0]!} subject={subject} birth={birth}
