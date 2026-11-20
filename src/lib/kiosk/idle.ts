@@ -26,6 +26,9 @@ export const SHARE_IDLE_SILENT_S = 150
 /** 카메라 앞에서 포즈를 잡는 동안도 터치가 없다(최애 분석 촬영) */
 export const CAPTURE_IDLE_SILENT_S = 60
 
+/** SCENT! 하린 루트(ai-perfumer-harin) — 하린이 말하고 목소리가 끝나면 저절로 넘어가 손님이 화면을 안 눌러도 된다. 안내창까지 2분(11/19) */
+export const HARIN_IDLE_SILENT_S = 120
+
 interface IdleContext {
   step: string
   receiptOpen: boolean

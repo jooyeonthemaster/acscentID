@@ -209,10 +209,11 @@ export function HarinDate({ ctx }: { ctx: PerfumerCtx }) {
         <>
           <Hearts love={love} pop={pop} />
           {!moving && (
-            <div className="hd-stage" key={`${pos.scene}-${pos.i}-${pos.reply?.id ?? ''}`}>
+            // 장소 안에서는 대사창을 다시 만들지 않는다 — 줄이 이어지면 상자는 그대로, 문장만 바뀐다(11/19). 선택지는 박자마다 새로 떠오른다
+            <div className="hd-stage">
               {/* 선택지 — 대사창 위에 */}
               {beat?.choice && !pos.reply && (
-                <div className="hd-choices" data-kind={beat.choice}>
+                <div className="hd-choices" data-kind={beat.choice} key={`${pos.scene}-${pos.i}`}>
                   {beat.options!.map((o, i) => (
                     <button key={o.label} type="button" style={{ '--i': i } as CSSProperties} onClick={() => choose(o)}>{o.label}</button>
                   ))}
@@ -235,7 +236,7 @@ export function HarinDate({ ctx }: { ctx: PerfumerCtx }) {
                   <Talk line="거의 다 됐어요. 마지막으로 향을 한 번 더 맡아 보는 중이에요…" wait />
                 )
               ) : shown ? (
-                <Talk key={heard?.n ?? 'x'} line={fill(shown.text)} onTap={talking ? advance : undefined} more={talking} />
+                <Talk lineKey={heard?.n ?? 'x'} line={fill(shown.text)} onTap={talking ? advance : undefined} more={talking} />
               ) : null}
             </div>
           )}
@@ -246,15 +247,16 @@ export function HarinDate({ ctx }: { ctx: PerfumerCtx }) {
   )
 }
 
-/** 대사창 — 이름표 · 한 줄씩 떠오르는 글자 · 다음 표시. 누르면 다음으로 */
-function Talk({ line, onTap, more = false, wait = false }: { line: string; onTap?: () => void; more?: boolean; wait?: boolean }) {
+/** 대사창 — 이름표 · 한 줄씩 떠오르는 글자 · 다음 표시. 누르면 다음으로.
+ *  lineKey 가 바뀌면(다음 줄) 상자는 그대로 두고 문장(과 ▼)만 새로 떠오른다 */
+function Talk({ line, lineKey = line, onTap, more = false, wait = false }: { line: string; lineKey?: string | number; onTap?: () => void; more?: boolean; wait?: boolean }) {
   const chars = [...line]
   return (
     <button type="button" className="hd-box" onClick={onTap} disabled={!onTap} aria-live="polite">
       <span className="hd-who">하린<small>PERFUMER</small></span>
-      <span className="hd-line">{chars.map((c, i) => <span key={i} style={{ animationDelay: `${120 + i * 28}ms` }}>{c}</span>)}</span>
+      <span className="hd-line" key={`line-${lineKey}`}>{chars.map((c, i) => <span key={i} style={{ animationDelay: `${120 + i * 28}ms` }}>{c}</span>)}</span>
       {wait && <span className="hd-dots" aria-label="기다리는 중"><i /><i /><i /></span>}
-      {more && <span className="hd-more" style={{ animationDelay: `${300 + chars.length * 28}ms` }} aria-hidden="true">▼</span>}
+      {more && <span className="hd-more" key={`more-${lineKey}`} style={{ animationDelay: `${300 + chars.length * 28}ms` }} aria-hidden="true">▼</span>}
     </button>
   )
 }

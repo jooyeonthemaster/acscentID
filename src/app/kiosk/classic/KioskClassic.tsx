@@ -20,7 +20,7 @@ import {
 } from '@/types/analysis'
 import { PRODUCT_TYPES, ProductType } from '@/types/feedback'
 import { renderKioskReceipt, ReceiptData } from '@/lib/kiosk/receipt-canvas'
-import { idleWindowFor, IDLE_WARN_S, SHARE_IDLE_SILENT_S } from '@/lib/kiosk/idle'
+import { idleWindowFor, HARIN_IDLE_SILENT_S, IDLE_WARN_S, SHARE_IDLE_SILENT_S } from '@/lib/kiosk/idle'
 import { classifyFetchError, type AnalyzeErrorKind } from '@/lib/kiosk/analyze-error'
 import { perfumerCandidates, readPerfumerRotation, recordPerfumerScent } from '@/lib/kiosk/perfumer-rotation'
 import { PosterTitle } from '../PosterTitle'
@@ -483,7 +483,8 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
     qrWaiting: step === 'capture' && photoSource === 'qr',
     analyzeFailed: analyzeError !== null,
   })
-  const idleSilent = idleWin?.silent ?? 0
+  // 하린 루트는 대사가 저절로 넘어가 터치 없이 몇 장면이 흐른다 — 안내창까지 2분(더 긴 규칙 · QR 대기 등은 그대로)
+  const idleSilent = harinRoute && idleWin ? Math.max(idleWin.silent, HARIN_IDLE_SILENT_S) : idleWin?.silent ?? 0
   const idleWarn = idleWin?.warn ?? 0
 
   useEffect(() => {
