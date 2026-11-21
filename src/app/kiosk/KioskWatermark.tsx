@@ -8,6 +8,7 @@
 import { useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import { KIOSK_DEMO_PARAM } from '@/lib/kiosk/demo'
+import { isKioskShell } from '@/lib/kiosk/kiosk-bridge'
 import { useCleanDemo } from '@/lib/use-clean-demo'
 import './kiosk-watermark.css'
 
@@ -16,7 +17,8 @@ function marked() {
   const demo = new URLSearchParams(window.location.search).get(KIOSK_DEMO_PARAM)
   // 데모 주소(demo=1 · demo=clean)는 어디서 열든 깐다 — demo=clean 은 서명이 확인되면 아래 useCleanDemo 가 걷는다
   if (demo !== null) return true
-  if (window.kiosk?.isElectron === true) return false
+  // 매장 키오스크 앱 — Electron 셸(window.kiosk) · 안드로이드 키오스크 앱(window.AcscentAndroid, kiosk-bridge.ts)
+  if (isKioskShell()) return false
   const host = window.location.hostname
   return host !== 'localhost' && host !== '127.0.0.1'
 }
