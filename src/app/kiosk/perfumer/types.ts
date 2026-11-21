@@ -92,6 +92,11 @@ export interface PerfumerCtx {
   /** 프린터가 실패를 알렸다 — 성공으로 보이지 않게 따로 띄운다 */
   printError: string | null
   hasPrinter: boolean
+  /** 프린터 없는 기기(안드로이드 키오스크 앱) — 영수증을 인쇄하는 대신 올려서 휴대폰 QR 로 받게 한다 */
+  qrDelivery: boolean
+  /** 그 QR — 영수증을 열면 바로 올리기 시작한다. 실패하면 다시 만들기(retryReceiptQr) */
+  receiptQr: { state: 'uploading' | 'ready' | 'failed'; qr?: string; url?: string; expiresAt?: number } | null
+  retryReceiptQr: () => void
   ticket: string | null
   openReceipt: () => void
   printAgain: () => void

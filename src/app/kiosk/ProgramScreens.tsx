@@ -453,8 +453,10 @@ export function ProgramIdleDialog({ t, left, total }: { t: KioskText; left: numb
   )
 }
 
-export function ProgramReceiptModal({ t, title, desc, dataUrl, primaryLabel, busy, onClose, onPrimary, onHome }: {
+export function ProgramReceiptModal({ t, title, desc, dataUrl, primaryLabel, busy, onClose, onPrimary, onHome, qr }: {
   t: KioskText
+  /** 프린터 없는 기기 — 영수증 원판 대신 이 휴대폰 QR 칸을 보인다(ReceiptQrPanel) */
+  qr?: ReactNode
   title?: string
   desc?: string
   dataUrl: string
@@ -470,14 +472,23 @@ export function ProgramReceiptModal({ t, title, desc, dataUrl, primaryLabel, bus
     <div className="pg-receipt" role="dialog" aria-modal="true" aria-label={title ?? t.receiptAlt}>
       {title && <h2 className="pg-receipt-title">{title}</h2>}
       {desc && <p className="pg-receipt-desc">{desc}</p>}
-      <div className="pg-receipt-paper" ref={paper}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={dataUrl} alt={t.receiptAlt} />
-      </div>
-      <p className="pg-receipt-note">{t.receiptNote}</p>
+      {qr ?? (
+        <>
+          <div className="pg-receipt-paper" ref={paper}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={dataUrl} alt={t.receiptAlt} />
+          </div>
+          <p className="pg-receipt-note">{t.receiptNote}</p>
+        </>
+      )}
       <div className="pg-receipt-actions">
         <button type="button" className="ksk-btn" onClick={onClose}>{t.close}</button>
-        <button type="button" className="ksk-btn ksk-btn-primary" disabled={busy} onClick={onPrimary}>{busy ? t.printing : primaryLabel}</button>
+        {qr ? (
+          // 휴대폰 QR — 주 버튼이 [처음으로]면 아래 [처음으로]와 겹치므로, 다시 만들기(실패)만 둔다
+          primaryLabel !== t.home && <button type="button" className="ksk-btn ksk-btn-primary" disabled={busy} onClick={onPrimary}>{primaryLabel}</button>
+        ) : (
+          <button type="button" className="ksk-btn ksk-btn-primary" disabled={busy} onClick={onPrimary}>{busy ? t.printing : primaryLabel}</button>
+        )}
       </div>
       <button type="button" className="ksk-btn pg-receipt-home" onClick={onHome}>{t.home}</button>
     </div>

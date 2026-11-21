@@ -1,0 +1,37 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'kr.co.acscent.kiosk'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'kr.co.acscent.kiosk'
+        // 대상 기기: SUNMI TOSS_Front(RK3399) + Phh-Treble GSI · Android 11(SDK 30)
+        minSdk 28
+        targetSdk 34
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    buildTypes {
+        debug {
+            // 매장 기기에 그대로 까는 빌드 — 디버그 서명이지만 웹뷰 원격 디버깅(chrome://inspect)이 켜진다
+            debuggable true
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

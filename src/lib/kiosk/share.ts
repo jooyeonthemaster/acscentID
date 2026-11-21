@@ -14,14 +14,17 @@ import { EXPERIENCE_IDS, EXPERIENCE_META } from './experience'
 import { isKioskLang, type KioskLang } from './i18n'
 
 /** 결과를 올리는 화면 — 체험 모드 + 퍼스널 컬러(노트북 가로 화면 /kiosk/pc/color, 2026-10-28)
- *  + 펀그라운드 별내 견적 데모(/booth-demo/funground, 2026-11-14 — 사주 · 미래 직업 · 퍼스널 컬러 · THEME! 결과지 · 사진) */
-export const SHARE_KINDS = [...EXPERIENCE_IDS, 'color', 'funground'] as const
+ *  + 펀그라운드 별내 견적 데모(/booth-demo/funground, 2026-11-14 — 사주 · 미래 직업 · 퍼스널 컬러 · THEME! 결과지 · 사진)
+ *  + 프린터 없는 안드로이드 키오스크의 영수증(2026-11-21 — scent: SCENT! AI 조향사 · 하린 루트 레시피, receipt: 그 밖의 프로그램 영수증) */
+export const SHARE_KINDS = [...EXPERIENCE_IDS, 'color', 'funground', 'scent', 'receipt'] as const
 export type ShareKind = (typeof SHARE_KINDS)[number]
 export const isShareKind = (value: unknown): value is ShareKind => (SHARE_KINDS as readonly string[]).includes(String(value))
 /** 받기 페이지 머리의 큰 글자와 색 */
 export function shareKindMeta(kind: ShareKind): { tag: string; color: string } {
   if (kind === 'color') return { tag: 'COLOR!', color: '#272F73' }
   if (kind === 'funground') return { tag: 'FUN GROUND', color: '#FF6B2C' }
+  if (kind === 'scent') return { tag: 'SCENT!', color: '#244EEA' }
+  if (kind === 'receipt') return { tag: 'MY RESULT', color: '#172324' }
   return EXPERIENCE_META[kind]
 }
 

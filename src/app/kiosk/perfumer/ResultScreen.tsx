@@ -6,7 +6,7 @@
 // 향 노트(TOP·MIDDLE·BASE)는 향의 인상이지 제조 원료가 아니다 — 제조 레시피는 영수증(향료 + 베이스)에만 있다.
 
 import { useMemo, type ComponentType } from 'react'
-import { Flower2, Leaf, Moon, Printer, Snowflake, Sun, Sunrise, Sunset } from 'lucide-react'
+import { Flower2, Leaf, Moon, Printer, Smartphone, Snowflake, Sun, Sunrise, Sunset } from 'lucide-react'
 import {
   BEST_SEASON_LABELS,
   BEST_TIME_LABELS,
@@ -34,8 +34,9 @@ export function ResultScreen({ ctx, tab, onTab }: { ctx: PerfumerCtx; tab: numbe
   const result = ctx.result
   if (!result) return null
   const name = ctx.name.trim()
-  const printLabel = ctx.hasPrinter && ctx.printedOnce ? p.receiptTitle : p.printRecipe
-  const printIcon = <Printer size={22} strokeWidth={1.6} aria-hidden="true" />
+  // 프린터 없는 기기(안드로이드 키오스크 앱)는 레시피를 휴대폰 QR 로 받는다
+  const printLabel = ctx.qrDelivery ? p.qrRecipe : ctx.hasPrinter && ctx.printedOnce ? p.receiptTitle : p.printRecipe
+  const printIcon = ctx.qrDelivery ? <Smartphone size={22} strokeWidth={1.6} aria-hidden="true" /> : <Printer size={22} strokeWidth={1.6} aria-hidden="true" />
 
   return (
     <section className="pf-screen pf-result">

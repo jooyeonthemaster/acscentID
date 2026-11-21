@@ -6,16 +6,19 @@
 // 인쇄 확인을 한 번 더 묻지 않는다. 연타는 셸이 막는다(receiptOpeningRef · printBusyRef).
 // 화면의 영수증은 실제 인쇄 원판(80mm 흑백 PNG) 그대로다.
 
-import { Check, Download, LoaderCircle, Printer } from 'lucide-react'
+import { Check, Download, LoaderCircle, Printer, RotateCw } from 'lucide-react'
 import { PERFUMER_ART } from '@/lib/kiosk/perfumer-art'
+import { SHARE_TTL_HOURS } from '@/lib/kiosk/share'
 import { BottomBar, Btn, Lines } from './ui'
 import type { PerfumerCtx } from './types'
 
-export type ReceiptPhase = 'preparing' | 'preview' | 'printing' | 'done'
+export type ReceiptPhase = 'preparing' | 'preview' | 'printing' | 'done' | 'qr'
 
 /** 지금 보여 줄 영수증 화면 — null 이면 결과 화면 */
 export function receiptPhaseOf(ctx: PerfumerCtx): ReceiptPhase | null {
   if (!ctx.receipt) return ctx.receiptBusy ? 'preparing' : null
+  // 프린터 없는 기기 — 인쇄 단계 없이 휴대폰 QR(올리는 중 · 실패도 그 화면 안에서)
+  if (ctx.qrDelivery) return 'qr'
   if (ctx.printing) return 'printing'
   if (!ctx.hasPrinter) return 'preview'
   if (ctx.printedOnce) return 'done'
@@ -41,9 +44,59 @@ function Paper({ src, alt, tall }: { src: string | null; alt: string; tall?: boo
 }
 
 export function ReceiptScreen({ ctx, phase }: { ctx: PerfumerCtx; phase: ReceiptPhase }) {
+  if (phase === 'qr') return <QrView ctx={ctx} />
   if (phase === 'printing') return <PrintingView ctx={ctx} />
   if (phase === 'done') return <DoneView ctx={ctx} />
   return <PreviewView ctx={ctx} />
+}
+
+/** 프린터 없는 기기 — 레시피 원판(인쇄 원판 그대로)을 올려 휴대폰 QR 로 받는다. 직원은 손님 휴대폰의 레시피 · 조향 번호를 보고 만든다 */
+function QrView({ ctx }: { ctx: PerfumerCtx }) {
+  const { p, t } = ctx
+  const share = ctx.receiptQr
+  const name = ctx.name.trim()
+  return (
+    <section className="pf-screen pf-receipt pf-rq-receipt">
+      <div className="pf-receipt-head">
+        <h1 className="pf-title pf-title--center"><Lines text={p.rqTitle} /></h1>
+        <p className="pf-desc pf-desc--center">{[p.qrDesc, name].filter(Boolean).join(' · ')}</p>
+      </div>
+      <div className="pf-rq-pair">
+        <div className="pf-rq-code" data-state={share?.state ?? 'uploading'}>
+          {share?.state === 'ready' && share.qr ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={share.qr} alt={p.rqTitle.replace('\n', ' ')} />
+          ) : share?.state === 'failed' ? (
+            <div className="pf-rq-fail" role="alert">
+              <strong>{p.rqFailTitle}</strong>
+              <span>{p.qrFailDesc}</span>
+            </div>
+          ) : (
+            <div className="pf-rq-wait" role="status">
+              <LoaderCircle className="pf-spin" size={34} strokeWidth={1.4} aria-hidden="true" />
+              <span>{p.qrMaking}</span>
+            </div>
+          )}
+        </div>
+        <div className="pf-rq-paper">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {ctx.receipt && <img src={ctx.receipt.dataUrl} alt={t.receiptAlt} />}
+        </div>
+      </div>
+      {ctx.ticket && (
+        <p className="pf-rq-ticket"><span>{p.qrTicket}</span><strong>{ctx.ticket}</strong></p>
+      )}
+      <p className="pf-note pf-note--center">{share?.state === 'ready' ? `${p.qrStaff} · ${p.qrExpire(SHARE_TTL_HOURS)}` : p.qrStaff}</p>
+      <BottomBar>
+        <Btn onClick={ctx.closeReceipt}>{p.backToResult}</Btn>
+        {share?.state === 'failed' ? (
+          <Btn variant="primary" icon={<RotateCw size={22} strokeWidth={1.6} aria-hidden="true" />} onClick={ctx.retryReceiptQr}>{p.qrRetry}</Btn>
+        ) : (
+          <Btn variant="primary" arrow onClick={ctx.home}>{p.finish}</Btn>
+        )}
+      </BottomBar>
+    </section>
+  )
 }
 
 function PreviewView({ ctx }: { ctx: PerfumerCtx }) {

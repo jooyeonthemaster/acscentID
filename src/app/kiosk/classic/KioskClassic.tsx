@@ -24,7 +24,9 @@ import { idleWindowFor, HARIN_IDLE_SILENT_S, IDLE_WARN_S, SHARE_IDLE_SILENT_S } 
 import { classifyFetchError, type AnalyzeErrorKind } from '@/lib/kiosk/analyze-error'
 import { perfumerCandidates, readPerfumerRotation, recordPerfumerScent } from '@/lib/kiosk/perfumer-rotation'
 import { PosterTitle } from '../PosterTitle'
-import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
+import { getKioskBridge, receiptByQr } from '@/lib/kiosk/kiosk-bridge'
+import { uploadShare } from '../experience/kx-share'
+import { ReceiptQrPanel } from '../ReceiptQr'
 import { publicOrigin } from '@/lib/kiosk/public-origin'
 import { kioskText, KIOSK_LANGS, isCjkLang, type KioskLang } from '@/lib/kiosk/i18n'
 import { kioskProgramTheme, kioskProgramThemeVars } from '@/lib/kiosk/program-theme'
@@ -303,6 +305,11 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
   useEffect(() => { if (pc) setGarmentDownloadFast(true) }, [pc])
   /** 노트북 — 결과 [휴대폰으로 받기] 창 */
   const [sharing, setSharing] = useState(false)
+  /** 프린터 없는 기기(안드로이드 키오스크 앱) — 영수증 원판을 올린 휴대폰 QR. 한 손님에 한 번 올리고, 영수증을 다시 열면 그 QR 을 그대로 쓴다 */
+  const [receiptQr, setReceiptQr] = useState<{ state: 'uploading' | 'ready' | 'failed'; qr?: string; url?: string; expiresAt?: number } | null>(null)
+  const receiptQrRef = useRef(receiptQr)
+  useEffect(() => { receiptQrRef.current = receiptQr }, [receiptQr])
+  const receiptQrGen = useRef(0)
   // 행사 랜딩에서 열었으면(?hub=) 손님이 끝내고 첫 화면으로 돌아오는 순간 랜딩으로
   const hub = usePcHub(pc, step === 'attract')
   // 제품이 정해진 모드(행사)는 손님이 고르지 않는다 — 그 제품 기준으로 레시피를 찍는다
@@ -362,6 +369,8 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
   const analysisAbort = useRef<AbortController | null>(null)
 
   const kiosk = typeof window !== 'undefined' ? getKioskBridge() : undefined
+  /** 결과를 인쇄 대신 휴대폰 QR 로 주는 기기(안드로이드 키오스크 앱, kiosk-bridge.ts) */
+  const qrDelivery = receiptByQr(kiosk)
   const t = kioskText(lang)
   const sx = sajuText(lang)
   const px = programText(lang)
@@ -440,6 +449,8 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
     setMocked(false)
     setReceipt(null)
     setSharing(false)
+    receiptQrGen.current++
+    setReceiptQr(null)
     setIdleLeft(null)
     setOskOpen(false)
     setPhotoSource(DEFAULT_PHOTO_SOURCE)
@@ -477,7 +488,8 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
   const receiptOpen = Boolean(receipt)
 
   // 노트북 — 결과 QR 을 폰으로 찍고 저장하는 동안은 화면을 건드리지 않는다
-  const idleWin = sharing ? { silent: SHARE_IDLE_SILENT_S, warn: IDLE_WARN_S } : idleWindowFor({
+  // 프린터 없는 기기 — 레시피 QR 을 휴대폰으로 찍는 동안도 같다
+  const idleWin = sharing || (receiptOpen && receiptQr?.state === 'ready') ? { silent: SHARE_IDLE_SILENT_S, warn: IDLE_WARN_S } : idleWindowFor({
     step,
     receiptOpen,
     qrWaiting: step === 'capture' && photoSource === 'qr',
@@ -1254,6 +1266,34 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
     }
   }, [kiosk, buildReceipt, showToast, t, scentResult, px.printed, perfumerUi])
 
+  /** 프린터 없는 기기 — 영수증 원판(PNG)을 올려 휴대폰으로 받는 주소 · QR 을 만든다(24시간, src/lib/kiosk/share.ts).
+   *  다 만들어지면 기록에 '발급'으로 남긴다(printed — 인쇄한 영수증과 같은 뜻: 손님이 결과를 받아 갔다) */
+  const shareReceipt = useCallback(async (target: { dataUrl: string; base64: string }) => {
+    const gen = ++receiptQrGen.current
+    setReceiptQr({ state: 'uploading' })
+    try {
+      const blob = await (await fetch(target.dataUrl)).blob()
+      const scent = Boolean(scentResult)
+      const who = name.trim()
+      const label = scent ? perfumerText(lang).receiptTitle : t.receiptAlt
+      const share = await uploadShare(scent ? 'scent' : 'receipt', lang, [
+        { name: scent ? 'scent-recipe.png' : 'result.png', type: 'image/png', label: who ? `${label} · ${who}` : label, blob },
+      ])
+      if (gen !== receiptQrGen.current) return
+      setReceiptQr({ state: 'ready', qr: share.qr, url: share.url, expiresAt: share.expiresAt })
+      if (recordIdRef.current) {
+        fetch('/api/kiosk/record', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: recordIdRef.current, printed: true, ticket: ticketRef.current }),
+        }).catch((e) => console.error('[kiosk] QR 발급 기록 실패:', e))
+      }
+    } catch (e) {
+      console.error('[kiosk] 결과 QR 만들기 실패:', e)
+      if (gen === receiptQrGen.current) setReceiptQr({ state: 'failed' })
+    }
+  }, [scentResult, name, lang, t])
+
   const openReceipt = useCallback(async () => {
     if (receiptOpeningRef.current || printBusyRef.current) return
     receiptOpeningRef.current = true
@@ -1262,7 +1302,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
     try {
       // 선채번: 셸이 nextTicket을 지원하면 인쇄 전에 번호를 받아 원판에 그려 넣는다
       // 퍼스널 컬러·타로는 만들 제품이 없어 발권 번호를 쓰지 않는다
-      if (kiosk?.hasPrinter && !ticketRef.current && kiosk.nextTicket && scentResult) {
+      if ((kiosk?.hasPrinter || qrDelivery) && !ticketRef.current && kiosk?.nextTicket && scentResult) {
         const t = await kiosk.nextTicket().catch(() => null)
         if (t?.success && t.ticket) {
           ticketRef.current = t.ticket
@@ -1275,6 +1315,8 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
         // 프린터가 있는 기기 — '영수증 출력'을 누르면 미리보기와 함께 바로 인쇄한다(처음 한 장).
         // 이미 뽑았으면 미리보기만 연다 — 한 장 더는 미리보기의 버튼으로(같은 발권 번호가 두 장 나가지 않게)
         if (kiosk?.hasPrinter && !printedOnce) void printReceiptData(r)
+        // 프린터 없는 기기 — 원판을 올려 휴대폰 QR 을 만든다(이미 만든 QR 이 있으면 그대로)
+        if (qrDelivery && receiptQrRef.current?.state !== 'ready' && receiptQrRef.current?.state !== 'uploading') void shareReceipt(r)
       }
     } catch (e) {
       console.error('[kiosk] 영수증 렌더 실패:', e)
@@ -1283,7 +1325,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
       receiptOpeningRef.current = false
       setReceiptBusy(false)
     }
-  }, [buildReceipt, kiosk, showToast, t, scentResult, printedOnce, printReceiptData])
+  }, [buildReceipt, kiosk, showToast, t, scentResult, printedOnce, printReceiptData, qrDelivery, shareReceipt])
 
   const printReceipt = useCallback(() => {
     if (receipt) void printReceiptData(receipt)
@@ -1532,6 +1574,9 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
       printedOnce,
       printError,
       hasPrinter: Boolean(kiosk?.hasPrinter),
+      qrDelivery,
+      receiptQr,
+      retryReceiptQr: () => { if (receipt) void shareReceipt(receipt) },
       ticket: ticketNo,
       openReceipt: () => void openReceipt(),
       printAgain: printReceipt,
@@ -2315,7 +2360,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
                   </button>
                 ) : (
                   <button className="ksk-btn ksk-btn-primary" onClick={openReceipt}>
-                    {kiosk?.hasPrinter && !printedOnce ? t.receiptPrint : t.receiptPreview}
+                    {qrDelivery ? KX_COMMON[lang].saveTitle : kiosk?.hasPrinter && !printedOnce ? t.receiptPrint : t.receiptPreview}
                   </button>
                 )}
               </div>
@@ -2395,27 +2440,45 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
           title={programTheme === 'color' ? pu.color.receiptTitle(name) : undefined}
           desc={programTheme === 'color' ? pu.color.receiptDesc : undefined}
           dataUrl={receipt.dataUrl}
-          primaryLabel={kiosk?.hasPrinter ? (printedOnce ? t.printAgain : t.print) : t.savePng}
-          busy={printing}
+          primaryLabel={qrDelivery ? (receiptQr?.state === 'failed' ? KX_COMMON[lang].saveRetry : t.home) : kiosk?.hasPrinter ? (printedOnce ? t.printAgain : t.print) : t.savePng}
+          busy={printing || (qrDelivery && receiptQr?.state === 'uploading')}
           onClose={() => setReceipt(null)}
-          onPrimary={printReceipt}
+          onPrimary={qrDelivery ? (receiptQr?.state === 'failed' ? () => void shareReceipt(receipt) : resetAll) : printReceipt}
           onHome={resetAll}
+          qr={qrDelivery ? <ReceiptQrPanel lang={lang} share={receiptQr} ticket={ticketNo} /> : undefined}
         />
       )}
       {receipt && !programTheme && (
         <div className="ksk-modal">
-          <div className="ksk-modal-paper" style={{ width: 'min(420px, 86%)' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={receipt.dataUrl} alt={t.receiptAlt} />
-          </div>
-          <p className="ksk-modal-note">{t.receiptNote}</p>
+          {qrDelivery ? (
+            // 프린터 없는 기기 — 영수증 대신 휴대폰 QR
+            <div className="ksk-modal-paper" style={{ width: 'min(420px, 86%)', padding: '14px 10px', background: '#f7f7f5', color: '#222' }}>
+              <ReceiptQrPanel lang={lang} share={receiptQr} ticket={ticketNo} />
+            </div>
+          ) : (
+            <>
+              <div className="ksk-modal-paper" style={{ width: 'min(420px, 86%)' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={receipt.dataUrl} alt={t.receiptAlt} />
+              </div>
+              <p className="ksk-modal-note">{t.receiptNote}</p>
+            </>
+          )}
           <div className="ksk-modal-actions">
             <button className="ksk-btn" onClick={() => setReceipt(null)}>
               {t.close}
             </button>
-            <button className="ksk-btn ksk-btn-primary" disabled={printing} onClick={printReceipt}>
-              {printing ? t.printing : kiosk?.hasPrinter ? (printedOnce ? t.printAgain : t.print) : t.savePng}
-            </button>
+            {qrDelivery ? (
+              receiptQr?.state === 'failed' && (
+                <button className="ksk-btn ksk-btn-primary" onClick={() => void shareReceipt(receipt)}>
+                  {KX_COMMON[lang].saveRetry}
+                </button>
+              )
+            ) : (
+              <button className="ksk-btn ksk-btn-primary" disabled={printing} onClick={printReceipt}>
+                {printing ? t.printing : kiosk?.hasPrinter ? (printedOnce ? t.printAgain : t.print) : t.savePng}
+              </button>
+            )}
           </div>
           {/* 손님이 떠난 자리를 다음 손님이 바로 쓸 수 있게 — 발권 여부와 무관하게 항상 */}
           <button className="ksk-modal-home" onClick={resetAll}>

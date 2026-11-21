@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>연결 중</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #15120f; color: #f5f3ed; font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; padding: 0 24px; box-sizing: border-box; }
+  .mark { font-family: 'Times New Roman', serif; font-weight: 800; font-size: 44px; letter-spacing: -.03em; }
+  .mark em { font-style: normal; color: #ff7aa8; }
+  h1 { margin: 0; font-size: 20px; font-weight: 700; }
+  p { margin: 0; font-size: 14px; line-height: 1.6; color: rgba(245, 243, 237, .7); }
+  .dots { display: flex; gap: 8px; margin-top: 8px; }
+  .dots i { width: 9px; height: 9px; border-radius: 50%; background: #ff7aa8; opacity: .3; animation: d 1.2s ease-in-out infinite; }
+  .dots i:nth-child(2) { animation-delay: .2s; } .dots i:nth-child(3) { animation-delay: .4s; }
+  @keyframes d { 50% { opacity: 1; transform: translateY(-4px); } }
+</style>
+</head>
+<body>
+  <div class="mark">SCENT<em>!</em></div>
+  <h1>잠시 준비 중이에요</h1>
+  <p>인터넷 연결을 확인하고 있어요.<br>연결되면 자동으로 시작합니다.</p>
+  <div class="dots"><i></i><i></i><i></i></div>
+</body>
+</html>

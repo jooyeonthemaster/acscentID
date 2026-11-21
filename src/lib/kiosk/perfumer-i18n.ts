@@ -84,6 +84,17 @@ export interface PerfumerText {
   printFailTitle: string
   printFailDesc: string
   printRetry: string
+  // ── 프린터 없는 기기(안드로이드 키오스크 앱) — 레시피를 휴대폰 QR 로 받기 ──
+  qrRecipe: string
+  rqTitle: string
+  qrDesc: string
+  qrTicket: string
+  qrStaff: string
+  qrExpire: (hours: number) => string
+  qrMaking: string
+  rqFailTitle: string
+  qrFailDesc: string
+  qrRetry: string
   idleTitle: string
   idleDesc: string
   demo: string
@@ -183,6 +194,16 @@ const ko: PerfumerText = {
   printFailTitle: '영수증 출력이\n멈췄어요',
   printFailDesc: '다시 출력하거나 직원에게 알려주세요.',
   printRetry: '다시 출력하기',
+  qrRecipe: '휴대폰으로 받기',
+  rqTitle: '휴대폰 카메라로\nQR 을 찍어 주세요',
+  qrDesc: '나의 향 레시피가 휴대폰에 저장돼요',
+  qrTicket: '조향 번호',
+  qrStaff: '받은 레시피를 직원에게 보여 주시면 향수를 만들어 드려요',
+  qrExpire: (h) => `${h}시간 동안 받을 수 있어요`,
+  qrMaking: 'QR 을 만들고 있어요',
+  rqFailTitle: 'QR 을 만들지 못했어요',
+  qrFailDesc: '인터넷 연결을 확인한 뒤 다시 눌러 주세요.',
+  qrRetry: '다시 만들기',
   idleTitle: '계속 체험하시겠어요?',
   idleDesc: '잠시 후 처음 화면으로 돌아갑니다.',
   demo: '데모 결과',
@@ -281,6 +302,16 @@ const en: PerfumerText = {
   printFailTitle: 'The receipt\nstopped printing',
   printFailDesc: 'Print again, or let our staff know.',
   printRetry: 'Print again',
+  qrRecipe: 'Get it on your phone',
+  rqTitle: 'Scan the QR\nwith your phone camera',
+  qrDesc: 'Your scent recipe will be saved to your phone',
+  qrTicket: 'Blend no.',
+  qrStaff: 'Show the recipe to our staff and we will blend your perfume',
+  qrExpire: (h) => `Available for ${h} hours`,
+  qrMaking: 'Making your QR code',
+  rqFailTitle: 'Could not make the QR code',
+  qrFailDesc: 'Please check the internet connection and try again.',
+  qrRetry: 'Try again',
   idleTitle: 'Still there?',
   idleDesc: 'We will return to the start screen soon.',
   demo: 'Demo result',
@@ -379,6 +410,16 @@ const ja: PerfumerText = {
   printFailTitle: 'レシートの印刷が\n止まりました',
   printFailDesc: 'もう一度印刷するか、スタッフにお知らせください。',
   printRetry: 'もう一度印刷',
+  qrRecipe: 'スマホで受け取る',
+  rqTitle: 'スマホのカメラで\nQRを読み取ってください',
+  qrDesc: '香りのレシピがスマホに保存されます',
+  qrTicket: '調香番号',
+  qrStaff: '受け取ったレシピをスタッフに見せると香水をお作りします',
+  qrExpire: (h) => `${h}時間受け取れます`,
+  qrMaking: 'QRを作成しています',
+  rqFailTitle: 'QRを作成できませんでした',
+  qrFailDesc: 'インターネット接続を確認して、もう一度お試しください。',
+  qrRetry: 'もう一度作成',
   idleTitle: '体験を続けますか？',
   idleDesc: 'まもなく最初の画面に戻ります。',
   demo: 'デモ結果',
@@ -477,6 +518,16 @@ const zhHans: PerfumerText = {
   printFailTitle: '小票打印\n中断了',
   printFailDesc: '请重新打印，或告知工作人员。',
   printRetry: '重新打印',
+  qrRecipe: '用手机领取配方',
+  rqTitle: '请用手机相机\n扫描二维码',
+  qrDesc: '你的香气配方会保存到手机',
+  qrTicket: '调香号码',
+  qrStaff: '把配方给工作人员看，我们会为你调制香水',
+  qrExpire: (h) => `${h}小时内可领取`,
+  qrMaking: '正在生成二维码',
+  rqFailTitle: '无法生成二维码',
+  qrFailDesc: '请检查网络连接后重试。',
+  qrRetry: '重新生成',
   idleTitle: '还要继续体验吗？',
   idleDesc: '即将回到首页。',
   demo: '演示结果',
@@ -575,6 +626,16 @@ const zhHant: PerfumerText = {
   printFailTitle: '收據列印\n中斷了',
   printFailDesc: '請重新列印，或告知工作人員。',
   printRetry: '重新列印',
+  qrRecipe: '用手機領取配方',
+  rqTitle: '請用手機相機\n掃描 QR 碼',
+  qrDesc: '你的香氣配方會儲存到手機',
+  qrTicket: '調香號碼',
+  qrStaff: '把配方給工作人員看，我們會為你調製香水',
+  qrExpire: (h) => `${h}小時內可領取`,
+  qrMaking: '正在產生 QR 碼',
+  rqFailTitle: '無法產生 QR 碼',
+  qrFailDesc: '請檢查網路連線後再試一次。',
+  qrRetry: '重新產生',
   idleTitle: '還要繼續體驗嗎？',
   idleDesc: '即將回到首頁。',
   demo: '示範結果',

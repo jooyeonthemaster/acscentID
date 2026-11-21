@@ -7,17 +7,26 @@
 
 import { useSyncExternalStore } from 'react'
 import { isDeviceKioskMode } from './modes'
+import { getKioskBridge } from './kiosk-bridge'
 
 const KEY = 'acscent-kiosk-device-mode-v1'
 const listeners = new Set<() => void>()
 
-/** 이 기기에 저장된 체험 모드 — 없거나 없어진 모드 이름이면 null(운영 모드를 따른다) */
-export function readDeviceKioskMode(): string | null {
-  if (typeof window === 'undefined') return null
+function storedDeviceKioskMode(): string | null {
   try {
     const id = localStorage.getItem(KEY)
     return isDeviceKioskMode(id) ? id : null
   } catch { return null }
+}
+
+/** 이 기기에 저장된 체험 모드 — 없거나 없어진 모드 이름이면 null(운영 모드를 따른다).
+ *  안드로이드 키오스크 앱(프린터 없는 기기)은 저장된 값이 없으면 앱이 정한 기본 모드(SCENT! 하린 루트)로 돈다 — kiosk-bridge.ts */
+export function readDeviceKioskMode(): string | null {
+  if (typeof window === 'undefined') return null
+  const stored = storedDeviceKioskMode()
+  if (stored) return stored
+  const fallback = getKioskBridge()?.defaultMode
+  return isDeviceKioskMode(fallback) ? fallback : null
 }
 
 /** 체험 모드를 이 기기에 저장한다(null = 끄고 운영 모드로). 저장소를 못 쓰면 false */
@@ -26,7 +35,7 @@ export function writeDeviceKioskMode(id: string | null): boolean {
     if (isDeviceKioskMode(id)) localStorage.setItem(KEY, id)
     else localStorage.removeItem(KEY)
   } catch { return false }
-  if (readDeviceKioskMode() !== (isDeviceKioskMode(id) ? id : null)) return false
+  if (storedDeviceKioskMode() !== (isDeviceKioskMode(id) ? id : null)) return false
   listeners.forEach((notify) => notify())
   return true
 }

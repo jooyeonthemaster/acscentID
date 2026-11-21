@@ -35,11 +35,67 @@ export interface KioskBridge {
    *  앱 종료만이라도 열어 주기 위한 것. PIN이 공개되는 웹 코드에 들어가지 않는다.
    *  (2026-09 셸 패치로 추가 — 없는 셸이면 오프라인 종료는 불가) */
   checkAdminPin?(pin: string): Promise<boolean>
+  /** 'qr' — 프린터 없는 기기(안드로이드 키오스크 앱): 영수증을 인쇄하는 대신 휴대폰 QR 로 받게 한다.
+   *  없으면 예전처럼 hasPrinter 로 인쇄 · 미리보기를 고른다 */
+  receiptDelivery?: 'qr'
+  /** 기기 앱이 정한 기본 운영 모드 — 관리자 창에서 이 기기 모드를 따로 고르지 않았을 때(device-mode.ts) */
+  defaultMode?: string
+}
+
+/** 안드로이드 키오스크 앱(tools/kiosk-android)이 웹뷰에 거는 객체 — 동기 호출이고 값은 문자열 · 불리언만 오간다 */
+interface AndroidKioskHost {
+  info(): string
+  nextTicket(): string
+  quitApp(): void
+  checkAdminPin(pin: string): boolean
+  reload(): void
 }
 
 declare global {
   interface Window {
     kiosk?: KioskBridge
+    AcscentAndroid?: AndroidKioskHost
+  }
+}
+
+/**
+ * 안드로이드 키오스크 앱 — 프린터가 없는 기기(SUNMI TOSS_Front 등). 결과는 휴대폰 QR 로 받는다(receiptDelivery 'qr').
+ * 발권 번호는 앱이 그날 0001 부터 매긴다 — 손님 휴대폰의 결과에 찍혀 직원이 보고 조향한다.
+ * isElectron 은 "매장 기기 앱 안"이라는 뜻으로 true(DEMO 워터마크 · 관리자 창의 앱 종료가 이 값을 본다).
+ */
+function androidBridge(host: AndroidKioskHost): KioskBridge {
+  let info: { version?: string; defaultMode?: string } = {}
+  try { info = JSON.parse(host.info()) } catch { /* 예전 앱 — 기본값 */ }
+  return {
+    isElectron: true,
+    locked: true,
+    autoPrint: false,
+    hasPrinter: false,
+    receiptMode: 'image',
+    receiptDetail: 'full',
+    receiptDelivery: 'qr',
+    defaultMode: info.defaultMode || undefined,
+    version: `android-${info.version ?? '?'}`,
+    async printReceipt() {
+      return { success: false, error: '이 기기에는 프린터가 없습니다' }
+    },
+    async nextTicket() {
+      try {
+        const ticket = host.nextTicket()
+        return ticket ? { success: true, ticket } : { success: false }
+      } catch {
+        return { success: false }
+      }
+    },
+    async saveResult() {
+      return { success: true }
+    },
+    async quitApp() {
+      host.quitApp()
+    },
+    async checkAdminPin(pin) {
+      try { return host.checkAdminPin(pin) } catch { return false }
+    },
   }
 }
 
@@ -112,6 +168,10 @@ let cachedBridge: KioskBridge | undefined
 export function getKioskBridge(): KioskBridge | undefined {
   if (typeof window === 'undefined') return undefined
   if (window.kiosk) return window.kiosk
+  if (window.AcscentAndroid) {
+    if (!cachedBridge) cachedBridge = androidBridge(window.AcscentAndroid)
+    return cachedBridge
+  }
 
   const url = printBridgeUrl()
   if (!url) return undefined
@@ -122,4 +182,9 @@ export function getKioskBridge(): KioskBridge | undefined {
 
 export function isKioskShell(): boolean {
   return Boolean(getKioskBridge()?.isElectron)
+}
+
+/** 결과를 인쇄 대신 휴대폰 QR 로 주는 기기인가(안드로이드 키오스크 앱) */
+export function receiptByQr(bridge: KioskBridge | undefined = getKioskBridge()): boolean {
+  return bridge?.receiptDelivery === 'qr'
 }

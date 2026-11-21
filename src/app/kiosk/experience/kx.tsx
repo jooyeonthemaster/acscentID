@@ -8,7 +8,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { ArrowLeft, ArrowRight, CameraOff, Check, Download, Home, Loader2, Printer, RefreshCw, X } from 'lucide-react'
 import type { ExperienceId } from '@/lib/kiosk/experience'
 import { KIOSK_LANGS, type KioskLang, type KioskText } from '@/lib/kiosk/i18n'
-import { getKioskBridge } from '@/lib/kiosk/kiosk-bridge'
+import { getKioskBridge, receiptByQr } from '@/lib/kiosk/kiosk-bridge'
 import { OnScreenKeyboard } from '../classic/OnScreenKeyboard'
 import type { KxCommonText } from './kx-i18n'
 import { renderKxReceipt, type KxReceipt } from './kx-receipt'
@@ -411,6 +411,7 @@ export function KxSaveSheet({ open, cacheKey, build, onClose, title, desc, previ
 /**
  * 영수증 창 — 열리면 결과를 올려 QR 을 만들고, 미리보기와 함께 바로 인쇄한다(프린터가 있는 기기).
  * 올리지 못하면 QR 없이 찍는다. 프린터가 없는 웹 초안에서는 미리보기와 PNG 저장만.
+ * 프린터 없는 매장 기기(안드로이드 키오스크 앱, receiptByQr)는 영수증 대신 그 결과의 휴대폰 QR 을 크게 띄운다.
  */
 export function KxReceiptSheet({ open, cacheKey, build, receipt, onClose }: {
   open: boolean
@@ -421,13 +422,14 @@ export function KxReceiptSheet({ open, cacheKey, build, receipt, onClose }: {
   onClose: () => void
 }) {
   const { c, t, share, lang } = useKx()
-  const [made, setMade] = useState<{ run: string; dataUrl: string; base64: string } | null>(null)
+  const [made, setMade] = useState<{ run: string; dataUrl: string; base64: string; qr: string | null } | null>(null)
   const [print, setPrint] = useState<{ run: string; phase: 'printing' | 'printed' | 'failed' } | null>(null)
   const latest = useRef({ build, receipt })
   useEffect(() => { latest.current = { build, receipt } }, [build, receipt])
   const run = `${cacheKey}|${lang}`
   const kiosk = typeof window !== 'undefined' ? getKioskBridge() : undefined
   const hasPrinter = Boolean(kiosk?.hasPrinter)
+  const byQr = receiptByQr(kiosk)
 
   const send = useCallback(async (base64: string, key: string) => {
     if (!kiosk?.hasPrinter) return
@@ -452,7 +454,7 @@ export function KxReceiptSheet({ open, cacheKey, build, receipt, onClose }: {
       const content = await latest.current.receipt()
       const image = await renderKxReceipt(content, shared ? { url: shared.url, title: c.receiptQrTitle, desc: c.receiptQrDesc, until: c.receiptUntil.replace('{date}', when(shared.expiresAt)) } : null, when(new Date()))
       if (!alive) return
-      setMade({ run, ...image })
+      setMade({ run, ...image, qr: shared?.qr ?? null })
       void send(image.base64, run)
     })().catch((error) => console.error('[kiosk] 영수증을 만들지 못했습니다:', error))
     return () => { alive = false }
@@ -460,30 +462,37 @@ export function KxReceiptSheet({ open, cacheKey, build, receipt, onClose }: {
 
   if (!open) return null
   const ready = made?.run === run ? made : null
-  const phase = !ready ? 'preparing' : !hasPrinter ? 'preview' : print?.run === run ? print.phase : 'printing'
+  const phase = !ready ? 'preparing' : byQr ? (ready.qr ? 'qr' : 'failed') : !hasPrinter ? 'preview' : print?.run === run ? print.phase : 'printing'
   return (
-    <div className="kx-sheet" role="dialog" aria-modal="true" aria-label={c.receiptTitle}>
+    <div className="kx-sheet" role="dialog" aria-modal="true" aria-label={byQr ? c.saveTitle : c.receiptTitle}>
       <div className="kx-sheet-card kx-receipt">
         <button type="button" className="kx-sheet-x" aria-label={t.close} onClick={onClose}><X size={24} strokeWidth={2} aria-hidden="true" /></button>
-        <h2>{c.receiptTitle}</h2>
+        <h2>{byQr ? c.saveTitle : c.receiptTitle}</h2>
         <p className="kx-sheet-desc" role="status" data-phase={phase}>
           {phase === 'preparing' && <><Loader2 className="kx-spin" size={20} strokeWidth={2} aria-hidden="true" />{c.receiptPreparing}</>}
           {phase === 'printing' && <><Loader2 className="kx-spin" size={20} strokeWidth={2} aria-hidden="true" />{c.receiptPrinting}</>}
           {phase === 'printed' && <><Check size={20} strokeWidth={2.6} aria-hidden="true" />{c.receiptPrinted}</>}
-          {phase === 'failed' && c.receiptFailed}
+          {phase === 'failed' && (byQr ? c.saveFailed : c.receiptFailed)}
           {phase === 'preview' && c.receiptNoPrinter}
+          {phase === 'qr' && c.saveDesc}
         </p>
-        <div className="kx-receipt-paper">
+        {byQr && ready?.qr ? (
+          <div className="kx-sheet-qr" data-phase="ready">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={ready.qr} alt={c.saveTitle} />
+          </div>
+        ) : !byQr && <div className="kx-receipt-paper">
           {ready
             // eslint-disable-next-line @next/next/no-img-element
             ? <img src={ready.dataUrl} alt={c.receiptTitle} />
             : <span aria-hidden="true" />}
-        </div>
+        </div>}
+        {byQr && ready?.qr && <p className="kx-sheet-keep">{c.saveKeep}</p>}
         <div className="kx-receipt-actions">
           {ready && hasPrinter && (phase === 'printed' || phase === 'failed') && (
             <button type="button" className="kx-btn kx-btn--ghost" onClick={() => void send(ready.base64, run)}><Printer size={20} strokeWidth={1.9} aria-hidden="true" />{phase === 'failed' ? c.saveRetry : c.receiptAgain}</button>
           )}
-          {ready && !hasPrinter && (
+          {ready && !hasPrinter && !byQr && (
             <a className="kx-btn kx-btn--ghost" href={ready.dataUrl} download="acscent-receipt.png"><Download size={20} strokeWidth={1.9} aria-hidden="true" />PNG</a>
           )}
           <button type="button" className="kx-btn kx-btn--primary" onClick={onClose}>{t.close}</button>
