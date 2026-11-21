@@ -5,6 +5,7 @@ import { kioskExperience, previewKioskModeParam } from '@/lib/kiosk/experience'
 import { readDeviceKioskMode } from '@/lib/kiosk/device-mode'
 import { kioskModeDesign } from '@/lib/kiosk/modes'
 import { KioskWatermark } from './KioskWatermark'
+import { AndroidLite } from './AndroidLite'
 
 // 기존·레트로·맥 화면 중 기기 설정의 하나만 싣는다 — 클래식과 공통 화면의 전역 CSS가 섞이지 않게(ui-switch.tsx 참고)
 const Gate = dynamic(() => import('@/lib/screen-backgrounds/ui-switch').then(m => m.ScreenUiGate), {
@@ -26,6 +27,8 @@ export function KioskScreen() {
     <>
       {/* 매장 키오스크 앱이 아닌 웹브라우저로 열면 DEMO 워터마크 */}
       <KioskWatermark />
+      {/* 안드로이드 키오스크 앱 — 유리 흐림 끄기(작은 기기에서 영상이 끊긴다) */}
+      <AndroidLite />
       <Gate
         target="kiosk"
         retro={Retro}

@@ -441,6 +441,12 @@ export function KioskClient({ design = 'retro' }: { design?: 'retro' | 'mac' }) 
     if (!kiosk) stopStream()
   }, [kiosk, stopStream, clearCountdown, resetTarot])
 
+  // 프린터 없는 안드로이드 기기 — 촬영 단계(사진을 찍기 전)가 아니면 카메라를 끈다. 작은 기기에서 카메라가 계속 돌면 길잡이 영상이 끊긴다.
+  // 다시 찍거나 다음 손님이 촬영 단계에 오면 카메라 이펙트가 다시 켠다(매장 PC 셸은 예전처럼 켜 둔다)
+  useEffect(() => {
+    if (qrDelivery && (step !== 'capture' || photo)) stopStream()
+  }, [qrDelivery, step, photo, stopStream])
+
   useEffect(() => () => {
     analysisGeneration.current++
     analysisAbort.current?.abort()
