@@ -42,6 +42,12 @@
 
 /* 아래 — 선택지 · 대사창(영상 상자 아래 끝에서 14) */
 .hd-stage { position: absolute; z-index: 5; left: 50%; bottom: calc((100% - var(--u) * 996) / 2 + var(--u) * 14); width: calc(var(--u) * 532); translate: -50% 0; display: flex; flex-direction: column; gap: calc(var(--u) * 10); }
+/* 9:16 보다 조금 넓은 세로 화면(안드로이드 키오스크 622×996 등, 2:3 까지) — 양옆 여백 없이 화면 너비로(2026-11-22). 매장 키오스크(9:16)는 그대로 */
+@media (min-aspect-ratio: 9/16) and (max-aspect-ratio: 2/3) {
+  .hd-stage { width: calc(100% - var(--u) * 28); }
+  .hd-hearts { right: calc(var(--u) * 14); }
+}
+
 .hd-choices { display: grid; gap: calc(var(--u) * 8); }
 .hd-choices button { padding: calc(var(--u) * 15) calc(var(--u) * 18); border: 1px solid rgba(255, 255, 255, .7); border-radius: calc(var(--u) * 16); background: rgba(250, 248, 242, .82); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 calc(var(--u) * 8) calc(var(--u) * 22) rgba(10, 8, 6, .22); font-size: calc(var(--u) * 19); font-weight: 700; color: var(--ink); text-align: center; animation: hd-in .4s calc(var(--i, 0) * 70ms + 150ms) cubic-bezier(.2, .8, .2, 1) both; }
 .hd-choices button:active { transform: scale(.98); background: #fff; }

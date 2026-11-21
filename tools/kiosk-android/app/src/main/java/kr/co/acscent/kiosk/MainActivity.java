@@ -380,7 +380,8 @@ public class MainActivity extends Activity {
         int w = m.widthPixels, h = m.heightPixels;
         int cssWidth = prefs.getInt("cssWidth", 0);
         float scale = cssWidth > 0 ? w / (float) cssWidth : Math.min(w / (float) DESIGN_W, h / (float) DESIGN_H);
-        int percent = Math.max(10, Math.round(scale * 100f));
+        // 내림 — 반올림하면 CSS 높이가 설계(996)보다 몇 px 모자라 딱 맞춘 화면(시작 단추 등)이 잘린다
+        int percent = Math.max(10, (int) Math.floor(scale * 100f));
         web.setInitialScale(percent);
         Log.i(TAG, "scale " + percent + "% (" + w + "×" + h + "px → css " + Math.round(w / scale) + "×" + Math.round(h / scale) + ")");
     }

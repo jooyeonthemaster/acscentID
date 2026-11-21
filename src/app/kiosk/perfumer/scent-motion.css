@@ -9,6 +9,13 @@
 
 /* 영상 — 공용 재생기(../video/stage.tsx · stage.css 의 .kv-world 는 container 단위를 쓴다)를 화면 기둥(560×996 --u, 매장 키오스크 1080×1920)과 같은 9:16 상자 — 가로로 넓은 창에서도 영상이 창 너비로 커져 위아래가 잘리지 않게(2026-11-18). 양옆은 어두운 바탕 */
 .scv-bg { position: absolute; left: 50%; top: 50%; z-index: 0; width: calc(var(--u) * 560); height: calc(var(--u) * 996); translate: -50% -50%; overflow: hidden; container-type: size; pointer-events: none; }
+/* 9:16 보다 조금 넓은 세로 화면(안드로이드 키오스크 622×996 등, 2:3 까지) — 양옆 여백 없이 화면 너비로(2026-11-22). 매장 키오스크(9:16)는 그대로 */
+@media (min-aspect-ratio: 9/16) and (max-aspect-ratio: 2/3) {
+  .pf-root[data-video] .pf-main { width: calc(100% - var(--u) * 28); }
+  .pf-root[data-video][data-shown='attract'] .pf-main { width: 100%; }
+  .scv-kb { width: calc(100% - var(--u) * 36); }
+}
+
 /* 9:16 보다 조금 넓은 세로 화면(안드로이드 키오스크 800×1280 = 10:16 등, 2:3 까지) — 양옆 검은 띠 대신 영상을 창 너비로 키운다.
    위아래가 조금 잘린다(10:16 에서 5% 씩). 대화판 · 단추는 그대로 기둥 안. 노트북처럼 가로로 넓은 창은 위 규칙 그대로(2026-11-21) */
 @media (min-aspect-ratio: 9/16) and (max-aspect-ratio: 2/3) {

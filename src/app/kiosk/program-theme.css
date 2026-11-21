@@ -15,6 +15,11 @@
   border: 1px solid var(--ink); border-radius: 0; overflow: hidden;
   background: var(--paper); backdrop-filter: none; -webkit-backdrop-filter: none;
 }
+/* 9:16 보다 조금 넓은 세로 화면(안드로이드 키오스크 622×996 등, 2:3 까지) — 양옆 여백 없이 화면 너비로(2026-11-22). 매장 키오스크(9:16)는 그대로 */
+@media (min-aspect-ratio: 9/16) and (max-aspect-ratio: 2/3) {
+  .ksk-root[data-program-theme] .ksk-stage { max-width: none; }
+}
+
 .ksk-root[data-program-theme='tarot'] .ksk-stage {
   background: var(--paper) url('/assets/kiosk-programs/moonlit-garden-background.webp') center / 100% 100% no-repeat;
 }
