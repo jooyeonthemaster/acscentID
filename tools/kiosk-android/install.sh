@@ -45,7 +45,8 @@ fi
 "$ADB" shell settings put secure immersive_mode_confirmations confirmed || true
 
 # 기기 관리자(device owner) — 묻지 않는 자동 업데이트 · 키오스크 잠금. 기기에 구글 계정 등이 로그인돼 있으면 안 된다
-if "$ADB" shell dpm list-owners 2>/dev/null | grep -q "$PKG"; then
+# (dpm list-owners 는 Android 12 부터 — dumpsys 로 본다)
+if "$ADB" shell dumpsys device_policy 2>/dev/null | grep -A3 -i "Device Owner" | grep -q "$PKG"; then
   echo "이미 기기 관리자입니다"
 else
   DPM=$("$ADB" shell dpm set-device-owner $PKG/.AdminReceiver 2>&1) || true
