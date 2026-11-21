@@ -3,6 +3,9 @@ package kr.co.acscent.kiosk;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
+import android.content.IntentFilter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -68,7 +71,10 @@ import java.util.regex.Pattern;
  *
  * adb 로 설정(값은 기기에 저장된다):
  *   adb shell am start -n kr.co.acscent.kiosk/.MainActivity --es url https://www.acscent.co.kr/kiosk --es mode ai-perfumer-harin
- *   --es pin 1357 · --ez reset true(설정 지우기) · --ez clearCache true(캐시 · 저장소 지우기)
+ *   --es pin 110619 · --ez reset true(설정 지우기) · --ez clearCache true(캐시 · 저장소 지우기)
+ *   --ez checkUpdate true(앱 업데이트 바로 확인) · --es updateUrl <latest.json 주소>
+ * 앱 자동 업데이트: 30분마다 우리 사이트 /kiosk-android/latest.json 을 보고 새 버전이면 손님이 없을 때 깐다(Updater).
+ * 기기 관리자(device owner, install.sh 가 정한다)면 묻지 않고 깔리고 키오스크 잠금이 걸린다.
  */
 public class MainActivity extends Activity {
     static final String TAG = "AcscentKiosk";
@@ -88,6 +94,10 @@ public class MainActivity extends Activity {
     static final long UPDATE_RECHECK_MS = 60_000;
     static final long IDLE_FOR_RELOAD_MS = 5 * 60_000;
     static final Pattern DEPLOY = Pattern.compile("dpl=(dpl_[A-Za-z0-9]+)");
+    /** 앱 자동 업데이트 — 30분마다 latest.json 확인(켜고 2분 뒤 처음), 새 버전이면 손님이 없을 때(5분 무터치) 깐다 */
+    static final String DEFAULT_UPDATE_URL = "https://www.acscent.co.kr/kiosk-android/latest.json";
+    static final long APP_UPDATE_FIRST_MS = 2 * 60_000;
+    static final long APP_UPDATE_EVERY_MS = 30 * 60_000;
 
     private FrameLayout root;
     private WebView web;
@@ -134,6 +144,90 @@ public class MainActivity extends Activity {
         }
     };
 
+    private volatile Updater.Release pendingApp;
+    private volatile boolean appUpdating = false;
+
+    /** 앱 자동 업데이트 — 새 버전을 찾아 두고, 손님이 없을 때 깐다(force 면 바로) */
+    private void checkAppUpdate(boolean force) {
+        ui.removeCallbacks(appUpdateCheck);
+        if (appUpdating) return;
+        final String url = prefs.getString("updateUrl", DEFAULT_UPDATE_URL);
+        new Thread(() -> {
+            Updater.Release r = pendingApp != null ? pendingApp : Updater.fetch(url);
+            boolean newer = r != null && r.versionCode > BuildConfig.VERSION_CODE;
+            if (!newer) {
+                pendingApp = null;
+                if (force) ui.post(() -> Toast.makeText(this, r == null ? "업데이트 정보를 못 받았어요" : "최신 버전이에요 (v" + BuildConfig.VERSION_NAME + ")", Toast.LENGTH_LONG).show());
+                ui.postDelayed(appUpdateCheck, APP_UPDATE_EVERY_MS);
+                return;
+            }
+            pendingApp = r;
+            boolean idle = System.currentTimeMillis() - lastTouch >= IDLE_FOR_RELOAD_MS;
+            if (!force && !idle) { ui.postDelayed(appUpdateCheck, UPDATE_RECHECK_MS); return; }
+            appUpdating = true;
+            if (force) ui.post(() -> Toast.makeText(this, "v" + r.versionName + " 받는 중…", Toast.LENGTH_LONG).show());
+            boolean started = Updater.install(this, r);
+            appUpdating = false;
+            if (!started) { pendingApp = null; ui.postDelayed(appUpdateCheck, APP_UPDATE_EVERY_MS); }
+            // 설치가 시작되면 이 앱은 곧 내려가고 새 버전이 다시 뜬다(BootReceiver · MY_PACKAGE_REPLACED)
+        }, "app-update").start();
+    }
+
+    private final Runnable appUpdateCheck = () -> checkAppUpdate(false);
+
+    // ── 기기 관리자(device owner) · 키오스크 잠금 ───────────────
+
+    private DevicePolicyManager dpm() { return (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE); }
+    private ComponentName admin() { return new ComponentName(this, AdminReceiver.class); }
+    boolean isOwner() { return dpm().isDeviceOwnerApp(getPackageName()); }
+    /** 관리 메뉴에서 안드로이드 설정을 열었을 때 — 잠금을 잠시 푼다(돌아오면 다시) */
+    private boolean maintenance = false;
+
+    /** 기기 관리자면: 이 앱만 도는 잠금 · 잠금 화면 끄기 · 상태 표시줄 막기 · 홈 앱 고정 · 충전 중 화면 켜 두기 */
+    private void setupOwner() {
+        if (!isOwner()) return;
+        try {
+            DevicePolicyManager d = dpm();
+            ComponentName a = admin();
+            d.setLockTaskPackages(a, new String[]{getPackageName()});
+            d.setKeyguardDisabled(a, true);
+            d.setStatusBarDisabled(a, true);
+            IntentFilter home = new IntentFilter(Intent.ACTION_MAIN);
+            home.addCategory(Intent.CATEGORY_HOME);
+            home.addCategory(Intent.CATEGORY_DEFAULT);
+            d.addPersistentPreferredActivity(a, home, new ComponentName(this, MainActivity.class));
+            d.setGlobalSetting(a, Settings.Global.STAY_ON_WHILE_PLUGGED_IN, "7");
+        } catch (Exception e) {
+            Log.w(TAG, "owner setup: " + e);
+        }
+    }
+
+    private void enterLock() {
+        if (!isOwner() || maintenance) return;
+        try { startLockTask(); } catch (Exception e) { Log.w(TAG, "lock: " + e); }
+    }
+
+    private void leaveLock() {
+        try { stopLockTask(); } catch (Exception ignored) { }
+    }
+
+    /** 기기 관리자 해제 — 키오스크 잠금을 풀고 평범한 앱으로(다시 걸려면 install.sh) */
+    @SuppressWarnings("deprecation")
+    private void releaseOwner() {
+        leaveLock();
+        try {
+            DevicePolicyManager d = dpm();
+            ComponentName a = admin();
+            d.setStatusBarDisabled(a, false);
+            d.setKeyguardDisabled(a, false);
+            d.clearPackagePersistentPreferredActivities(a, getPackageName());
+            d.clearDeviceOwnerApp(getPackageName());
+            Toast.makeText(this, "기기 관리자를 해제했어요", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "해제 실패: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -152,6 +246,8 @@ public class MainActivity extends Activity {
         askPermissions();
         web.loadUrl(startUrl());
         ui.postDelayed(updateCheck, UPDATE_CHECK_MS);
+        ui.postDelayed(appUpdateCheck, APP_UPDATE_FIRST_MS);
+        setupOwner();
     }
 
     /** 시작 주소 HTML 에서 배포 번호를 찾는다 — 못 찾으면(개발 서버 · 연결 끊김) null */
@@ -191,6 +287,8 @@ public class MainActivity extends Activity {
         }
         // adb 로 관리 메뉴 PIN 창 열기(--ez admin true) — 화면을 못 누르는 원격 점검용
         if (intent.getBooleanExtra("admin", false)) askPin();
+        // adb 로 앱 업데이트 바로 확인(--ez checkUpdate true)
+        if (intent.getBooleanExtra("checkUpdate", false)) checkAppUpdate(true);
     }
 
     /** adb 로 넘긴 설정을 저장한다 — 바뀐 게 있으면 true */
@@ -205,6 +303,8 @@ public class MainActivity extends Activity {
         if (mode != null) { e.putString("mode", mode); changed = true; }
         int cssWidth = intent.getIntExtra("cssWidth", 0);
         if (cssWidth == -1 || (cssWidth >= 320 && cssWidth <= 2000)) { e.putInt("cssWidth", Math.max(0, cssWidth)); changed = true; }
+        String updateUrl = intent.getStringExtra("updateUrl");
+        if (updateUrl != null && updateUrl.startsWith("http")) { e.putString("updateUrl", updateUrl); changed = true; }
         String pin = intent.getStringExtra("pin");
         if (pin != null && pin.length() >= 4) { e.putString("pin", pin); changed = true; }
         e.apply();
@@ -528,25 +628,45 @@ public class MainActivity extends Activity {
 
     private void showAdminMenu() {
         if (dialog != null && dialog.isShowing()) dialog.dismiss();
+        boolean owner = isOwner();
         String[] items = {
                 "새로고침",
                 "주소 바꾸기 (지금: " + startUrl() + ")",
                 "캐시 · 저장소 지우고 새로고침",
+                "앱 업데이트 지금 확인",
                 "안드로이드 설정 열기",
                 "키오스크 앱 닫기",
+                owner ? "키오스크 잠금 · 기기 관리자 해제" : "기기 관리자 아님 (자동 업데이트 시 설치 확인이 뜹니다)",
         };
         dialog = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                .setTitle("키오스크 관리 · v" + BuildConfig.VERSION_NAME)
+                .setTitle("키오스크 관리 · v" + BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")" + (owner ? " · 잠금" : ""))
                 .setItems(items, (d, which) -> {
                     switch (which) {
                         case 0: offline = false; web.loadUrl(startUrl()); break;
                         case 1: askUrl(); break;
                         case 2: clearWebData(); offline = false; web.loadUrl(startUrl()); break;
-                        case 3: startActivity(new Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); break;
-                        case 4: finishAndRemoveTask(); break;
+                        case 3: checkAppUpdate(true); break;
+                        case 4:
+                            maintenance = true;
+                            leaveLock();
+                            startActivity(new Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                            break;
+                        case 5: maintenance = true; leaveLock(); finishAndRemoveTask(); break;
+                        case 6: if (owner) confirmRelease(); break;
                     }
                 })
                 .setNegativeButton("닫기", null)
+                .create();
+        dialog.setOnDismissListener(d -> hideSystemUi());
+        dialog.show();
+    }
+
+    private void confirmRelease() {
+        dialog = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle("기기 관리자 해제")
+                .setMessage("키오스크 잠금이 풀리고, 앱 업데이트 때 설치 확인이 뜨게 됩니다. 다시 걸려면 맥에 연결해 install.sh 를 실행하세요.")
+                .setPositiveButton("해제", (d, w) -> releaseOwner())
+                .setNegativeButton("취소", null)
                 .create();
         dialog.setOnDismissListener(d -> hideSystemUi());
         dialog.show();
@@ -607,6 +727,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        // 설정에서 돌아왔으면 다시 잠근다
+        maintenance = false;
+        enterLock();
         hideSystemUi();
         if (web != null) web.onResume();
     }

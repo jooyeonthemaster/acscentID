@@ -2,6 +2,15 @@ plugins {
     id 'com.android.application'
 }
 
+// 버전 — publish.sh 가 올린다(../version.properties)
+def versionProps = new Properties()
+file('../version.properties').withInputStream { versionProps.load(it) }
+
+// 배포 서명 — 자동 업데이트는 같은 키로 서명한 APK 만 깔린다. 키는 저장소 밖(맥 ~/Library/Android)에 두고 꼭 백업한다(README '서명 키')
+def signingFile = file(System.getenv('ACSCENT_KIOSK_SIGNING') ?: "${System.getProperty('user.home')}/Library/Android/acscent-kiosk-signing.properties")
+def signingProps = new Properties()
+if (signingFile.exists()) signingFile.withInputStream { signingProps.load(it) }
+
 android {
     namespace 'kr.co.acscent.kiosk'
     compileSdk 34
@@ -11,18 +20,29 @@ android {
         // 대상 기기: SUNMI TOSS_Front(RK3399) + Phh-Treble GSI · Android 11(SDK 30)
         minSdk 28
         targetSdk 34
-        versionCode 1
-        versionName '1.0.0'
+        versionCode Integer.parseInt(versionProps['versionCode'])
+        versionName versionProps['versionName']
+    }
+
+    signingConfigs {
+        if (signingProps['storeFile']) {
+            release {
+                storeFile file(signingProps['storeFile'])
+                storePassword signingProps['storePassword']
+                keyAlias signingProps['keyAlias']
+                keyPassword signingProps['keyPassword']
+            }
+        }
     }
 
     buildTypes {
         debug {
-            // 매장 기기에 그대로 까는 빌드 — 디버그 서명이지만 웹뷰 원격 디버깅(chrome://inspect)이 켜진다
+            // 개발용 — 디버그 서명(운영 기기의 배포 서명과 달라 그 위에 덮어 깔리지 않는다)
             debuggable true
         }
         release {
             minifyEnabled false
-            signingConfig signingConfigs.debug
+            signingConfig signingProps['storeFile'] ? signingConfigs.release : null
         }
     }
 

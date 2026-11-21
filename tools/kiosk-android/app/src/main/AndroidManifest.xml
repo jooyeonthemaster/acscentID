@@ -10,6 +10,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- 부팅 직후 백그라운드에서 화면을 띄우려면(Android 10+) 다른 앱 위에 표시 권한이 필요하다 — install.sh 가 appops 로 준다 -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- 앱 자동 업데이트(Updater) — 기기 관리자가 아니면 설치 확인 창을 띄우는 데 필요 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.front" android:required="false" />
@@ -50,6 +52,26 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <!-- 자동 업데이트가 깔린 뒤 다시 띄운다 -->
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- 업데이트 설치 결과(PackageInstaller) -->
+        <receiver
+            android:name=".UpdateResultReceiver"
+            android:exported="false" />
+
+        <!-- 기기 관리자(device owner) — 묻지 않는 업데이트 · 키오스크 잠금 -->
+        <receiver
+            android:name=".AdminReceiver"
+            android:exported="true"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
             </intent-filter>
         </receiver>
     </application>
