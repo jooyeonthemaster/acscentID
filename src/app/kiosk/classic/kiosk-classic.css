@@ -1583,6 +1583,23 @@
   border-radius: 14px;
 }
 
+/* 세로가 조금 짧은 세로 화면(안드로이드 키오스크 560×895 등, 2026-11-21) — 매장 키오스크(560×996)보다 100px 남짓 짧아
+   첫 화면 [화면을 터치해 시작하기] 단추가 아래로 잘렸다(SAJU! 107px). 제목 · 카드를 조금씩 줄여 한 화면에 */
+/* 포스터 제목(SAJU!)은 폭(cqw)으로 커진다 — 화면이 매장 키오스크보다 넓으면(안드로이드 622×996) 제목이 커져 시작 단추를 밀어냈다.
+   폭을 화면 높이에 묶는다: 매장 키오스크(996)에서는 지금과 같은 468 */
+.ksk-attract-head--poster .ksk-poster { width: min(100%, 47vh) !important; margin: 0 auto; }
+
+@media (min-height: 721px) and (max-height: 960px) {
+  .ksk-attract { padding-bottom: 24px; gap: 14px; }
+  .ksk-attract-head--poster { padding-bottom: 8px; }
+  .ksk-attract-wordmark { margin-top: 12px; }
+  .ksk-attract-card { padding: 24px 24px 22px; }
+  .ksk-attract-mid { font-size: 36px; margin: 10px 0 12px; }
+  .ksk-attract-detail { font-size: 18px; line-height: 1.5; }
+  .ksk-attract-tags { margin-top: 14px; }
+  .ksk-attract-cta { padding: 20px 26px; font-size: 24px; }
+}
+
 @media (max-height: 720px) {
   .ksk-attract {
     padding-top: 28px;

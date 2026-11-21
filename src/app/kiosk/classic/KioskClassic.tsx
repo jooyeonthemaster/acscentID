@@ -2458,7 +2458,7 @@ export function KioskClassic({ pinnedMode, pc = false, design }: { pinnedMode?: 
         <div className="ksk-modal">
           {qrDelivery ? (
             // 프린터 없는 기기 — 영수증 대신 휴대폰 QR
-            <div className="ksk-modal-paper" style={{ width: 'min(420px, 86%)', padding: '14px 10px', background: '#f7f7f5', color: '#222' }}>
+            <div className="ksk-modal-paper" style={{ width: 'min(420px, 86%)', flex: 'none', margin: 'auto 0', padding: '18px 12px 20px', borderRadius: 18, background: '#f7f7f5', color: '#222' }}>
               <ReceiptQrPanel lang={lang} share={receiptQr} ticket={ticketNo} />
             </div>
           ) : (

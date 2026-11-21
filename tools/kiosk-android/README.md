@@ -7,7 +7,7 @@
 
 - 전체 화면 · 화면 꺼짐 막기 · 뒤로 가기 막기 · 우리 사이트(`*.acscent.co.kr`, `localhost`, 설정한 시작 주소) 밖으로 나가지 않기
 - 카메라 · 마이크를 묻지 않고 허용(우리 주소만), 영상 · 소리를 터치 없이 재생, 영상 대기 그림(회색 재생 단추) 없앰
-- 화면 CSS 폭을 **560** 으로 고정 — 매장 키오스크(Electron 셸)가 1080 화면을 CSS 560 으로 그리는 것과 같다(체험 화면이 560 기준)
+- 배율: 매장 키오스크의 설계 크기 **CSS 560×996** 이 화면에 잘림 없이 다 들어가게(800×1280 → CSS 622×996). 남는 폭은 각 화면 바탕 · 영상이 채운다
 - 웹에 `window.AcscentAndroid` 를 건다 → 웹(`src/lib/kiosk/kiosk-bridge.ts` `androidBridge`)이 "프린터 없는 매장 기기"로 돈다
   - DEMO 워터마크 없음, 기본 운영 모드 **SCENT! 하린 루트**(`ai-perfumer-harin`) — 관리자 창에서 이 기기 모드를 고르면 그쪽이 먼저
   - 결과 · 영수증 버튼이 **휴대폰으로 받기** → 영수증 원판을 올리고(`/api/kiosk/share`, 24시간) QR 을 띄운다
@@ -26,7 +26,7 @@
   adb shell am start -n kr.co.acscent.kiosk/.MainActivity --es url https://www.acscent.co.kr/kiosk
   #  --es mode ai-perfumer-harin   기본 운영 모드
   #  --es pin 110619               관리 메뉴 PIN
-  #  --ei cssWidth 560             화면 CSS 폭
+  #  --ei cssWidth 560             화면 CSS 폭 고정(-1 이면 자동: 560×996 이 다 들어가게 — 기본)
   #  --ez clearCache true          캐시 · 저장소 지우기   --ez reset true  설정 지우기
   #  --ez admin true               관리 메뉴 PIN 창 열기
   ```

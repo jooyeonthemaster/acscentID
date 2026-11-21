@@ -67,6 +67,11 @@
 
 /* 체험 화면 틀 밖(미리보기 · COLOR!) — 세로 9:16 을 화면 가운데에 고정 */
 .kv--page { position: fixed; inset: 0 auto 0 50%; width: min(100vw, calc(100vh * 9 / 16)); translate: -50% 0; }
+/* 9:16 보다 조금 넓은 세로 화면(안드로이드 키오스크 560×895 = 10:16 등, 2:3 까지) — 양옆 검은 띠 대신 창 너비로.
+   영상은 상자를 덮고(.kv-world) 글자 · 판은 상자 너비(cqw)를 따라 같은 모양으로 커진다(2026-11-21). 노트북 가로 창은 위 규칙 그대로 */
+@media (min-aspect-ratio: 9/16) and (max-aspect-ratio: 2/3) {
+  .kv--page { width: 100vw; }
+}
 
 /* 대사판 안 — 선택지 · 카메라 · 도구 */
 .kv-body { margin-top: 3.4cqw; display: grid; gap: 2.6cqw; }
@@ -286,6 +291,9 @@
 
 /* 영상판 화면 틀은 9:16 — 체험 틀(.kx-stage 폭 560px 상한)이 키 큰 창에서 9:16 보다 좁아져 영상 양옆(DRAW! 이젤 · MAKEUP! 거울)이 잘렸다. COLOR!(.kv--page)와 같게 */
 .kx-stage:has(> .kv) { max-width: min(100vw, calc(100dvh * 9 / 16)); }
+@media (min-aspect-ratio: 9/16) and (max-aspect-ratio: 2/3) {
+  .kx-stage:has(> .kv) { max-width: 100vw; }
+}
 
 /* 마스크를 붙인 조각(위 영상 · 아래 마스크) — 화면에는 위 절반만 */
 .kv-film[data-matte] { height: 200%; clip-path: inset(0 0 50% 0); }

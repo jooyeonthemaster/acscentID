@@ -79,8 +79,10 @@ public class MainActivity extends Activity {
     static final String DEFAULT_PIN = "110619";
     static final int REQ_PERMS = 41;
     static final long RETRY_MS = 15_000;
-    /** 웹 화면의 CSS 폭 — 매장 키오스크(Electron 셸)가 1080 화면을 CSS 560 으로 그리는 것과 같게(체험 화면이 560 기준 px 로 짜여 있다) */
-    static final int DEFAULT_CSS_WIDTH = 560;
+    /** 화면 설계 크기 — 매장 키오스크(Electron 셸)가 1080×1920 을 CSS 560×996 으로 그린다. 모든 프로그램이 이 크기로 짜여 있다.
+     *  기기 화면에 이 크기가 잘림 없이 다 들어가게(contain) 배율을 정한다 — 800×1280 이면 CSS 622×996(남는 폭은 각 화면 바탕 · 영상이 채운다) */
+    static final int DESIGN_W = 560;
+    static final int DESIGN_H = 996;
     /** 새 배포 확인 — 10분마다 시작 주소의 배포 번호(Vercel dpl_…)를 보고, 바뀌었으면 손님이 없을 때(5분 동안 터치 없음) 새로고침 */
     static final long UPDATE_CHECK_MS = 10 * 60_000;
     static final long UPDATE_RECHECK_MS = 60_000;
@@ -202,7 +204,7 @@ public class MainActivity extends Activity {
         String mode = intent.getStringExtra("mode");
         if (mode != null) { e.putString("mode", mode); changed = true; }
         int cssWidth = intent.getIntExtra("cssWidth", 0);
-        if (cssWidth >= 320 && cssWidth <= 2000) { e.putInt("cssWidth", cssWidth); changed = true; }
+        if (cssWidth == -1 || (cssWidth >= 320 && cssWidth <= 2000)) { e.putInt("cssWidth", Math.max(0, cssWidth)); changed = true; }
         String pin = intent.getStringExtra("pin");
         if (pin != null && pin.length() >= 4) { e.putString("pin", pin); changed = true; }
         e.apply();
@@ -271,13 +273,16 @@ public class MainActivity extends Activity {
         root.addView(web, 0);
     }
 
-    /** CSS 폭이 cssWidth 가 되게 웹뷰 배율을 정한다(물리 픽셀 폭 / cssWidth). 화면 크기가 바뀌면 다시 */
+    /** 배율 — 설계 크기(560×996)가 화면에 다 들어가게. adb 로 cssWidth 를 정했으면 그 폭으로 고정 */
     private void applyScale() {
-        int cssWidth = prefs.getInt("cssWidth", DEFAULT_CSS_WIDTH);
-        int physical = getResources().getDisplayMetrics().widthPixels;
-        int percent = Math.max(10, Math.round(physical * 100f / cssWidth));
+        android.util.DisplayMetrics m = new android.util.DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getRealMetrics(m);
+        int w = m.widthPixels, h = m.heightPixels;
+        int cssWidth = prefs.getInt("cssWidth", 0);
+        float scale = cssWidth > 0 ? w / (float) cssWidth : Math.min(w / (float) DESIGN_W, h / (float) DESIGN_H);
+        int percent = Math.max(10, Math.round(scale * 100f));
         web.setInitialScale(percent);
-        Log.i(TAG, "scale " + percent + "% (" + physical + "px → css " + cssWidth + ")");
+        Log.i(TAG, "scale " + percent + "% (" + w + "×" + h + "px → css " + Math.round(w / scale) + "×" + Math.round(h / scale) + ")");
     }
 
     /** 이 앱 안에서 열어도 되는 주소 — 우리 사이트 · 개발 서버(localhost) · 설정한 시작 주소의 호스트 */
