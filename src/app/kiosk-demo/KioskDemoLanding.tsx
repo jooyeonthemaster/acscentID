@@ -1,6 +1,8 @@
 import { ArrowDown, ArrowUpRight, Languages, LayoutGrid, Printer, Smartphone, Sparkles, WandSparkles } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { DemoCleanLinkMaker } from '@/components/demo/DemoCleanLinkMaker'
+import { DemoEn, DemoHead, DemoLabel, no2 } from '@/components/demo/DemoHead'
+import { DemoSet, DemoVersion } from '@/components/demo/DemoSet'
 import { DemoTabs } from '@/components/demo/DemoTabs'
 import { withVariants } from '@/components/demo/variants'
 import { KIOSK_DEMOS, KIOSK_DEMO_NEEDS, kioskDemoCardHref, type KioskDemo } from '@/lib/kiosk/demo'
@@ -16,15 +18,18 @@ import './kiosk-demo.css'
 const HOUSING_ORDER = ['studio-product', 'studio-vision-wall', 'studio-career', 'studio-housing-scent']
 const order = (mode: string) => { const i = HOUSING_ORDER.indexOf(mode); return i < 0 ? 99 : i }
 
+const BASE_COUNT = KIOSK_DEMOS.filter((demo) => !demo.variantOf).length
+
 /** 그 프로그램의 첫 화면(560×996 CSS 크기로 찍어 600×1067 로 줄인 것) */
 const screenShot = (mode: string) => `/assets/kiosk-demo/screen-${mode}.webp`
-const GROUPS: { id: KioskDemo['group']; title: string; note: string }[] = [
-  { id: 'reading', title: 'AI 분석 · 리딩', note: '사진이나 생년월일로 나를 읽어 주는 프로그램' },
-  { id: 'studio', title: '체험 스튜디오', note: '직접 만들고 꾸며 보는 프로그램' },
-  { id: 'preferences', title: '취향을 발견하는 시간', note: '음료 · 패션 · 여행 · 향 — 사진 한 장과 내 선택으로 만드는 가이드' },
-  { id: 'social', title: '나와 우리를 위한 이야기', note: '카메라 체험과 사람별 답변으로 즐기는 케미' },
-  { id: 'interactive', title: '터치로 움직이는 전시', note: '빛의 실험 · 문화유산 탐색' },
-  { id: 'housing', title: '주거복지 · 공공 행사', note: '2026 대한민국 주거복지대전 AI 체험존 — 제품 인터랙티브 체험관(TOUCH!) · 비전 월(VISION!) · 미래 직업 탐색(NEXT!) · 우리 집 향 처방(ROOM!)' },
+// label · en — 네안데르 사이트처럼 구역마다 번호 라벨과 영어 큰 제목(2026-11-25)
+const GROUPS: { id: KioskDemo['group']; label: string; en: string[]; title: string; note: string }[] = [
+  { id: 'reading', label: 'AI Reading', en: ['Read me.'], title: 'AI 분석 · 리딩', note: '사진이나 생년월일로 나를 읽어 주는 프로그램' },
+  { id: 'studio', label: 'Studio', en: ['Make it yours.'], title: '체험 스튜디오', note: '직접 만들고 꾸며 보는 프로그램' },
+  { id: 'preferences', label: 'Taste', en: ['Find your taste.'], title: '취향을 발견하는 시간', note: '음료 · 패션 · 여행 · 향 — 사진 한 장과 내 선택으로 만드는 가이드' },
+  { id: 'social', label: 'Together', en: ['You & us.'], title: '나와 우리를 위한 이야기', note: '카메라 체험과 사람별 답변으로 즐기는 케미' },
+  { id: 'interactive', label: 'Interactive', en: ['Touch the show.'], title: '터치로 움직이는 전시', note: '빛의 실험 · 문화유산 탐색' },
+  { id: 'housing', label: 'Public events', en: ['For the public.'], title: '주거복지 · 공공 행사', note: '2026 대한민국 주거복지대전 AI 체험존 — 제품 인터랙티브 체험관(TOUCH!) · 비전 월(VISION!) · 미래 직업 탐색(NEXT!) · 우리 집 향 처방(ROOM!)' },
 ]
 const FEATURES = [
   { Icon: LayoutGrid, title: '프로그램 전환', text: '관리자 화면에서 키오스크마다 다른 프로그램을 골라 운영합니다.' },
@@ -65,16 +70,18 @@ export function Kiosk({ children, className }: { children: ReactNode; className?
 const demoKey = (demo: KioskDemo) => demo.id ?? demo.mode
 
 /** 프로그램 카드 한 장 — 영상판(lab=video)은 첫 장면 그림, 그 밖은 첫 화면 캡처 */
-function KioskCard({ demo, cleanKey }: { demo: KioskDemo; cleanKey?: string }) {
+// 카드는 키오스크 기기 그림 안에 첫 화면(2026-11-25 사용자 지시: 기기 안에 썸네일이 든 형식은 유지)
+function KioskCard({ demo, cleanKey, paired = false, no }: { demo: KioskDemo; cleanKey?: string; paired?: boolean; no?: string }) {
   const body = (
     <>
+      {paired && <DemoVersion video={Boolean(demo.variantOf)} />}
       <Kiosk>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={demo.screen ?? screenShot(demo.mode)} alt={`${demo.name} 첫 화면`} width={600} height={1067} loading="lazy" decoding="async" />
         {demo.soon && <span className="demo-soon">준비 중</span>}
       </Kiosk>
       <span className="kd-card-body">
-        <span className="kd-tag">{demo.tag}</span>
+        <span className="kd-tag">{no && <em>{no}</em>}{demo.tag}</span>
         <b>{demo.name}</b>
         <span className="kd-desc">{demo.desc}</span>
         {!demo.soon && <span className="kd-needs">{demo.needs.map((need) => <i key={need}>{KIOSK_DEMO_NEEDS[need]}</i>)}{demo.lab === 'video' && <i>영상 안내</i>}</span>}
@@ -84,7 +91,7 @@ function KioskCard({ demo, cleanKey }: { demo: KioskDemo; cleanKey?: string }) {
       </span>
     </>
   )
-  // 준비 중 영상판은 누를 수 없다 — 그림은 첫 장면 예시(src/lib/demo-video-soon.ts)
+  // 준비 중 영상판은 누를 수 없다 — 설명은 src/lib/demo-video-soon.ts
   if (demo.soon) return <div className="kd-card kd-card--soon" style={{ '--kd-tone': demo.color } as CSSProperties}>{body}</div>
   return <a className="kd-card" href={kioskDemoCardHref(demo, cleanKey)} target="_blank" rel="noopener" style={{ '--kd-tone': demo.color } as CSSProperties}>{body}</a>
 }
@@ -106,8 +113,9 @@ export function KioskDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey
       <main>
         <section className="kd-hero">
           <div className="kd-hero-copy">
-            <p className="kd-eyebrow">세로형 터치 키오스크 · 1080 × 1920</p>
-            <h1>키오스크 한 대,<br />체험 프로그램 {KIOSK_DEMOS.filter((demo) => !demo.variantOf).length}가지</h1>
+            <DemoLabel no="KIOSK">Vertical touch · 1080 × 1920</DemoLabel>
+            <DemoEn size="giant" lines={['One kiosk,', `${BASE_COUNT} programs.`]} />
+            <h1>키오스크 한 대, 체험 프로그램 {BASE_COUNT}가지</h1>
             <p className="kd-lead">매장과 행사장에 세우는 키오스크에서 그대로 도는 프로그램입니다. 길잡이 인물이 영상 속에서 안내하는 영상판은 기본판 바로 옆에 있어요. 아래에서 골라 직접 눌러 보세요.</p>
             <a className="kd-button" href="#demos">데모 고르기<ArrowDown size={20} strokeWidth={2.2} aria-hidden="true" /></a>
           </div>
@@ -127,21 +135,18 @@ export function KioskDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey
         </section>
 
         <div id="demos" className="kd-demos">
-          {GROUPS.map((group) => {
+          {GROUPS.map((group, gi) => {
             const demos = KIOSK_DEMOS.filter((demo) => demo.group === group.id).sort((a, b) => order(a.mode) - order(b.mode))
             return (
               <section key={group.id} className="kd-group" aria-labelledby={`kd-${group.id}`}>
-                <div className="kd-group-head">
-                  <h2 id={`kd-${group.id}`}>{group.title}<span>{demos.filter((demo) => !demo.variantOf).length}</span></h2>
-                  <p>{group.note}</p>
-                </div>
+                <DemoHead id={`kd-${group.id}`} no={no2(gi + 1)} label={group.label} en={group.en} ko={group.title} count={demos.filter((demo) => !demo.variantOf).length} aside={group.note} />
                 <ul className="kd-grid">
-                  {withVariants(demos, demoKey).map((unit) => unit.length === 1
-                    ? <li key={demoKey(unit[0])}><KioskCard demo={unit[0]} cleanKey={cleanKey} /></li>
+                  {withVariants(demos, demoKey).map((unit, i) => unit.length === 1
+                    ? <li key={demoKey(unit[0])}><KioskCard demo={unit[0]} cleanKey={cleanKey} no={no2(i + 1)} /></li>
                     : (
-                      <li key={demoKey(unit[0])} className="kd-set" style={{ '--n': unit.length } as CSSProperties} aria-label={`${unit[0].name} — 기본판과 영상판`}>
-                        {unit.map((demo) => <KioskCard key={demoKey(demo)} demo={demo} cleanKey={cleanKey} />)}
-                      </li>
+                      <DemoSet key={demoKey(unit[0])} className="kd-set" no={no2(i + 1)} tag={unit[0].tag} name={unit[0].name} tone={unit[0].color} count={unit.length} soon={unit.slice(1).every((demo) => demo.soon)}>
+                        {unit.map((demo) => <KioskCard key={demoKey(demo)} demo={demo} cleanKey={cleanKey} paired />)}
+                      </DemoSet>
                     ))}
                 </ul>
               </section>
@@ -150,7 +155,7 @@ export function KioskDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey
         </div>
 
         <section className="kd-features" aria-labelledby="kd-common">
-          <h2 id="kd-common">키오스크가 갖춘 기능</h2>
+          <DemoHead id="kd-common" no={no2(GROUPS.length + 1)} label="Features" en={['Built in.']} ko="키오스크가 갖춘 기능" />
           <ul>
             {FEATURES.map(({ Icon, title, text }) => (
               <li key={title}>
@@ -163,7 +168,7 @@ export function KioskDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey
         </section>
 
         <section className="kd-notes" aria-labelledby="kd-notes">
-          <h2 id="kd-notes">데모 이용 안내</h2>
+          <DemoHead id="kd-notes" no={no2(GROUPS.length + 2)} label="Notes" en={['Before you play.']} ko="데모 이용 안내" />
           <ul>{(clean ? NOTES.filter((note) => !note.includes('워터마크')) : NOTES).map((note) => <li key={note}>{note}</li>)}</ul>
         </section>
       </main>

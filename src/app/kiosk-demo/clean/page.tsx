@@ -9,7 +9,7 @@ import { readCleanDemoKey } from '@/lib/demo-clean-server'
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: 'NEANDER 키오스크 데모',
-  description: '세로형 터치 키오스크의 체험 프로그램 33가지를 직접 눌러 보는 데모입니다.',
+  description: '세로형 터치 키오스크의 체험 프로그램 32가지를 직접 눌러 보는 데모입니다.',
   robots: { index: false, follow: false },
 }
 

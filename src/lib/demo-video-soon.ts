@@ -11,7 +11,6 @@ export const VIDEO_SOON_GUIDE: Record<string, string> = {
   'studio-skin': '스킨케어 연구원 이슬',
   'studio-voice': '사운드 엔지니어 도윤',
   'studio-career': '진로 탐험가 나래',
-  'studio-sommelier': '소믈리에 재윤',
   'studio-cocktail': '바텐더 미아',
   'studio-barista': '바리스타 하준',
   'studio-taste-dna': '미식 탐험가 단비',
@@ -80,4 +79,4 @@ export function videoSoon(key: string): { guide: string; screen: string } | null
 }
 
 /** 카드 설명 */
-export const videoSoonDesc = (guide: string) => `길잡이 ${guide}의 안내로 같은 체험을 영상 속에서 하는 영상판을 준비하고 있어요. 그림은 첫 장면 예시예요.`
+export const videoSoonDesc = (guide: string) => `길잡이 ${guide}의 안내로 같은 체험을 영상 속에서 하는 영상판을 준비하고 있어요.`

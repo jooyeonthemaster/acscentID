@@ -31,7 +31,7 @@
 외부 영업에서 프로그램을 보여 주는 랜딩페이지 — **`/kiosk-demo`**(`src/app/kiosk-demo/`). 체험 모드에 든 열 가지(사주 · 컬러 · 타로 + 체험 일곱)를 첫 화면 견본과 함께 늘어놓고, 고르면 새 창으로 그 프로그램을 연다.
 
 - 목록은 `src/lib/kiosk/demo.ts`(`KIOSK_DEMOS`). 매장 기본(최애 이미지 분석)은 넣지 않았다(매장 카운터 발권 흐름).
-- **행사 · 팝업 맞춤(2026-11-18)**: 지금까지 만든 키오스크 데모를 모두 싣는다 — SCENT! AI 조향사(`ai-perfumer`), 연말 시상식 SIP! 소믈리에(`studio-sommelier-nh`)와 그 영상판(`&lab=video`, 카드의 `lab`). 견본은 `screen` 칸(없으면 `screen-<모드>.webp`).
+- **행사 · 팝업 맞춤(2026-11-18)**: 지금까지 만든 키오스크 데모를 모두 싣는다 — SCENT! AI 조향사(`ai-perfumer`), 연말 시상식 SIP! 소믈리에(`studio-sommelier-nh`)와 그 영상판(`&lab=video`, 카드의 `lab`). 2026-11-25부터 시상식 기본 모노 화면 카드는 빼고, 해나 영상판(와이너리 여정)만 SIP! 소믈리에(`studio-sommelier`)의 영상판으로 그 옆에 둔다. 견본은 `screen` 칸(없으면 `screen-<모드>.webp`).
 - **썸네일은 정면에서 본 키오스크 그림 안에 그 프로그램의 첫 화면**을 넣은 것이다. 키오스크는 그림 파일 없이 CSS 로 그린다(`kiosk-demo.css` 의 `.kd-kiosk`, 폭 기준 `cqw` 비율) — 실물(2026-09 매장 설치)의 모양을 옮겼다: 검은 몸체 · 둥근 윗모서리 · 위 가운데 집게로 꽂은 웹캠 · 9:16 화면 · 영수증 구멍이 난 아래 패널(아래로 흐려진다). 베젤 두께·웹캠 크기·구멍 위치는 사장님이 보낸 정면 사진(2026-10-13)에서 몸체 폭 기준으로 쟀다 — 옆 약 10% · 위 9% · 화면 아래 11%(처음 그림은 옆 3.6%로 너무 얇다는 지적을 받았다). 첫 화면 그림은 `public/assets/kiosk-demo/screen-<모드 id>.webp`(`/kiosk?mode=<id>` 를 560×996 CSS 크기로 찍어 600×1067 로 줄인 것) — 첫 화면이 바뀌면 다시 찍어 바꾼다.
   - 처음에는 실물 사진(IMG_8805)을 편집해 화면을 원근에 맞춰 합성했는데(cab6140), 사장님이 "정면에서 보는 느낌으로, 벡터로 키오스크 모양을 만들어서" 하라 하여 바꿨다.
 - 머리말은 키오스크 한 대의 화면이 열 가지로 3초마다 바뀐다(움직임 줄이기를 켠 브라우저는 첫 화면에 머문다). 들어오는 화면이 다 나타난 뒤에 앞 화면을 빼서 검은 화면이 비쳐 보이지 않게 했다.
@@ -43,6 +43,7 @@
 ## 영상판 데모 (2026-11-18)
 
 길잡이 인물 영상 위에서 같은 프로그램을 하는 영상판 — 데모 랜딩 **`/kiosk-demo`** 에서 기본판 카드 바로 옆에 나란히(2026-11-25 사용자 지시로 따로 있던 `/kiosk-demo/video` 탭을 합침 — 그 주소는 `/kiosk-demo` 로 넘긴다. 카드 목록 `src/lib/kiosk/demo.ts` 의 `variantOf`, 포토부스 FACE! · SAJU! 영상판도 `/booth-demo` 에서 같은 방식). COLOR! 서하 · DRAW! 모루 · MAKEUP! 이안 · SCENT! 하린 · SIP! 해나. 주소에 `&lab=video` 가 있을 때만 뜨고 기본 화면은 그대로다. 영상판이 아직 없는 카드에는 상상한 첫 장면 그림으로 「준비 중」 영상판 카드를 붙인다(누를 수 없음, `src/lib/demo-video-soon.ts` · 그림 `public/assets/demo-video-soon` · 원본 저장소 밖 `design-review/video-thumbs`, 2026-11-25). 재생기 · 계획 `src/app/kiosk/video/`(stage.tsx · plans.ts · ui.tsx), 영상 · 수치 `public/assets/kiosk-video/README.md`, 만드는 방법 `.claude/skills/kiosk-video-flow`. 흐름만 보는 미리보기(카메라 · AI 없이) `/kiosk/video/<color|draw|makeup>`.
+- **겉모습(2026-11-25)**: 데모 랜딩 둘(/kiosk-demo · /booth-demo)은 네안데르 사이트(neander 저장소 services 상세, theme-redesign.css)와 같은 어두운 겉모습 — 토큰 · Syne 영어 큰 제목 · 번호 라벨 · 묶음 판은 `src/components/demo/demo-tabs.css` · `DemoHead.tsx` · `DemoSet.tsx`, 글꼴 `public/fonts/syne`(OFL). 카드는 예전처럼 기기 그림(키오스크 · 포토부스) 안에 화면 견본을 넣는다(사용자 지시).
 
 ## 키오스크 API 하루 상한 (2026-11-11)
 
