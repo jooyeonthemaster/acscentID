@@ -40,6 +40,8 @@ export interface BoothDemo {
   screen: string
   /** 출구로 나오는 인화물 견본(4×6, AI 아이돌만) */
   print?: string
+  /** 같은 프로그램의 다른 판(영상판) — 기본판 카드 id. 랜딩에서 기본판 바로 옆에 나란히 놓는다 */
+  variantOf?: string
 }
 
 export const BOOTH_DEMO_NEEDS: Record<BoothDemoNeed, string> = {
@@ -76,6 +78,9 @@ export const BOOTH_DEMOS: BoothDemo[] = [
   eventDemo('ansan-2026', { screen: shot('program-ansan-2026'), desc: '안산사이언스밸리 과학축제(2026.11) AI 포토존. 1~4명이 한 컷을 찍으면 지금 · 10년 · 20년 · 30년 뒤의 우리를 2×6 사진 네 컷으로 뽑아요.' }),
   eventDemo('nh-face', { screen: shot('nh/face'), print: shot('nh/print-face'), webcam: true }),
   eventDemo('nh-saju', { screen: shot('nh/saju'), print: shot('nh/print-saju'), webcam: true }),
+  // 영상판(2026-11-25 사용자 지시: 따로 있던 영상판 탭을 없애고 기본판 옆에 나란히) — 같은 촬영 · AI · 인화를 길잡이 인물 영상 위에서(&lab=video, src/app/booth/programs/video-stage.tsx)
+  { ...eventDemo('nh-face', { screen: '/assets/booth-programs/nh-face-video/courtyard.webp', print: shot('nh/print-face'), webcam: true }), id: 'event-nh-face-video', variantOf: 'event-nh-face', tag: 'FACE! · 영상판', name: '새해 관상 이야기 — 도화서 화원', desc: '도화서 화원이 화실 마당에서 맞이해 구도를 재고, 조선 시대 초상으로 그려 족자에 걸어 줍니다.', href: (cleanKey) => `${boothDemoHref({ mode: 'nh-face' }, cleanKey)}&camera=webcam&lab=video` },
+  { ...eventDemo('nh-saju', { screen: '/assets/booth-programs/nh-saju-video/gate.webp', print: shot('nh/print-saju'), webcam: true }), id: 'event-nh-saju-video', variantOf: 'event-nh-saju', tag: 'SAJU! · 영상판', name: '정미년 사주 이야기 — 관상감 천문 관원', desc: '천문 관원 하율이 밤의 관상감에서 맞이해 만세력으로 생년월일을 찾고, 구리거울로 한 컷 찍은 뒤 별밤에 사주를 세워 정미년 첫 해돋이에 사주 카드를 보여 줍니다.', href: (cleanKey) => `${boothDemoHref({ mode: 'nh-saju' }, cleanKey)}&camera=webcam&lab=video` },
   eventDemo('nh-palm', { screen: shot('nh/palm'), print: shot('nh/print-palm'), webcam: true }),
   // 펀그라운드 별내 상설 체험기(32인치 가로 터치) — 견적 데모(/booth-demo/funground)의 A안 · B안 프로그램 중 부스 · 전용 화면으로 여는 것.
   // A안 COLOR! · NEXT! 는 키오스크 프로그램의 노트북 가로판이라 키오스크 랜딩의 같은 프로그램으로 갈음한다.

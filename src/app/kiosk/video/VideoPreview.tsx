@@ -1,7 +1,7 @@
 'use client'
 
 // 키오스크 영상판 흐름 미리보기(/kiosk/video/<프로그램>, 2026-11-18) — 프로그램 단계를 대사 · 버튼으로 넘기며 길잡이 인물 영상이 끊김 없이 이어지는지 본다.
-// 카메라 · AI 는 부르지 않는다(촬영은 버튼, AI 기다림은 정해 둔 시간, 결과는 견본 그림). 실제 프로그램 영상판은 /kiosk-demo/video 에서 연다.
+// 카메라 · AI 는 부르지 않는다(촬영은 버튼, AI 기다림은 정해 둔 시간, 결과는 견본 그림). 실제 프로그램 영상판은 /kiosk-demo(기본판 옆 영상판 카드)에서 연다.
 
 import { useEffect, useState, type CSSProperties } from 'react'
 import { KxVideoStage, preloadPlan } from './stage'

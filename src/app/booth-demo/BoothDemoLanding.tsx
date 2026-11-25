@@ -2,6 +2,7 @@ import { ArrowDown, ArrowUpRight, Camera, Clapperboard, Languages, Printer, QrCo
 import type { CSSProperties, ReactNode } from 'react'
 import { DemoCleanLinkMaker } from '@/components/demo/DemoCleanLinkMaker'
 import { DemoTabs } from '@/components/demo/DemoTabs'
+import { withVariants } from '@/components/demo/variants'
 import { BOOTH_DEMOS, BOOTH_DEMO_NEEDS, boothDemoCardHref, type BoothDemo } from '@/lib/booth/demo'
 import './booth-demo.css'
 
@@ -19,7 +20,7 @@ const order = (mode: string) => { const i = HOUSING_ORDER.indexOf(mode); return 
 const GROUPS: { id: BoothDemo['group']; title: string; short: string; note: string }[] = [
   { id: 'photo', title: 'AI 사진 프로그램', short: 'AI 사진', note: '런웨이 · 패션 타임머신 · 졸업 · 한복 · 웨딩 · 초상화 · 캐리커처 — 한 컷을 찍으면 프로그램마다 다른 화면과 인화 디자인으로 AI 사진을 만들어 4×6 인화와 QR로 줍니다' },
   { id: 'housing', title: '주거복지 · 공공 행사', short: '주거복지', note: '2026 대한민국 주거복지대전 AI 체험존 — 입주 기념사진 · 2046 미래 도시 주민 카드 · 과거로의 여행. 사진(4×6)과 AI 코멘트를 함께 인화합니다' },
-  { id: 'video', title: '영상 프로그램', short: '영상', note: '15초 뮤직비디오와 사진 5~20장으로 만드는 추억 영상 — 부스에서 편집해 QR로 휴대폰에 받습니다(AI 영상이 아닌 편집 영상)' },
+  { id: 'video', title: '영상 프로그램', short: '영상', note: '15초 뮤직비디오와 사진 5~20장으로 만드는 추억 영상(부스에서 편집해 QR로 받는 편집 영상), 그리고 길잡이 인물이 영상 속에서 안내하는 영상판 포토 프로그램 — 나중 박사의 타임캡슐(LATER!) · 치즈 스튜디오(CHEESE!)' },
   { id: 'idol', title: 'AI 아이돌 포토', short: 'AI 아이돌', note: '한 컷을 찍으면 내 얼굴 그대로 K-POP 아이돌 컨셉 사진을 만들어 4×6으로 인화합니다' },
   { id: 'event', title: '행사 맞춤 프로그램', short: '행사 맞춤', note: '행사 하나를 위해 만든 프로그램 — 과학축제 AI 포토존(2×6 사진 네 컷), 연말 시상식 새해 이야기(관상 · 사주 · 손금 + 4×6 인화)' },
   { id: 'funground', title: '상설 체험기 · 펀그라운드 별내', short: '펀그라운드', note: '청소년 공공시설 32인치 가로 터치 체험기 견적 데모 — A안은 AI가 사진을 테마 속 모습으로 바꾸고, B안은 외부 AI 없이 기기 안에서 처리합니다' },
@@ -40,6 +41,7 @@ const NOTES = [
   '타임캡슐 · 미래 가족 · 2046 미래 도시는 재미로 보는 창작 이미지, 역사 속 한 장면은 역사에서 영감을 받은 상상화입니다.',
   '인쇄는 프린터가 달린 실제 부스에서 바로 나옵니다. 브라우저에서는 인쇄 미리보기로 보여 드립니다.',
   '추억 무비와 \'휴대폰 사진 가져오기\'는 화면의 QR을 휴대폰으로 찍어 사진을 올립니다.',
+  '영상판은 촬영 · AI · 인화가 기본판과 같고 화면 겉모습만 다릅니다. 영상을 처음 받는 동안 잠시 그림으로 보일 수 있습니다.',
   '데모 화면에는 DEMO 워터마크가 표시됩니다. 실제 매장 부스와 인화물에는 표시되지 않습니다.',
 ]
 /** 머리말의 부스 화면 — 3초마다 바뀐다(칸 수는 booth-demo.css 의 15초 순환에 맞춘다) */
@@ -76,6 +78,25 @@ export function Booth({ children, print, className }: { children: ReactNode; pri
   )
 }
 
+/** 프로그램 카드 한 장 */
+function BoothCard({ demo, cleanKey }: { demo: BoothDemo; cleanKey?: string }) {
+  return (
+    <a className="bd-card" href={boothDemoCardHref(demo, cleanKey)} target="_blank" rel="noopener" style={{ '--bd-tone': demo.color } as CSSProperties}>
+      <Booth print={demo.print}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={demo.screen} alt={`${demo.name} 화면`} width={960} height={540} loading="lazy" decoding="async" />
+      </Booth>
+      <span className="bd-card-body">
+        <span className="bd-tag">{demo.tag}</span>
+        <b>{demo.name}</b>
+        <span className="bd-desc">{demo.desc}</span>
+        <span className="bd-needs">{(demo.badges ?? demo.needs.map((need) => BOOTH_DEMO_NEEDS[need])).map((badge) => <i key={badge}>{badge}</i>)}</span>
+        <span className="bd-open">데모 열기<ArrowUpRight size={18} strokeWidth={2.2} aria-hidden="true" /></span>
+      </span>
+    </a>
+  )
+}
+
 /** 랜딩 본문 — 서명(cleanKey)이 맞으면 워터마크 없는 데모 주소(demo=clean&k=…)로 열고 안내 문구에서 워터마크 줄을 뺀다 */
 export function BoothDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey?: string; cleanRejected?: boolean }) {
   const clean = Boolean(cleanKey)
@@ -95,7 +116,7 @@ export function BoothDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey
           <div className="bd-hero-copy">
             <p className="bd-eyebrow">가로형 터치 포토부스 · DSLR · 4×6 인화 · 영상</p>
             <h1>찍으면 바로,<br />화보 한 장 · 영상 한 편</h1>
-            <p className="bd-lead">매장과 행사장에서 그대로 도는 포토부스 프로그램 {BOOTH_DEMOS.length}가지입니다. 런웨이 · 한복 · 웨딩 같은 AI 사진, 뮤직비디오 · 추억 영상, AI 아이돌, 행사 · 상설 체험기 맞춤 프로그램까지 — 아래에서 골라 직접 눌러 보세요.</p>
+            <p className="bd-lead">매장과 행사장에서 그대로 도는 포토부스 프로그램 {BOOTH_DEMOS.filter((demo) => !demo.variantOf).length}가지입니다. 런웨이 · 한복 · 웨딩 같은 AI 사진, 뮤직비디오 · 추억 영상, AI 아이돌, 행사 · 상설 체험기 맞춤 프로그램까지 — 길잡이 인물이 영상 속에서 안내하는 영상판은 기본판 바로 옆에 있어요. 아래에서 골라 직접 눌러 보세요.</p>
             <a className="bd-button" href="#demos">데모 고르기<ArrowDown size={20} strokeWidth={2.2} aria-hidden="true" /></a>
           </div>
           <figure className="bd-hero-stage" aria-label="매장 포토부스 화면이 프로그램마다 바뀌며 도는 모습과 인화물">
@@ -118,7 +139,7 @@ export function BoothDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey
 
         <nav className="bd-nav" aria-label="프로그램 종류">
           {GROUPS.map((group) => (
-            <a key={group.id} href={`#bd-${group.id}`}>{group.short}<span>{BOOTH_DEMOS.filter((d) => d.group === group.id).length}</span></a>
+            <a key={group.id} href={`#bd-${group.id}`}>{group.short}<span>{BOOTH_DEMOS.filter((d) => d.group === group.id && !d.variantOf).length}</span></a>
           ))}
         </nav>
 
@@ -128,27 +149,17 @@ export function BoothDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey
             return (
               <section key={group.id} id={`bd-${group.id}`} className="bd-group" aria-labelledby={`bd-${group.id}-title`}>
                 <div className="bd-group-head">
-                  <h2 id={`bd-${group.id}-title`}>{group.title}<span>{demos.length}</span></h2>
+                  <h2 id={`bd-${group.id}-title`}>{group.title}<span>{demos.filter((demo) => !demo.variantOf).length}</span></h2>
                   <p>{group.note}</p>
                 </div>
                 <ul className="bd-grid">
-                  {demos.map((demo) => (
-                    <li key={demo.id}>
-                      <a className="bd-card" href={boothDemoCardHref(demo, cleanKey)} target="_blank" rel="noopener" style={{ '--bd-tone': demo.color } as CSSProperties}>
-                        <Booth print={demo.print}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={demo.screen} alt={`${demo.name} 화면`} width={960} height={540} loading="lazy" decoding="async" />
-                        </Booth>
-                        <span className="bd-card-body">
-                          <span className="bd-tag">{demo.tag}</span>
-                          <b>{demo.name}</b>
-                          <span className="bd-desc">{demo.desc}</span>
-                          <span className="bd-needs">{(demo.badges ?? demo.needs.map((need) => BOOTH_DEMO_NEEDS[need])).map((badge) => <i key={badge}>{badge}</i>)}</span>
-                          <span className="bd-open">데모 열기<ArrowUpRight size={18} strokeWidth={2.2} aria-hidden="true" /></span>
-                        </span>
-                      </a>
-                    </li>
-                  ))}
+                  {withVariants(demos, (demo) => demo.id).map((unit) => unit.length === 1
+                    ? <li key={unit[0].id}><BoothCard demo={unit[0]} cleanKey={cleanKey} /></li>
+                    : (
+                      <li key={unit[0].id} className="bd-set" style={{ '--n': unit.length } as CSSProperties} aria-label={`${unit[0].name} — 기본판과 영상판`}>
+                        {unit.map((demo) => <BoothCard key={demo.id} demo={demo} cleanKey={cleanKey} />)}
+                      </li>
+                    ))}
                 </ul>
               </section>
             )

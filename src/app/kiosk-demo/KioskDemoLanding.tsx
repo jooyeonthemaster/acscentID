@@ -2,6 +2,7 @@ import { ArrowDown, ArrowUpRight, Languages, LayoutGrid, Printer, Smartphone, Sp
 import type { CSSProperties, ReactNode } from 'react'
 import { DemoCleanLinkMaker } from '@/components/demo/DemoCleanLinkMaker'
 import { DemoTabs } from '@/components/demo/DemoTabs'
+import { withVariants } from '@/components/demo/variants'
 import { KIOSK_DEMOS, KIOSK_DEMO_NEEDS, kioskDemoCardHref, type KioskDemo } from '@/lib/kiosk/demo'
 import './kiosk-demo.css'
 
@@ -24,7 +25,6 @@ const GROUPS: { id: KioskDemo['group']; title: string; note: string }[] = [
   { id: 'social', title: '나와 우리를 위한 이야기', note: '카메라 체험과 사람별 답변으로 즐기는 케미' },
   { id: 'interactive', title: '터치로 움직이는 전시', note: '빛의 실험 · 문화유산 탐색' },
   { id: 'housing', title: '주거복지 · 공공 행사', note: '2026 대한민국 주거복지대전 AI 체험존 — 제품 인터랙티브 체험관(TOUCH!) · 비전 월(VISION!) · 미래 직업 탐색(NEXT!) · 우리 집 향 처방(ROOM!)' },
-  { id: 'event', title: '행사 · 팝업 맞춤', note: '행사장에서 그 자리에서 받아 가는 프로그램 — 내 사진으로 만드는 조향 레시피, 시음 와인을 골라 주는 AI 소믈리에(화면판 · 영상판)' },
 ]
 const FEATURES = [
   { Icon: LayoutGrid, title: '프로그램 전환', text: '관리자 화면에서 키오스크마다 다른 프로그램을 골라 운영합니다.' },
@@ -38,6 +38,7 @@ const NOTES = [
   '카메라나 마이크를 쓰는 프로그램은 브라우저가 권한을 물을 때 허용해 주세요.',
   'AI가 분석하는 데 3~7초, 사진으로 그림을 새로 만드는 프로그램은 10~20초쯤 걸립니다.',
   '영수증 출력은 프린터가 달린 실제 키오스크에서 동작합니다. 브라우저에서는 미리보기로 보여 줍니다.',
+  '영상판은 촬영 · AI · 결과가 기본판과 같고 화면 겉모습만 다릅니다. 영상을 처음 받는 동안(프로그램마다 15~37MB) 잠시 그림으로 보일 수 있습니다.',
   '데모 화면에는 DEMO 워터마크가 표시됩니다. 실제 매장 키오스크에는 표시되지 않습니다.',
 ]
 /** 머리말의 키오스크 한 대 — 화면이 이 차례로 3초마다 바뀐다(움직임 줄이기를 켠 브라우저는 첫 화면에 머문다) */
@@ -61,6 +62,27 @@ export function Kiosk({ children, className }: { children: ReactNode; className?
   )
 }
 
+const demoKey = (demo: KioskDemo) => demo.id ?? demo.mode
+
+/** 프로그램 카드 한 장 — 영상판(lab=video)은 첫 장면 그림, 그 밖은 첫 화면 캡처 */
+function KioskCard({ demo, cleanKey }: { demo: KioskDemo; cleanKey?: string }) {
+  return (
+    <a className="kd-card" href={kioskDemoCardHref(demo, cleanKey)} target="_blank" rel="noopener" style={{ '--kd-tone': demo.color } as CSSProperties}>
+      <Kiosk>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={demo.screen ?? screenShot(demo.mode)} alt={`${demo.name} 첫 화면`} width={600} height={1067} loading="lazy" decoding="async" />
+      </Kiosk>
+      <span className="kd-card-body">
+        <span className="kd-tag">{demo.tag}</span>
+        <b>{demo.name}</b>
+        <span className="kd-desc">{demo.desc}</span>
+        <span className="kd-needs">{demo.needs.map((need) => <i key={need}>{KIOSK_DEMO_NEEDS[need]}</i>)}{demo.lab === 'video' && <i>영상 안내</i>}</span>
+        <span className="kd-open">데모 열기<ArrowUpRight size={18} strokeWidth={2.2} aria-hidden="true" /></span>
+      </span>
+    </a>
+  )
+}
+
 /** 랜딩 본문 — 서명(cleanKey)이 맞으면 워터마크 없는 데모 주소(demo=clean&k=…)로 열고 안내 문구에서 워터마크 줄을 뺀다 */
 export function KioskDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey?: string; cleanRejected?: boolean }) {
   const clean = Boolean(cleanKey)
@@ -79,8 +101,8 @@ export function KioskDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey
         <section className="kd-hero">
           <div className="kd-hero-copy">
             <p className="kd-eyebrow">세로형 터치 키오스크 · 1080 × 1920</p>
-            <h1>키오스크 한 대,<br />체험 프로그램 {KIOSK_DEMOS.length}가지</h1>
-            <p className="kd-lead">매장과 행사장에 세우는 키오스크에서 그대로 도는 프로그램입니다. 아래에서 골라 직접 눌러 보세요.</p>
+            <h1>키오스크 한 대,<br />체험 프로그램 {KIOSK_DEMOS.filter((demo) => !demo.variantOf).length}가지</h1>
+            <p className="kd-lead">매장과 행사장에 세우는 키오스크에서 그대로 도는 프로그램입니다. 길잡이 인물이 영상 속에서 안내하는 영상판은 기본판 바로 옆에 있어요. 아래에서 골라 직접 눌러 보세요.</p>
             <a className="kd-button" href="#demos">데모 고르기<ArrowDown size={20} strokeWidth={2.2} aria-hidden="true" /></a>
           </div>
           <figure className="kd-hero-stage" aria-label="매장 키오스크에서 프로그램이 바뀌며 도는 모습">
@@ -104,27 +126,17 @@ export function KioskDemoLanding({ cleanKey, cleanRejected = false }: { cleanKey
             return (
               <section key={group.id} className="kd-group" aria-labelledby={`kd-${group.id}`}>
                 <div className="kd-group-head">
-                  <h2 id={`kd-${group.id}`}>{group.title}<span>{demos.length}</span></h2>
+                  <h2 id={`kd-${group.id}`}>{group.title}<span>{demos.filter((demo) => !demo.variantOf).length}</span></h2>
                   <p>{group.note}</p>
                 </div>
                 <ul className="kd-grid">
-                  {demos.map((demo) => (
-                    <li key={demo.id ?? demo.mode}>
-                      <a className="kd-card" href={kioskDemoCardHref(demo, cleanKey)} target="_blank" rel="noopener" style={{ '--kd-tone': demo.color } as CSSProperties}>
-                        <Kiosk>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={demo.screen ?? screenShot(demo.mode)} alt={`${demo.name} 첫 화면`} width={600} height={1067} loading="lazy" decoding="async" />
-                        </Kiosk>
-                        <span className="kd-card-body">
-                          <span className="kd-tag">{demo.tag}</span>
-                          <b>{demo.name}</b>
-                          <span className="kd-desc">{demo.desc}</span>
-                          <span className="kd-needs">{demo.needs.map((need) => <i key={need}>{KIOSK_DEMO_NEEDS[need]}</i>)}</span>
-                          <span className="kd-open">데모 열기<ArrowUpRight size={18} strokeWidth={2.2} aria-hidden="true" /></span>
-                        </span>
-                      </a>
-                    </li>
-                  ))}
+                  {withVariants(demos, demoKey).map((unit) => unit.length === 1
+                    ? <li key={demoKey(unit[0])}><KioskCard demo={unit[0]} cleanKey={cleanKey} /></li>
+                    : (
+                      <li key={demoKey(unit[0])} className="kd-set" style={{ '--n': unit.length } as CSSProperties} aria-label={`${unit[0].name} — 기본판과 영상판`}>
+                        {unit.map((demo) => <KioskCard key={demoKey(demo)} demo={demo} cleanKey={cleanKey} />)}
+                      </li>
+                    ))}
                 </ul>
               </section>
             )

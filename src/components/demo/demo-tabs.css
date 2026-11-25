@@ -8,7 +8,7 @@
 .dt .dt-tab:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
 .dt .dt-tab[aria-current='page'] { background: #fff; color: #141416; border-color: #fff; }
 .dt .dt-tab[aria-current='page'] span { opacity: 0.6; }
-/* 휴대폰 — 설명 글자를 빼고 세 탭을 한 줄에 */
+/* 휴대폰 — 설명 글자를 빼고 두 탭을 한 줄에 */
 @media (max-width: 480px) {
   .dt .dt-tab { padding: 9px 13px; font-size: 14px; }
   .dt .dt-tab span { display: none; }

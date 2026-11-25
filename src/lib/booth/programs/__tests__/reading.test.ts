@@ -100,7 +100,7 @@ test('운영 모드 · 이용권 · 랜딩 — 세 프로그램은 행사 모드
     assert.equal(p.event, true)
     assert.ok(BOOTH_MODES.some((m) => m.id === id && m.program === id))
     assert.equal(passRequiredFor(id), false)
-    assert.deepEqual(BOOTH_DEMOS.filter((d) => d.mode === id).map((d) => d.group), ['event'])
+    assert.deepEqual(BOOTH_DEMOS.filter((d) => d.mode === id && !d.variantOf).map((d) => d.group), ['event'])
     assert.ok(p.creative && p.designs.length === 2)
   }
   assert.equal(PROGRAMS.filter((p) => p.kind === 'reading').length, 3)
