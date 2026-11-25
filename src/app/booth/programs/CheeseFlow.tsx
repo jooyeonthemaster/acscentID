@@ -199,7 +199,7 @@ function ShootStep({ ctx, shots, onShots, onNext }: { ctx: FlowCtx; shots: HTMLC
           {done ? (
             <div className="ch-four">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {thumbs.map((t, i) => <img key={i} src={t} alt={`${i + 1}번째 컷`} />)}
+              {thumbs.map((t, i) => <span key={i} className="ch-four-cell"><img src={t} alt={`${i + 1}번째 컷`} /></span>)}
             </div>
           ) : (
             <>

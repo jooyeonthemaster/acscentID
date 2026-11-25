@@ -110,13 +110,16 @@
   animation: ch-tick 1s ease-out both;
 }
 @keyframes ch-tick { from { transform: scale(1.14); opacity: 0.4; } 30% { transform: none; opacity: 1; } }
-.ch-four { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: #fff; }
-.ch-four img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+/* 다 찍은 네 컷 — 칸(span)마다 사진을 absolute 로 꽉 채운다. 격자 칸 안 img 의 height: 100% 는 WebKit(Safari)이 칸이 아니라 격자 전체 높이로 계산해
+   사진이 세로로 두 배가 되어 확대 · 잘려 보였다(2026-11-25 현장 제보, WebKit 실측 234px → 472px) */
+.ch-four { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #fff; }
+.ch-four-cell { position: relative; min-width: 0; min-height: 0; overflow: hidden; border-radius: 6px; }
+.ch-four-cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .ch-shoot-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
 .ch-slots { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .ch-slots li { position: relative; aspect-ratio: 3 / 4; border-radius: 8px; overflow: hidden; display: grid; place-items: center; background: rgba(20, 20, 20, 0.05); border: 1px dashed rgba(20, 20, 20, 0.2); }
 .ch-slots li b { font-size: 22px; font-weight: 700; color: rgba(20, 20, 20, 0.3); }
-.ch-slots li img { width: 100%; height: 100%; object-fit: cover; }
+.ch-slots li img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .ch-slots li[data-now] { border: 2px solid var(--ch-ink); }
 .ch-consent { margin: auto 0 0; font-size: 12px; line-height: 1.55; color: var(--ch-muted); word-break: keep-all; }
 .ch-consent b { color: var(--ch-ink); font-weight: 600; }
@@ -124,15 +127,15 @@
 
 /* ── 프레임 고르기 · 인화 — 왼쪽 4×6 미리보기, 오른쪽 타일 · 장수 / 인쇄 · QR ── */
 .ch-frame-body { flex: 1; min-height: 0; display: flex; gap: 16px; }
-.ch-sheet { height: 100%; aspect-ratio: 2 / 3; flex: none; display: grid; place-items: center; }
-.ch-sheet img { width: 100%; height: 100%; object-fit: contain; border-radius: 4px; box-shadow: 0 10px 28px rgba(20, 20, 20, 0.2), 0 0 0 1px rgba(20, 20, 20, 0.06); }
-.ch-sheet-wait { width: 100%; height: 100%; border-radius: 4px; background: rgba(20, 20, 20, 0.06); animation: ch-wait 1.2s ease-in-out infinite alternate; }
+.ch-sheet { position: relative; height: 100%; aspect-ratio: 2 / 3; flex: none; }
+.ch-sheet img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 4px; box-shadow: 0 10px 28px rgba(20, 20, 20, 0.2), 0 0 0 1px rgba(20, 20, 20, 0.06); }
+.ch-sheet-wait { position: absolute; inset: 0; border-radius: 4px; background: rgba(20, 20, 20, 0.06); animation: ch-wait 1.2s ease-in-out infinite alternate; }
 @keyframes ch-wait { to { opacity: 0.5; } }
 .ch-frame-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
 .ch-frame-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .ch-frame-grid button { position: relative; padding: 0; border: 0; background: none; border-radius: 8px; cursor: pointer; }
-.ch-thumb { display: block; aspect-ratio: 2 / 3; border-radius: 6px; overflow: hidden; background: rgba(20, 20, 20, 0.06); box-shadow: 0 0 0 1px rgba(20, 20, 20, 0.12); }
-.ch-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ch-thumb { position: relative; display: block; aspect-ratio: 2 / 3; border-radius: 6px; overflow: hidden; background: rgba(20, 20, 20, 0.06); box-shadow: 0 0 0 1px rgba(20, 20, 20, 0.12); }
+.ch-thumb img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
 .ch-frame-grid button[aria-checked='true'] .ch-thumb { box-shadow: 0 0 0 3px var(--ch-ink); }
 .ch-frame-grid button i { position: absolute; right: -5px; top: -5px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--ch-ink); color: #fff; }
 .ch-frame-name { margin: 0; display: flex; align-items: baseline; gap: 10px; padding-top: 10px; border-top: 1px solid var(--ch-line); }
@@ -174,8 +177,8 @@
   flex: 1; min-height: 0; padding: 14px 16px; display: grid; gap: 14px 18px;
   grid-template-columns: auto minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto;
 }
-.ch-app-view { grid-row: 1 / span 2; height: 100%; aspect-ratio: 2 / 3; display: grid; place-items: center; }
-.ch-app-sheet { width: 100%; height: 100%; object-fit: contain; border-radius: 3px; box-shadow: 0 8px 24px rgba(20, 20, 20, 0.16), 0 0 0 1px rgba(20, 20, 20, 0.06); }
+.ch-app-view { position: relative; grid-row: 1 / span 2; height: 100%; aspect-ratio: 2 / 3; }
+.ch-app-sheet { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 3px; box-shadow: 0 8px 24px rgba(20, 20, 20, 0.16), 0 0 0 1px rgba(20, 20, 20, 0.06); }
 .ch-app-sec { min-height: 0; }
 .ch-app-sec h3 { margin: 0 0 10px; display: flex; align-items: baseline; gap: 10px; height: 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: var(--ch-muted); white-space: nowrap; }
 .ch-app-sec h3 b { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: var(--ch-ink); }
