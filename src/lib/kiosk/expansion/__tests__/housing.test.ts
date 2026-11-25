@@ -62,7 +62,7 @@ test('AI 요청 — 레시피는 주거복지대전 3종만, 주향 후보는 �
   const prefer = preferIds(scentRanked(scent()))
   const req = readAiRequest({ id: 'housing-scent', photo: null, answers: [], candidates: [], context: '', recipe: { prefer: [...prefer, 'nope', prefer[0]] } })!
   assert.deepEqual(req.recipe?.prefer, prefer)
-  assert.equal(readAiRequest({ id: 'scent', photo: null, answers: [], candidates: [], context: '', recipe: { prefer } })!.recipe, undefined)
+  assert.equal(readAiRequest({ id: 'sommelier', photo: null, answers: [], candidates: [], context: '', recipe: { prefer } })!.recipe, undefined)
   const prompt = buildAiPrompt(req)
   assert.match(prompt, /AC'SCENT 30/)
   assert.match(prompt, /합은 정확히 100/)

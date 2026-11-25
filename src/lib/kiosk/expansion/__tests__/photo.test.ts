@@ -95,10 +95,6 @@ test('옷 색과 닮은 칵테일·컬러, 옷 팔레트의 스타일·향', () 
   assert.equal(earth.primary.palette?.[0], earth.primary.sections.at(-1) && wearing('#8B5A2B')[0].hex, '무드보드 첫 색은 옷에서 읽은 색')
   assert.ok(earth.primary.sections.at(-1)!.items!.some((x) => /어스 톤을 쓰는 스타일 \+12점/.test(x)))
 
-  const scent: Answers = { families: ['floral'], occasion: 'everyday', mood: 'fresh', intensity: 3, avoided: [] }
-  const yellow = recommend('scent', scent, reading({ outfit: wearing('#F1C40F') }))
-  assert.ok(yellow.primary.sections.at(-1)!.items!.some((x) => x.startsWith('옷 색 옐로 → 시트러스')))
-
   const aura: Answers = { mood: 'calm', energy: 2, atmosphere: 'quiet', color: 'lavender' }
   const sky = recommend('aura', aura, reading({ outfit: wearing('#87CEEB') }))
   assert.ok([sky.primary, ...sky.alternatives].some((r) => r.sections.at(-1)!.items!.some((x) => x.includes('옷 색 스카이 블루와 가장 닮은 하늘색의 숨 고르기 +12점'))))
@@ -196,7 +192,6 @@ test('표정을 읽는 취향 체험은 세 표정 모두에서 사진 점수를
     'taste-dna': { tastes: ['sweet', 'nutty'], intensity: 3, pairing: 'fresh', texture: 'crisp', excluded: [] },
     aura: { mood: 'calm', energy: 2, atmosphere: 'quiet', color: 'lavender' },
     travel: { companion: 'solo', duration: 'day', activities: ['culture'], pace: 'balanced', setting: 'mixed', planning: 'planned' },
-    scent: { families: ['floral'], occasion: 'everyday', mood: 'fresh', intensity: 3, avoided: [] },
   }
   for (const [id, a] of Object.entries(answers)) for (const smile of [5, 50, 90]) {
     const bundle = recommend(id as Parameters<typeof recommend>[0], a, reading({ faces: [face({ smile })] }))

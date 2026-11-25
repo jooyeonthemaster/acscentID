@@ -26,7 +26,6 @@ export const VIDEO_SOON_GUIDE: Record<string, string> = {
   'studio-vision-wall': '전시 큐레이터 서진',
   'studio-heritage': '궁궐 해설사 이랑',
   'studio-travel': '여행 가이드 바다',
-  'studio-scent': '향수 큐레이터 로운',
   'studio-face': '얼굴 이야기 화가 연우',
   'studio-couple': '커플 포토플래너 다온',
   'studio-housing-scent': '홈 퍼퓨머 새봄',

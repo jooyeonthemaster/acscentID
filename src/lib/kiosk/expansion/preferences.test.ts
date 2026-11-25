@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { perfumes } from '../../../data/perfumes'
 import { initialAnswers, PREFERENCES, recommend, summarizeAnswers, validateAnswers } from './preferences'
 import type { Answers, ExperienceResult, PreferenceId, RecommendationBundle } from './types'
 
@@ -16,8 +15,8 @@ function valid(id: PreferenceId): Answers {
 const all = (b: RecommendationBundle): ExperienceResult[] => [b.primary, ...b.alternatives]
 const text = (r: ExperienceResult): string => `${r.title} ${r.summary} ${r.sections.map(s => `${s.title} ${s.body} ${(s.items ?? []).join(' ')}`).join(' ')}`
 
-test('nine definitions contain useful input steps and all picks start unselected', () => {
-  assert.equal(IDS.length, 9)
+test('eight definitions contain useful input steps and all picks start unselected', () => {
+  assert.equal(IDS.length, 8)
   for (const id of IDS) {
     const d = PREFERENCES[id], answers = initialAnswers(id)
     assert.ok(d.steps.length >= 2 && d.steps.length <= 3, id)
@@ -220,20 +219,6 @@ test('two-day outdoor itineraries keep both days even when catalog candidates re
   }
 })
 
-test('scent matching uses only the actual catalog and displays registered notes without invented pyramid', () => {
-  const citrus = recommend('scent', { ...valid('scent'), families: ['citrus'], mood: 'fresh', intensity: 1, avoided: ['spicy'] })
-  const woods = recommend('scent', { ...valid('scent'), families: ['woody', 'musky'], mood: 'warm', intensity: 5, occasion: 'evening' })
-  assert.notEqual(citrus.primary.id, woods.primary.id)
-  for (const r of all(citrus)) {
-    const source = perfumes.find(p => p.id === r.id)
-    assert.ok(source)
-    assert.ok(source.characteristics.spicy < 7)
-    assert.deepEqual(r.sections.find(s => s.title === '대표·보조 노트')!.items, [`대표 노트: ${source.mainScent.name}`, `보조 노트 1: ${source.subScent1.name}`, `보조 노트 2: ${source.subScent2.name}`])
-    assert.doesNotMatch(text(r), /AC['’]SCENT|탑 노트|미들 노트|베이스 노트/)
-  }
-  assert.ok(validateAnswers('scent', { ...valid('scent'), families: ['citrus'], avoided: ['citrus'] }).avoided)
-})
-
 test('one change in every input is reflected in the result or its explanation', () => {
   for (const id of IDS) {
     const base = valid(id), original = recommend(id, base)
@@ -270,7 +255,6 @@ test('result sentences attach the right Korean particle to every chosen word', a
     ['aura', { ...valid('aura'), color: 'lavender' }],
     ['travel', { ...valid('travel'), activities: ['nature', 'food', 'craft'], pace: 'active' }],
     ['sommelier', { ...valid('sommelier'), occasion: 'meal' }],
-    ['scent', { ...valid('scent'), occasion: 'everyday' }],
   ]
   for (const [id, a] of cases) for (const r of all(recommend(id, a))) assert.doesNotMatch(`${r.subtitle} ${text(r)}`, bad, `${id}:${r.id}`)
 })

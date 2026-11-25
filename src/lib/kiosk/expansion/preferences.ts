@@ -1,4 +1,3 @@
-import { perfumes } from '../../../data/perfumes'
 import { josa } from './korean'
 import { colorDistance, expression, hexToLab, outfitLook, PALETTE_NAMES, PHOTO_PLANS, readingLine, type ColorFamily, type PhotoReading } from './photo'
 import type { Answers, AnswerSummary, ChoiceOption, ExperienceResult, PreferenceDefinition, PreferenceId, Question, RecommendationBundle, ResultMetric, ResultSection } from './types'
@@ -11,7 +10,6 @@ const single = (key: string, title: string, entries: readonly (readonly [string,
 const multi = (key: string, title: string, entries: readonly (readonly [string, string, string?])[], min = 1, max = 3, note?: string): Question => ({ key, title, type: 'multi', required: min > 0, min, max, options: options(entries), note: note ?? `${min ? `${min}개 이상, ` : '없으면 선택하지 않아도 돼요. '}${max}개까지 골라주세요.` })
 const scale = (key: string, title: string, note: string): Question => ({ key, title, note, type: 'scale', min: 1, max: 5, step: 1, initial: 3, required: true })
 const wardrobe = options([['shirt', '셔츠'], ['knit', '니트'], ['jacket', '재킷'], ['pants', '팬츠'], ['skirt', '스커트'], ['sneakers', '스니커즈'], ['loafers', '로퍼']])
-const scentFamilies = [['citrus', '시트러스', '귤·레몬처럼 산뜻한 향'], ['floral', '플로럴', '꽃잎처럼 부드러운 향'], ['woody', '우디', '나무와 숲의 깊은 향'], ['musky', '머스크', '포근하고 깨끗한 잔향'], ['fruity', '프루티', '과일의 달콤한 향'], ['spicy', '스파이시', '향신료의 따뜻한 향']] as const
 
 export const PREFERENCES: Record<PreferenceId, PreferenceDefinition> = {
   sommelier: {
@@ -94,16 +92,6 @@ export const PREFERENCES: Record<PreferenceId, PreferenceDefinition> = {
       { title: '코스 조건', questions: [single('setting', '실내와 야외 중 어디가 좋나요?', [['indoor', '실내만'], ['mixed', '실내·야외 모두'], ['outdoor', '야외 중심']]), single('planning', '계획하는 방법', [['planned', '순서와 시간을 정해요'], ['flexible', '현장에서 바꿔요']])] },
     ],
   },
-  scent: {
-    id: 'scent', headline: '나를 위한 향의 아카이브', description: '직접 고른 취향으로 나에게 맞는 향을 비교해요.', resultLabel: '시향 후보',
-    guide: ['좋아하는 향 계열을 한두 가지 골라요.', '사용할 순간과 원하는 분위기를 더해요.', '실제 향료 목록에서 고른 후보와 노트를 비교해요.'],
-    footnote: '기존 향료 목록에서 고른 시향 후보입니다. 조향 비율·재고·피부 적합성을 뜻하지 않으며 시향 후 선택해주세요.',
-    steps: [
-      { title: '향 계열', questions: [multi('families', '좋아하는 향은 어떤 계열인가요?', scentFamilies, 1, 2)] },
-      { title: '순간과 분위기', questions: [single('occasion', '주로 언제 사용할까요?', [['everyday', '매일 가볍게'], ['work', '일하는 시간'], ['date', '소중한 만남'], ['evening', '저녁의 여유']]), single('mood', '원하는 분위기', [['fresh', '싱그럽게'], ['soft', '포근하게'], ['warm', '깊고 따뜻하게'], ['distinct', '개성 있게']])] },
-      { title: '향의 존재감', questions: [scale('intensity', '원하는 향의 느낌', '1 가볍게 · 5 깊게'), multi('avoided', '진하게 느껴지면 부담스러운 계열', scentFamilies, 0, 4, '해당 계열의 강도가 높은 향료를 후보에서 제외해요. 성분 제외나 알레르기 검사가 아닙니다.')] },
-    ],
-  },
 }
 
 const definition = (id: PreferenceId): PreferenceDefinition => {
@@ -152,7 +140,6 @@ export function validateAnswers(id: PreferenceId, answers: Answers): Record<stri
     if ((included.includes('pants') && included.includes('skirt')) || (included.includes('sneakers') && included.includes('loafers'))) errors.included = '하의와 신발은 각각 한 종류만 포함해주세요.'
     if (excluded.includes('pants') && excluded.includes('skirt')) errors.excluded = '팬츠나 스커트 중 한 종류는 남겨주세요.'
   }
-  if (id === 'scent' && list(answers, 'families').some(x => list(answers, 'avoided').includes(x))) errors.avoided = '좋아하는 향 계열과 부담스러운 계열을 다르게 골라주세요.'
   return errors
 }
 
@@ -529,38 +516,8 @@ function travelResults(a: Answers, photo: PhotoReading | null): Ranked[] {
   })
 }
 
-type ScentFamily = keyof (typeof perfumes)[number]['characteristics']
-/** 옷 색이 떠올리게 하는 향 계열 */
-const SCENT_OF: Record<ColorFamily, ScentFamily> = { yellow: 'citrus', orange: 'citrus', green: 'citrus', mint: 'citrus', sky: 'citrus', red: 'fruity', coral: 'fruity', pink: 'floral', lavender: 'floral', purple: 'floral', brown: 'woody', beige: 'woody', khaki: 'woody', burgundy: 'spicy', black: 'spicy', charcoal: 'woody', navy: 'woody', blue: 'musky', gray: 'musky', white: 'musky' }
-function scentBoost(p: (typeof perfumes)[number], photo: PhotoReading): Boost {
-  const b = boost(), face = expression(photo), c = p.characteristics
-  const families = [...new Set(photo.outfit.filter((x, i) => i === 0 || x.share >= 0.25).slice(0, 2).map(x => SCENT_OF[x.family]))]
-  for (const family of families) add(b, Math.round(c[family] * 1.2), `옷 색 ${photo.outfit.filter(x => SCENT_OF[x.family] === family).map(x => x.name).join('·')} → ${label('scent', 'families', family)} ${c[family]}/10`)
-  if (face?.bright) add(b, Math.round((c.fruity + c.citrus) / 2 * 0.8), `${face.label} → 상큼한 과일·시트러스`)
-  if (face?.calm) add(b, Math.round(c.musky * 0.8), `${face.label} → 포근한 머스크`)
-  if (face && !face.bright && !face.calm) add(b, Math.round(c.floral * 0.8), `${face.label} → 부드러운 플로럴`)
-  if (photo.outfit.length) b.palette = outfitPalette(photo, [p.primaryColor, p.secondaryColor], 3)
-  return b
-}
-function scentResults(a: Answers, photo: PhotoReading | null): Ranked[] {
-  type Family = ScentFamily
-  const selected = list(a, 'families') as Family[], avoided = list(a, 'avoided') as Family[], strength = num(a, 'intensity')
-  const pool = perfumes.filter(p => !avoided.some(f => p.characteristics[f] >= 7))
-  if (!pool.length) throw new Error('부담스러운 향 계열을 반영하면 시향 후보가 없어요. 제외할 계열을 조금 줄여주세요.')
-  return pool.map(p => {
-    const c = p.characteristics
-    const depth = (c.woody + c.spicy + c.musky) / 3
-    const moodScore = str(a, 'mood') === 'fresh' ? c.citrus + c.fruity * .5 : str(a, 'mood') === 'soft' ? c.musky + c.floral * .5 : str(a, 'mood') === 'warm' ? c.woody + c.spicy * .5 : c.spicy + Math.abs(c.woody - c.fruity) * .5
-    const occasionScore = ['work', 'everyday'].includes(str(a, 'occasion')) ? c.citrus + c.musky - c.spicy : str(a, 'occasion') === 'date' ? c.floral + c.fruity : c.woody + c.musky
-    const score = selected.reduce((sum, f) => sum + c[f] * 4, 0) + moodScore * 1.5 + occasionScore - Math.abs(depth - strength * 2) * 2
-    const match = selected.map(f => `${label('scent', 'families', f)} ${c[f]}/10`)
-    return withPhoto('scent', photo, { score, result: {
-      id: p.id, title: p.name, subtitle: `${selectedText('scent', a, 'mood')} 느껴보고 싶은 시향 후보`, summary: `${p.description} 고른 ${labels('scent', 'families', selected)} 계열, 사용할 때(${selectedText('scent', a, 'occasion')}), 원하는 분위기(${selectedText('scent', a, 'mood')})를 함께 반영했어요.`, tags: selected.map(f => label('scent', 'families', f)), metrics: scentFamilies.map(([id, name]) => metric(name, c[id], 10)), palette: [p.primaryColor, p.secondaryColor, '#F7F1E7'], sections: [section('대표·보조 노트', '대표적인 향과 함께 어우러지는 노트를 비교해보세요.', [`대표 노트: ${p.mainScent.name}`, `보조 노트 1: ${p.subScent1.name}`, `보조 노트 2: ${p.subScent2.name}`]), section('취향과 만나는 지점', `${match.join(' · ')}. 원하는 깊이 ${strength}/5와 ${selectedText('scent', a, 'mood')} 무드를 함께 비교했어요.`), section('나란히 시향하기', '서로 다른 시향지에 향 이름을 적고 첫 느낌과 잠시 뒤의 느낌을 비교해보세요.', [`사용할 때: ${selectedText('scent', a, 'occasion')}`, `강하게 느껴지는 계열 제외: ${labels('scent', 'avoided', avoided) || '없음'}`, '향의 강도 지표는 상대적인 특징이며 지속시간이나 조향 비율이 아닙니다.'])],
-    } }, photo && scentBoost(p, photo))
-  })
-}
 
-const ENGINES: Record<PreferenceId, (a: Answers, photo: PhotoReading | null) => Ranked[]> = { sommelier: wineResults, cocktail: drinkResults, barista: coffeeResults, 'taste-dna': tasteResults, 'style-profiler': styleResults, coord: outfitResults, aura: auraResults, travel: travelResults, scent: scentResults }
+const ENGINES: Record<PreferenceId, (a: Answers, photo: PhotoReading | null) => Ranked[]> = { sommelier: wineResults, cocktail: drinkResults, barista: coffeeResults, 'taste-dna': tasteResults, 'style-profiler': styleResults, coord: outfitResults, aura: auraResults, travel: travelResults }
 
 /** photo — 사진에서 읽은 것(없으면 답변만으로). 사진이 더한 점수와 까닭은 후보마다 '사진에서 읽은 것'에 적힌다 */
 export function recommend(id: PreferenceId, answers: Answers, photo: PhotoReading | null = null): RecommendationBundle {

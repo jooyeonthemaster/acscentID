@@ -1,5 +1,5 @@
 import type { ScentRecipe } from './recipe'
-export const EXPANSION_IDS = ["sommelier","cocktail","barista","taste-dna","style-profiler","coord","lookalike","science","palm","aura","product","team","vision-wall","heritage","travel","scent","face","couple","housing-scent","housing-home","housing-mate","sommelier-nh"] as const
+export const EXPANSION_IDS = ["sommelier","cocktail","barista","taste-dna","style-profiler","coord","lookalike","science","palm","aura","product","team","vision-wall","heritage","travel","face","couple","housing-scent","housing-home","housing-mate","sommelier-nh"] as const
 export type ExpansionId = (typeof EXPANSION_IDS)[number]
 export const isExpansionId = (id: string): id is ExpansionId => (EXPANSION_IDS as readonly string[]).includes(id)
 export const EXPANSION_META = {
@@ -123,14 +123,6 @@ export const EXPANSION_META = {
     "category": "관광",
     "hero": "/assets/kiosk-expansion/travel.webp"
   },
-  "scent": {
-    "name": "향수 소울메이트",
-    "tag": "SCENT!",
-    "color": "#58694F",
-    "note": "사진 + 향 취향·무드 → AI가 골라 주는 시향 후보와 노트",
-    "category": "기존 기능 확장",
-    "hero": "/assets/kiosk-expansion/scent.webp"
-  },
   "face": {
     "name": "관상에서 착안한 이야기",
     "tag": "FACE!",
@@ -182,7 +174,7 @@ export const EXPANSION_META = {
     "category": "식음료",
     "hero": "/assets/kiosk-expansion/sommelier.webp"
   }} as const
-export type PreferenceId = 'sommelier' | 'cocktail' | 'barista' | 'taste-dna' | 'style-profiler' | 'coord' | 'aura' | 'travel' | 'scent'
+export type PreferenceId = 'sommelier' | 'cocktail' | 'barista' | 'taste-dna' | 'style-profiler' | 'coord' | 'aura' | 'travel'
 export type Answers = Record<string, string | string[] | number>
 export interface ChoiceOption { id: string; label: string; note?: string; color?: string; icon?: string }
 export interface Question { key: string; title: string; note?: string; type: 'single' | 'multi' | 'scale'; options?: ChoiceOption[]; min?: number; max?: number; step?: number; initial?: number; required?: boolean; unit?: string }

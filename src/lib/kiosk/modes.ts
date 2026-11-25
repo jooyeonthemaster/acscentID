@@ -477,8 +477,9 @@ export const DEFAULT_KIOSK_MODE = KIOSK_MODES[0]
 /**
  * 이름이 바뀐 모드 — 기기 설정에 옛 id 가 남아 있어도 매장 기본 모드로 떨어지지 않게 새 모드로 읽는다.
  * 'ai-lab'(퍼스널 컬러 + 타로를 고르는 모드)은 2026-10-09 에 'ai-color' · 'ai-tarot' 두 모드로 나뉘었다.
+ * 'studio-scent'(향수 소울메이트)는 2026-11-25 사용자 지시로 없앴다 — 같은 향 추천인 SCENT! AI 조향사로 읽는다.
  */
-const LEGACY_KIOSK_MODE_IDS: Record<string, string> = { 'ai-lab': 'ai-color' }
+const LEGACY_KIOSK_MODE_IDS: Record<string, string> = { 'ai-lab': 'ai-color', 'studio-scent': 'ai-perfumer' }
 
 /** 저장·미리보기에서 받는 id — 지금 모드 + 옛 이름 */
 export const KIOSK_MODE_IDS = [...KIOSK_MODES.map((m) => m.id), ...Object.keys(LEGACY_KIOSK_MODE_IDS)]
