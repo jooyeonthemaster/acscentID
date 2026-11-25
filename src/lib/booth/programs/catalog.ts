@@ -14,6 +14,8 @@ export const PROGRAM_IDS = [
   'ansan-2026',
   // ANSAN 타임캡슐을 일반 프로그램으로(2026-11-18) — 오리지널 괴짜 발명가 「나중 박사」의 타임캡슐 영상판(흐름 LaterFlow.tsx, 영상 video-stage.tsx LATER)
   'later',
+  // CHEESE! 스튜디오(2026-11-25) — 일반 포토부스를 영상판으로: 포토그래퍼 「온유」의 현대 사진 스튜디오에서 네 컷을 찍고 프레임 8종 중 하나로 4×6 세로 2×2 인화(AI 없음, CheeseFlow.tsx)
+  'cheese',
   // 펀그라운드 별내(9~19세 공공시설) 상설 체험기 견적 A안의 새 프로그램(2026-11-14) — 펀그라운드 데모(/booth-demo/funground)에서만 연다(site)
   'quest', 'mvp',
   // 펀그라운드 A안 DREAM! 꿈의 직업 포토(2026-11-14) — 옷 · 배경만 바꾸는 사진형이라 Seedream($0.018)
@@ -27,8 +29,9 @@ export type ProgramId = (typeof PROGRAM_IDS)[number]
  * photo: AI 사진 한 장 → 4×6 인화·QR / mv: 15초 촬영 영상 편집 / movie: 휴대폰 사진 5~20장 → 슬라이드 영상
  * strip: 한 컷 → 지금 + AI 세 장 = 2×6 사진 네 컷(4×6 한 장에 사진 둘, 프린터 2인치 자르기) — ANSAN 타임캡슐
  * reading: 한 컷(+ 생년월일) → AI 가 새해 이야기 글 → 찍은 사진 + 글을 기기 안에서 4×6 으로 합성(그림 생성 없음) — 연말 시상식 관상 · 사주 · 손금
+ * studio: 네 컷 연속 촬영 → 프레임 고르기 → 4×6 세로 한 장에 2×2(AI 없음, 기기 안 합성) — CHEESE! 스튜디오
  */
-export type ProgramKind = 'photo' | 'mv' | 'movie' | 'strip' | 'reading'
+export type ProgramKind = 'photo' | 'mv' | 'movie' | 'strip' | 'reading' | 'studio'
 
 export interface ProgramOption {
   id: string
@@ -616,6 +619,20 @@ export const PROGRAMS: ProgramDef[] = [
     creative: 'AI가 만든 재미로 보는 상상 사진이에요. 실제 미래 모습과는 달라요',
     intro: '/assets/booth-programs/later-video/garage.webp', script: 'See you later!', designs: ['화이트', '블랙'],
     card: { tag: 'LATER!', desc: '나중 박사의 타임캡슐을 타고 10 · 20 · 30년 뒤의 우리를 만나요 — 혼자~4명 한 컷이 2×6 사진 네 컷으로.', color: '#1f4fd8', badges: ['AI 생성', '영상판', '1~4인', '2×6 사진'] },
+  },
+  // CHEESE! 스튜디오 — 늘 영상판(포토그래퍼 온유: 입구 라운지 → 카메라 뒤 네 컷 촬영 → 모니터석 프레임 고르기 → 인화 데스크 → 배웅).
+  // AI 없이 찍은 네 컷을 기기 안에서 4×6 세로 2×2 로(cheese-print.ts, 프레임 8종). 화면 CheeseFlow.tsx · cheese.css, 그림 · 영상 public/assets/booth-programs/cheese-video
+  {
+    id: 'cheese', kind: 'studio', name: '치즈 스튜디오', wordmark: 'CHEESE!',
+    headline: '오늘의 우리를\n네 컷에 담아요', lead: '포토그래퍼 온유와 네 컷을 찍고, 프레임을 골라 4×6 사진으로 가져가요',
+    steps: ['네 컷 촬영', '프레임 고르기', '인화'], startCta: '촬영 시작하기',
+    capture: { title: '카메라를 보고\n웃어 주세요', hint: '혼자도, 친구 · 가족과 함께도 좋아요. 모두 화면 안에 들어와 주세요', people: 1, shots: 1, group: true },
+    options: { title: '', sub: '', cta: '', groups: [] },
+    generating: { title: '', sub: '', stages: ['', '', ''] },
+    result: { title: '네 컷이\n완성됐어요', sub: '프레임을 고르고 인화해요' },
+    save: { title: '사진을 가져가세요', sub: '아래 출구로 사진이 나와요 · 휴대폰에도 저장할 수 있어요' },
+    intro: '/assets/booth-programs/cheese-video/lounge.webp', script: 'Say cheese!', designs: ['화이트', '블랙'],
+    card: { tag: 'CHEESE!', desc: '포토그래퍼 온유의 스튜디오에서 네 컷을 찍고 프레임 8종 중 하나를 골라 4×6 세로 2×2 사진으로 뽑아요.', color: '#111111', badges: ['영상판', '네 컷', '프레임 8종', '4×6 인화'] },
   },
   // ───── 펀그라운드 별내(9~19세) 견적 A안 새 프로그램 — 얼굴은 그대로, 옷 · 배경만. 1~4명. 생성은 Seedream 5.0 Flash 먼저(image-models.ts) ─────
   {

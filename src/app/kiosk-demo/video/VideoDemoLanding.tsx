@@ -37,6 +37,9 @@ const MORE_CARDS = [
   // 포토부스 일반 프로그램 LATER!(2026-11-19, 모드 later — 늘 영상판, src/app/booth/programs/LaterFlow.tsx) — 가로 화면
   { key: 'later', device: 'booth' as const, tag: 'LATER! · 영상판', name: '나중 박사의 타임캡슐 — 10 · 20 · 30년 뒤의 우리', color: '#1f4fd8', screen: '/assets/booth-programs/later-video/garage.webp', href: (k?: string) => `${boothDemoHref({ mode: 'later' }, k)}&camera=webcam`,
     desc: '가로 포토부스. 괴짜 발명가 나중 박사의 실험실에서 커다란 타임캡슐에 올라 조종석에서 한 컷 찍고 레버를 당기면, 창밖으로 2036 · 2046 · 2056년의 우리가 차례로 나타나요. 돌아오면 네 컷을 2×6 사진으로 뽑아 줍니다.', needs: ['카메라', 'AI 미래 사진', '1~4인', '2×6 인화 · QR'] },
+  // 포토부스 일반 프로그램 CHEESE!(2026-11-25, 모드 cheese — 늘 영상판, src/app/booth/programs/CheeseFlow.tsx) — 가로 화면, AI 없음
+  { key: 'cheese', device: 'booth' as const, tag: 'CHEESE! · 영상판', name: '치즈 스튜디오 — 포토그래퍼 온유의 네 컷', color: '#141414', screen: '/assets/booth-programs/cheese-video/lounge.webp', href: (k?: string) => `${boothDemoHref({ mode: 'cheese' }, k)}&camera=webcam`,
+    desc: '가로 포토부스. 포토그래퍼 온유의 스튜디오에서 컷마다 3초 카운트다운으로 네 컷을 찍고, 모니터 화면 속에서 프레임 8종 중 하나를 골라 4×6 세로 2×2 사진으로 뽑아 줍니다.', needs: ['카메라', '네 컷', '프레임 8종', '4×6 인화 · QR'] },
 ]
 
 /** 연말 시상식(2026-12-15) 영상판 — 다른 세션이 만든 것을 같은 데모에 모음(SIP! 키오스크 · FACE! · SAJU! 포토부스) */

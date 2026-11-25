@@ -29,6 +29,7 @@ import { AsvStart, AsvTopBar } from './AsvParts'
 import { FgeStart, FgeTopBar, useFgEditorial } from './funground-editorial'
 import { preloadVideoPlan, useLab, VIDEO_PLANS, VideoStage, type StageArt } from './video-stage'
 import { LaterFlow, LaterStart } from './LaterFlow'
+import { CheeseFlow, CheeseStart } from './CheeseFlow'
 import './programs.css'
 import './asv.css'
 import './funground-editorial.css'
@@ -62,7 +63,9 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
   const lab = useLab()
   // LATER! 나중 박사의 타임캡슐은 늘 영상판(주소 &lab 없이도) — 화면 · CSS 는 따로(LaterFlow.tsx · later.css, 관상 · 사주의 옛 책 패널을 쓰지 않게 data-video 대신 data-later)
   const later = program.id === 'later'
-  const plan = later || lab === 'video' ? VIDEO_PLANS[program.id] : undefined
+  // CHEESE! 스튜디오도 늘 영상판 — 화면 · CSS 는 CheeseFlow.tsx · cheese.css(data-cheese, 밝은 스튜디오 톤)
+  const cheese = program.kind === 'studio'
+  const plan = later || cheese || lab === 'video' ? VIDEO_PLANS[program.id] : undefined
   const [flowView, setFlowView] = useState<{ step: string; overlay: StageArt | null }>({ step: '', overlay: null })
   const report = useCallback((step: string, overlay: StageArt | null) => setFlowView((v) => (v.step === step && v.overlay?.art === overlay?.art && v.overlay?.title === overlay?.title ? v : { step, overlay })), [])
   useEffect(() => { if (plan) preloadVideoPlan(plan) }, [plan])
@@ -128,9 +131,10 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
   // 영상이 끝내 도착을 못 알리면(영상을 못 받음 등) 화면이 갇히지 않게 — 가장 긴 이동(8초 영상 + 마저 틀기)보다 넉넉히 기다린 뒤 연다
   useEffect(() => {
     if (!scene || arrived === scene) return
-    const t = window.setTimeout(() => setArrived(scene), 12000)
+    // CHEESE! 는 이동 두 개를 이어 튼다(카메라 → 모니터석 → 화면 확대) — 그만큼 넉넉히
+    const t = window.setTimeout(() => setArrived(scene), plan?.via ? 18000 : 12000)
     return () => window.clearTimeout(t)
-  }, [scene, arrived])
+  }, [scene, arrived, plan])
 
   // 무입력 — 진행 화면에서 45초 손이 없으면 확인 창(30초 뒤 처음으로). 생성·녹화·업로드 중에는 묻지 않는다
   useEffect(() => {
@@ -154,7 +158,7 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
   }
 
   return (
-    <div className={`pg ${FONT_VARS}${program.kind === 'strip' && !later ? ' asv' : ''}`} data-program={program.id} data-kind={program.kind} data-site={fge ? 'funground' : undefined} data-video={plan && !later ? '' : undefined} data-later={later ? '' : undefined} data-arrived={plan && scene && arrived === scene ? '' : undefined}>
+    <div className={`pg ${FONT_VARS}${program.kind === 'strip' && !later ? ' asv' : ''}`} data-program={program.id} data-kind={program.kind} data-site={fge ? 'funground' : undefined} data-video={plan && !later && !cheese ? '' : undefined} data-later={later ? '' : undefined} data-cheese={cheese ? '' : undefined} data-scene={cheese && scene ? scene : undefined} data-arrived={plan && scene && arrived === scene ? '' : undefined}>
       <div className="pg-stage" style={{ '--pg-scale': scale } as CSSProperties}>
         {plan && scene && <VideoStage plan={plan} scene={scene} overlay={flowView.overlay} onArrive={setArrived} />}
         {/* ANSAN(띠지 kind)은 축제 공식 웹사이트 디자인(AsvParts · asv.css) */}
@@ -163,10 +167,11 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
           : fge ? <FgeTopBar step={screen === 'start' ? 1 : screen === 'pass' ? 2 : step} onHome={requestHome} />
             : <TopBar program={program} screen={screen} step={step} onHome={requestHome} onHelp={() => setHelp(true)} />}
         <main className="pg-body"><PlainText.Provider value={Boolean(plan)}>
-          {screen === 'start' && (later ? <LaterStart program={program} onStart={start} /> : program.kind === 'strip' ? <AsvStart program={program} onStart={start} /> : fge ? <FgeStart program={program} art={fge} onStart={start} /> : <StartScreen program={program} onStart={start} plain={Boolean(plan)} />)}
+          {screen === 'start' && (later ? <LaterStart program={program} onStart={start} /> : cheese ? <CheeseStart program={program} onStart={start} /> : program.kind === 'strip' ? <AsvStart program={program} onStart={start} /> : fge ? <FgeStart program={program} art={fge} onStart={start} /> : <StartScreen program={program} onStart={start} plain={Boolean(plan)} />)}
           {screen === 'pass' && <PassScreen onBack={home} onTicket={(t) => { ticketRef.current = t; setScreen('flow') }} />}
           {screen === 'flow' && (
-            program.kind === 'photo' ? <PhotoFlow key={session} ctx={ctx} />
+            cheese ? <CheeseFlow key={session} ctx={ctx} />
+            : program.kind === 'photo' ? <PhotoFlow key={session} ctx={ctx} />
               : program.kind === 'mv' ? <MvFlow key={session} ctx={ctx} />
                 : later ? <LaterFlow key={session} ctx={ctx} />
                 : program.kind === 'strip' ? <StripFlow key={session} ctx={ctx} />
@@ -193,7 +198,7 @@ export function ProgramApp({ id, demo }: { id: ProgramId; demo: boolean }) {
             <ul className="pg-help">
               <li><Camera size={22} />화면의 가이드 안에 얼굴이 들어오게 서 주세요. 타이머가 끝나면 찍혀요.</li>
               <li><ImageIcon size={22} />카메라가 안 되면 휴대폰 사진으로도 할 수 있어요.</li>
-              <li><Sparkles size={22} />{program.kind === 'strip' ? '미래 사진 세 장은 보통 30~40초 걸려요. 4명까지 함께 찍을 수 있고, 아기는 안고 찍어도 돼요.' : program.kind === 'photo' ? 'AI 사진은 보통 20~40초 걸려요. 실패해도 찍은 사진과 옵션은 그대로예요.' : program.kind === 'reading' ? (program.id === 'nh-face' ? '초상과 새해 이야기는 보통 10~20초면 나와요. 초상을 못 그리면 찍은 사진을 옛 사진 빛깔로 넣어 드려요.' : '새해 이야기는 보통 5~10초면 나와요. 사진은 그대로 새해 카드에 들어가요(AI가 그림을 새로 그리지 않아요).') : '영상은 길이만큼 시간이 걸려요. 완성되면 QR로 휴대폰에 받아요.'}</li>
+              <li><Sparkles size={22} />{program.kind === 'studio' ? '네 컷을 이어서 찍어요(컷마다 카운트다운). 다 찍으면 프레임을 고르고 4×6 사진으로 뽑아요.' : program.kind === 'strip' ? '미래 사진 세 장은 보통 30~40초 걸려요. 4명까지 함께 찍을 수 있고, 아기는 안고 찍어도 돼요.' : program.kind === 'photo' ? 'AI 사진은 보통 20~40초 걸려요. 실패해도 찍은 사진과 옵션은 그대로예요.' : program.kind === 'reading' ? (program.id === 'nh-face' ? '초상과 새해 이야기는 보통 10~20초면 나와요. 초상을 못 그리면 찍은 사진을 옛 사진 빛깔로 넣어 드려요.' : '새해 이야기는 보통 5~10초면 나와요. 사진은 그대로 새해 카드에 들어가요(AI가 그림을 새로 그리지 않아요).') : '영상은 길이만큼 시간이 걸려요. 완성되면 QR로 휴대폰에 받아요.'}</li>
               <li><CircleHelp size={22} />{program.kind === 'strip' || program.kind === 'reading' ? '문제가 계속되면 부스 운영 스태프에게 말씀해 주세요.' : '문제가 계속되면 매장 직원에게 말씀해 주세요.'}</li>
             </ul>
             <button type="button" className="pg-btn pg-btn--accent pg-btn--wide" onClick={() => setHelp(false)}>닫기</button>

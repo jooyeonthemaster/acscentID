@@ -117,7 +117,7 @@ export const BOOTH_MODES: BoothMode[] = [
   ...PROGRAMS.filter((p) => !p.event && !p.site).map((p): BoothMode => ({
     id: p.id,
     label: `${p.wordmark} ${p.name}`,
-    note: p.kind === 'photo' ? `프로그램 · AI 사진${p.capture.people > 1 ? ' · 2인' : p.capture.group ? ' · 1~4인' : ''} · 4×6 인화·QR` : p.kind === 'strip' ? '프로그램 · AI 미래 네 컷 · 1~4인 · 2×6 사진 · QR' : '프로그램 · 영상 · QR 다운로드',
+    note: p.kind === 'photo' ? `프로그램 · AI 사진${p.capture.people > 1 ? ' · 2인' : p.capture.group ? ' · 1~4인' : ''} · 4×6 인화·QR` : p.kind === 'strip' ? '프로그램 · AI 미래 네 컷 · 1~4인 · 2×6 사진 · QR' : p.kind === 'studio' ? '프로그램 · 네 컷 촬영 · 프레임 8종 · 4×6 세로 2×2 인화 · QR' : '프로그램 · 영상 · QR 다운로드',
     brandLine: `${p.wordmark} · AI PHOTOBOOTH`,
     storeEvents: false,
     program: p.id,

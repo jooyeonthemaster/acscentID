@@ -80,7 +80,7 @@ const QR_BOTTOM = 1728
 const QR_CAPTION = `휴대폰으로 사진 받기 · ${RESULT_PHOTO_TTL_HOURS / 24}일 보관 →`
 
 /** 오른쪽 아래 QR — 칸의 오른쪽·아래 끝을 (right, bottom)에 맞추고, 둘레 2칸은 밝은 판(조용한 여백). 판의 자리를 돌려준다 */
-function qrBlock(ctx: Ctx, qr: StripQr, right: number, bottom: number, radius = 0) {
+export function qrBlock(ctx: Ctx, qr: StripQr, right: number, bottom: number, radius = 0) {
   const m = Math.max(2, Math.floor(QR_MAX / qr.size)), q = qr.size * m, pad = m * 2
   const x = right - q, y = bottom - q
   rect(ctx, x - pad, y - pad, q + pad * 2, q + pad * 2, '#ffffff', radius)

@@ -32,6 +32,8 @@ export interface VideoPlan {
   idles: number
   /** `떠나는>도착` → 이동 영상. 짝이 없으면 도착 장면 인사로 바로(컷) */
   moves: Record<string, Move>
+  /** `떠나는>도착` → 거쳐 가는 장면 — 그 장면까지 이동 영상을 틀고 인사 없이 바로 다음 이동으로(CHEESE! 카메라 → 모니터석 → 화면 확대) */
+  via?: Record<string, string>
   /** 결과 장면에서 손님 초상을 그릴 빈 비단 — 1920×1080 기준(금색 테 안쪽) */
   frame?: { scene: string; x: number; y: number; w: number; h: number }
 }
@@ -100,7 +102,33 @@ const LATER: VideoPlan = {
   },
 }
 
-export const VIDEO_PLANS: Partial<Record<ProgramId, VideoPlan>> = { 'nh-face': FACE, 'nh-saju': SAJU, later: LATER }
+/**
+ * CHEESE! 스튜디오(늘 영상판 — CheeseFlow.tsx) — 포토그래퍼 「온유」의 현대 사진 스튜디오: 입구 라운지(시작) → 카메라 뒤(네 컷 촬영)
+ * → 모니터석(프레임 고르기) → 인화 데스크(인화 · QR) → 봉투를 건네고 배웅, 다시 라운지. 원본 design-review/cheese-art(시트 · 그림 · spec cheese-clips.json · clips)
+ */
+const CHEESE: VideoPlan = {
+  base: '/assets/booth-programs/cheese-video',
+  start: 'lounge', firstFlow: 'camera',
+  // 프레임 고르기는 모니터 화면 속(screen — 모니터 정면으로 다가가 화면이 거의 꽉 찬 장면, 2026-11-25 사용자 지시). 모니터석(monitor)은 거쳐 가는 곳
+  steps: { shoot: 'camera', frame: 'screen', save: 'print' },
+  pics: { lounge: 'lounge', camera: 'camera', monitor: 'monitor', screen: 'screen', print: 'print' },
+  idles: 2,
+  moves: {
+    // 0.5초 간격 프레임으로 잰 out · in(2026-11-25) — 손짓하고 오른쪽으로 걸어 나감 → 일인칭으로 다음 자리 → 왼쪽에서 걸어 들어옴
+    'lounge>camera': { src: 'move-camera', out: 3.5, in: 5, len: 8 },
+    // 다시 만든 판(11/25 — 옛 판은 가는 길의 두 번째 책상이 끝에 녹아 사라졌다): 책상 하나가 멀리서 다가와 그대로 왼쪽 책상
+    'camera>monitor': { src: 'move-monitor', out: 3.7, in: 5.1, len: 8 },
+    'monitor>print': { src: 'move-print', out: 2.5, in: 3.8, len: 8 },
+    // 모니터를 가리키고 화면 정면으로 다가감(온유는 왼쪽으로 빠짐) / 화면에서 물러나며 책상 옆 온유
+    'monitor>screen': { src: 'move-screen', out: 5, in: 5, len: 5, walk: 1.2 },
+    'screen>monitor': { src: 'move-unscreen', out: 5, in: 5, len: 5, walk: 1.3 },
+    // 봉투에 넣어 건네고 인사 → 걸어 나감 → 라운지로 → 걸어 들어와 다시 인사 자세
+    'print>lounge': { src: 'move-lounge', out: 4, in: 4.8, len: 8 },
+  },
+  via: { 'camera>screen': 'monitor', 'screen>print': 'monitor', 'screen>camera': 'monitor', 'screen>lounge': 'monitor' },
+}
+
+export const VIDEO_PLANS: Partial<Record<ProgramId, VideoPlan>> = { 'nh-face': FACE, 'nh-saju': SAJU, later: LATER, cheese: CHEESE }
 
 /** 주소의 &lab= 값(서버 렌더에서는 null) */
 export function useLab(): string | null {
@@ -129,8 +157,9 @@ const idle = (s: string, pick: number, id: number): Clip => ({ src: `idle-${s}-$
 function after(plan: VideoPlan, cur: Clip, target: string, pick: number): Clip {
   const id = cur.id + 1
   if (cur.at !== target) {
-    const m = plan.moves[`${cur.at}>${target}`]
-    return m ? { src: m.src, at: target, from: cur.at, move: m, id } : hi(target, id)
+    const to = plan.via?.[`${cur.at}>${target}`] ?? target
+    const m = plan.moves[`${cur.at}>${to}`]
+    return m ? { src: m.src, at: to, from: cur.at, move: m, id } : hi(target, id)
   }
   return cur.move ? hi(cur.at, id) : idle(cur.at, pick, id)
 }

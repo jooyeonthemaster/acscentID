@@ -63,7 +63,7 @@ export const BOOTH_DEMOS: BoothDemo[] = [
     desc: p.card.desc,
     needs: p.kind === 'photo'
       ? ['camera', 'ai', ...(p.capture.people > 1 ? ['two' as const] : []), 'print']
-      : p.kind === 'mv' ? ['camera', 'mic', 'video', 'qr'] : p.kind === 'reading' ? ['camera', 'print', 'qr'] : p.kind === 'strip' ? ['camera', 'ai', 'video', 'print', 'qr'] : ['phone', 'video', 'qr'],
+      : p.kind === 'mv' ? ['camera', 'mic', 'video', 'qr'] : p.kind === 'reading' ? ['camera', 'print', 'qr'] : p.kind === 'strip' ? ['camera', 'ai', 'video', 'print', 'qr'] : p.kind === 'studio' ? ['camera', 'print', 'qr'] : ['phone', 'video', 'qr'],
     badges: p.card.badges,
     // 주거복지대전 제안서(2026-10-26) 묶음: 입주 기념사진 · 2046 미래 도시 주민 · 과거로의 여행(TIME!)
     group: ['housing-movein', 'housing-2046', 'history'].includes(p.id) ? 'housing' : p.kind === 'photo' ? 'photo' : 'video',
