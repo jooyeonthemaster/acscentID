@@ -12,6 +12,7 @@ import { usesImage } from './expansion/image-prompts'
 import { DEMO_CLEAN_KEY_PARAM, DEMO_CLEAN_VALUE } from '../demo-clean'
 import { NO_PHOTO_IDS } from './expansion/housing'
 import { EXPANSION_IDS, EXPANSION_META } from './expansion/types'
+import { videoSoon, videoSoonDesc } from '../demo-video-soon'
 
 export type KioskDemoNeed = 'camera' | 'mic' | 'ai' | 'analysis' | 'touch' | 'display'
 
@@ -34,11 +35,13 @@ export interface KioskDemo {
   color: string
   /** 같은 프로그램의 다른 판(영상판 · 스핀오프) — 기본판 카드 이름(id ?? mode). 랜딩에서 기본판 바로 옆에 나란히 놓는다 */
   variantOf?: string
+  /** 영상판 준비 중 카드 — 누를 수 없고 「준비 중」 뱃지(src/lib/demo-video-soon.ts) */
+  soon?: boolean
 }
 
 export const KIOSK_DEMO_NEEDS: Record<KioskDemoNeed, string> = { camera: '카메라', mic: '마이크', ai: 'AI 생성', analysis: 'AI 분석', touch: '터치', display: '전시 화면 연동' }
 
-export const KIOSK_DEMOS: KioskDemo[] = [
+const KIOSK_BASE: KioskDemo[] = [
   { mode: 'kwave-2026', tag: 'SAJU!', name: '사주 향 처방', desc: '생년월일시로 사주 오행을 읽고, 부족한 기운을 채우는 향을 처방전 영수증으로 뽑아 줍니다.', needs: ['touch', 'ai'], group: 'reading', color: '#1f5a45' },
   { mode: 'ai-color', tag: 'COLOR!', name: 'AI 퍼스널 컬러', desc: '사진 한 장으로 퍼스널 컬러 8유형을 진단하고, 어울리는 색을 얼굴 옆에 대어 봅니다.', needs: ['camera', 'ai'], group: 'reading', color: '#26307a' },
   { mode: 'ai-tarot', tag: 'TAROT!', name: 'AI 타로', desc: '직접 고른 카드 세 장으로 과거 · 현재 · 미래를 읽어 줍니다.', needs: ['touch', 'ai'], group: 'reading', color: '#59436e' },
@@ -72,6 +75,18 @@ export const KIOSK_DEMOS: KioskDemo[] = [
   // 연말 시상식(/booth-demo/nh)과 같은 주소 · 같은 견본 — 시음 와인 10병 중 한 병을 번호로
   { id: 'sommelier-nh', mode: 'studio-sommelier-nh', tag: 'SIP!', name: 'AI 소믈리에 · 시음 와인 10병', desc: '사진 한 장과 단맛 · 산미 · 바디 · 종류를 고르면 AI가 오늘의 시음 와인 10병 중 한 병을 골라 번호로 알려 줍니다. 직원은 영수증 번호를 보고 따라 드려요.', needs: ['camera', 'analysis'], group: 'preferences', color: '#6b2941', screen: '/assets/booth-demo/nh/sommelier.webp' },
   { id: 'sommelier-nh-video', variantOf: 'sommelier-nh', mode: 'studio-sommelier-nh', lab: 'video', tag: 'SIP! · 영상판', name: 'AI 소믈리에 · 와이너리 여정', desc: '소믈리에 해나를 따라 포도밭 → 와이너리 → 수장고 → 시음실을 1인칭 영상으로 걸으며 맛을 고르면, AI가 시음 와인 10병 중 한 병을 골라 줍니다.', needs: ['camera', 'analysis'], group: 'preferences', color: '#3a2318', screen: '/assets/booth-demo/nh/sip-video.webp' },
+]
+
+/** 랜딩 카드 — 위 목록 + 영상판이 없는 카드마다 「영상판 준비 중」 카드(기본판 옆에 나란히) */
+export const KIOSK_DEMOS: KioskDemo[] = [
+  ...KIOSK_BASE,
+  ...KIOSK_BASE.flatMap((base): KioskDemo[] => {
+    const key = base.id ?? base.mode
+    const soon = videoSoon(key)
+    return soon && !base.variantOf && !KIOSK_BASE.some((d) => d.variantOf === key)
+      ? [{ ...base, id: `${key}-video-soon`, variantOf: key, soon: true, lab: undefined, tag: `${base.tag} · 영상판`, name: `${base.name} — ${soon.guide}`, desc: videoSoonDesc(soon.guide), screen: soon.screen }]
+      : []
+  }),
 ]
 
 /** 카드가 여는 주소 — 다른 화면(lab)이면 그 칸을 붙인다 */

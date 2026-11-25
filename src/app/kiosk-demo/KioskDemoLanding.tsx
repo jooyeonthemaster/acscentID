@@ -66,21 +66,27 @@ const demoKey = (demo: KioskDemo) => demo.id ?? demo.mode
 
 /** 프로그램 카드 한 장 — 영상판(lab=video)은 첫 장면 그림, 그 밖은 첫 화면 캡처 */
 function KioskCard({ demo, cleanKey }: { demo: KioskDemo; cleanKey?: string }) {
-  return (
-    <a className="kd-card" href={kioskDemoCardHref(demo, cleanKey)} target="_blank" rel="noopener" style={{ '--kd-tone': demo.color } as CSSProperties}>
+  const body = (
+    <>
       <Kiosk>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={demo.screen ?? screenShot(demo.mode)} alt={`${demo.name} 첫 화면`} width={600} height={1067} loading="lazy" decoding="async" />
+        {demo.soon && <span className="demo-soon">준비 중</span>}
       </Kiosk>
       <span className="kd-card-body">
         <span className="kd-tag">{demo.tag}</span>
         <b>{demo.name}</b>
         <span className="kd-desc">{demo.desc}</span>
-        <span className="kd-needs">{demo.needs.map((need) => <i key={need}>{KIOSK_DEMO_NEEDS[need]}</i>)}{demo.lab === 'video' && <i>영상 안내</i>}</span>
-        <span className="kd-open">데모 열기<ArrowUpRight size={18} strokeWidth={2.2} aria-hidden="true" /></span>
+        {!demo.soon && <span className="kd-needs">{demo.needs.map((need) => <i key={need}>{KIOSK_DEMO_NEEDS[need]}</i>)}{demo.lab === 'video' && <i>영상 안내</i>}</span>}
+        {demo.soon
+          ? <span className="kd-open kd-open--soon">영상판 준비 중</span>
+          : <span className="kd-open">데모 열기<ArrowUpRight size={18} strokeWidth={2.2} aria-hidden="true" /></span>}
       </span>
-    </a>
+    </>
   )
+  // 준비 중 영상판은 누를 수 없다 — 그림은 첫 장면 예시(src/lib/demo-video-soon.ts)
+  if (demo.soon) return <div className="kd-card kd-card--soon" style={{ '--kd-tone': demo.color } as CSSProperties}>{body}</div>
+  return <a className="kd-card" href={kioskDemoCardHref(demo, cleanKey)} target="_blank" rel="noopener" style={{ '--kd-tone': demo.color } as CSSProperties}>{body}</a>
 }
 
 /** 랜딩 본문 — 서명(cleanKey)이 맞으면 워터마크 없는 데모 주소(demo=clean&k=…)로 열고 안내 문구에서 워터마크 줄을 뺀다 */

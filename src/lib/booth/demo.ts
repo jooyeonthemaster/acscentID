@@ -15,6 +15,7 @@ export type BoothDemoProgram = 'template' | 'together' | 'solo' | 'card'
 import { PROGRAMS, findProgram } from './programs/catalog'
 import { DEMO_CLEAN_KEY_PARAM, DEMO_CLEAN_VALUE } from '../demo-clean'
 import { FUNGROUND_PROGRAMS, fungroundTargetHref, type FungroundTarget } from '../funground/demo'
+import { videoSoon, videoSoonDesc } from '../demo-video-soon'
 
 export type BoothDemoNeed = 'camera' | 'ai' | 'phone' | 'print' | 'qr' | 'video' | 'mic' | 'two'
 
@@ -42,6 +43,8 @@ export interface BoothDemo {
   print?: string
   /** 같은 프로그램의 다른 판(영상판) — 기본판 카드 id. 랜딩에서 기본판 바로 옆에 나란히 놓는다 */
   variantOf?: string
+  /** 영상판 준비 중 카드 — 누를 수 없고 「준비 중」 뱃지(src/lib/demo-video-soon.ts) */
+  soon?: boolean
 }
 
 export const BOOTH_DEMO_NEEDS: Record<BoothDemoNeed, string> = {
@@ -50,7 +53,7 @@ export const BOOTH_DEMO_NEEDS: Record<BoothDemoNeed, string> = {
 
 const shot = (name: string) => `/assets/booth-demo/${name}.webp`
 
-export const BOOTH_DEMOS: BoothDemo[] = [
+const BOOTH_BASE: BoothDemo[] = [
   { id: 'idol-ending-fairy', mode: 'kwave-2026', concept: 'ending-fairy', tag: 'ENDING FAIRY', name: '음방 엔딩요정', desc: '음악방송 무대가 끝난 순간의 엔딩 클로즈업. 헤드셋 마이크와 반짝이 메이크업, 컨페티까지.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#7a4fd0', screen: shot('idol-ending-fairy'), print: shot('print-ending-fairy') },
   { id: 'idol-album-jacket', mode: 'kwave-2026', concept: 'album-jacket', tag: 'ALBUM', name: '앨범 재킷', desc: '스튜디오에서 찍은 공식 컨셉 포토처럼, 채도 낮은 필름 색감의 화보 한 장.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#8a6a52', screen: shot('idol-album-jacket'), print: shot('print-album-jacket') },
   { id: 'idol-stage-fancam', mode: 'kwave-2026', concept: 'stage-fancam', tag: 'FANCAM', name: '무대 직캠', desc: '콘서트 무대에서 안무 중인 순간. 조명 빔과 대형 LED, 걸크러시 무대 의상.', needs: ['camera', 'ai', 'print'], group: 'idol', color: '#c0303f', screen: shot('idol-stage-fancam'), print: shot('print-stage-fancam') },
@@ -102,6 +105,17 @@ export const BOOTH_DEMOS: BoothDemo[] = [
   fungroundBooth('mvp', 'program-mvp'),
   fungroundScreen('theme', { tag: 'THEME!', name: '테마 포토 · B안 기기 안 처리', desc: '아이돌 무대 · 경기장 · 마법 학교 · 우주 정거장 · 놀이공원 등 테마 6가지 — 1~4명이 찍으면 사람만 오려 고른 배경에 넣어 4×6 사진으로 줘요. 외부 AI로 보내지 않아요.', color: '#d9466f', badges: ['AI 인물 인식', '기기 안 처리', '4×6 인화'] }),
   fungroundScreen('later', { tag: 'LATER!', name: '타임캡슐 포토 · B안 기기 안 처리', desc: '10년 · 20년 뒤에 열어 볼 장면(우주 정거장 · 미래 도시 · 하늘 위 학교)과 한마디를 골라, 사진을 그 장면에 넣은 4×6 타임캡슐 사진으로 줘요. 얼굴은 바꾸지 않아요.', color: '#5b55d6', badges: ['AI 인물 인식', '기기 안 처리', '4×6 인화'] }),
+]
+
+/** 랜딩 카드 — 위 목록 + 영상판이 없는 카드마다 「영상판 준비 중」 카드(기본판 옆에 나란히) */
+export const BOOTH_DEMOS: BoothDemo[] = [
+  ...BOOTH_BASE,
+  ...BOOTH_BASE.flatMap((base): BoothDemo[] => {
+    const soon = videoSoon(base.id)
+    return soon && !base.variantOf && !BOOTH_BASE.some((d) => d.variantOf === base.id)
+      ? [{ ...base, id: `${base.id}-video-soon`, variantOf: base.id, soon: true, href: undefined, badges: undefined, needs: [], tag: `${base.tag} · 영상판`, name: `${base.name} — ${soon.guide}`, desc: videoSoonDesc(soon.guide), screen: soon.screen }]
+      : []
+  }),
 ]
 
 /** 행사 전용 프로그램 카드(catalog 의 event) — 문구는 프로그램 카드에서 */

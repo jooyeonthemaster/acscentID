@@ -80,21 +80,27 @@ export function Booth({ children, print, className }: { children: ReactNode; pri
 
 /** 프로그램 카드 한 장 */
 function BoothCard({ demo, cleanKey }: { demo: BoothDemo; cleanKey?: string }) {
-  return (
-    <a className="bd-card" href={boothDemoCardHref(demo, cleanKey)} target="_blank" rel="noopener" style={{ '--bd-tone': demo.color } as CSSProperties}>
+  const body = (
+    <>
       <Booth print={demo.print}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={demo.screen} alt={`${demo.name} 화면`} width={960} height={540} loading="lazy" decoding="async" />
+        {demo.soon && <span className="demo-soon">준비 중</span>}
       </Booth>
       <span className="bd-card-body">
         <span className="bd-tag">{demo.tag}</span>
         <b>{demo.name}</b>
         <span className="bd-desc">{demo.desc}</span>
-        <span className="bd-needs">{(demo.badges ?? demo.needs.map((need) => BOOTH_DEMO_NEEDS[need])).map((badge) => <i key={badge}>{badge}</i>)}</span>
-        <span className="bd-open">데모 열기<ArrowUpRight size={18} strokeWidth={2.2} aria-hidden="true" /></span>
+        {!demo.soon && <span className="bd-needs">{(demo.badges ?? demo.needs.map((need) => BOOTH_DEMO_NEEDS[need])).map((badge) => <i key={badge}>{badge}</i>)}</span>}
+        {demo.soon
+          ? <span className="bd-open bd-open--soon">영상판 준비 중</span>
+          : <span className="bd-open">데모 열기<ArrowUpRight size={18} strokeWidth={2.2} aria-hidden="true" /></span>}
       </span>
-    </a>
+    </>
   )
+  // 준비 중 영상판은 누를 수 없다 — 그림은 첫 장면 예시(src/lib/demo-video-soon.ts)
+  if (demo.soon) return <div className="bd-card bd-card--soon" style={{ '--bd-tone': demo.color } as CSSProperties}>{body}</div>
+  return <a className="bd-card" href={boothDemoCardHref(demo, cleanKey)} target="_blank" rel="noopener" style={{ '--bd-tone': demo.color } as CSSProperties}>{body}</a>
 }
 
 /** 랜딩 본문 — 서명(cleanKey)이 맞으면 워터마크 없는 데모 주소(demo=clean&k=…)로 열고 안내 문구에서 워터마크 줄을 뺀다 */

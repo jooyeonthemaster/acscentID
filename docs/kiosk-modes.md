@@ -42,7 +42,7 @@
 
 ## 영상판 데모 (2026-11-18)
 
-길잡이 인물 영상 위에서 같은 프로그램을 하는 영상판 — 데모 랜딩 **`/kiosk-demo`** 에서 기본판 카드 바로 옆에 나란히(2026-11-25 사용자 지시로 따로 있던 `/kiosk-demo/video` 탭을 합침 — 그 주소는 `/kiosk-demo` 로 넘긴다. 카드 목록 `src/lib/kiosk/demo.ts` 의 `variantOf`, 포토부스 FACE! · SAJU! 영상판도 `/booth-demo` 에서 같은 방식). COLOR! 서하 · DRAW! 모루 · MAKEUP! 이안 · SCENT! 하린 · SIP! 해나. 주소에 `&lab=video` 가 있을 때만 뜨고 기본 화면은 그대로다. 재생기 · 계획 `src/app/kiosk/video/`(stage.tsx · plans.ts · ui.tsx), 영상 · 수치 `public/assets/kiosk-video/README.md`, 만드는 방법 `.claude/skills/kiosk-video-flow`. 흐름만 보는 미리보기(카메라 · AI 없이) `/kiosk/video/<color|draw|makeup>`.
+길잡이 인물 영상 위에서 같은 프로그램을 하는 영상판 — 데모 랜딩 **`/kiosk-demo`** 에서 기본판 카드 바로 옆에 나란히(2026-11-25 사용자 지시로 따로 있던 `/kiosk-demo/video` 탭을 합침 — 그 주소는 `/kiosk-demo` 로 넘긴다. 카드 목록 `src/lib/kiosk/demo.ts` 의 `variantOf`, 포토부스 FACE! · SAJU! 영상판도 `/booth-demo` 에서 같은 방식). COLOR! 서하 · DRAW! 모루 · MAKEUP! 이안 · SCENT! 하린 · SIP! 해나. 주소에 `&lab=video` 가 있을 때만 뜨고 기본 화면은 그대로다. 영상판이 아직 없는 카드에는 상상한 첫 장면 그림으로 「준비 중」 영상판 카드를 붙인다(누를 수 없음, `src/lib/demo-video-soon.ts` · 그림 `public/assets/demo-video-soon` · 원본 저장소 밖 `design-review/video-thumbs`, 2026-11-25). 재생기 · 계획 `src/app/kiosk/video/`(stage.tsx · plans.ts · ui.tsx), 영상 · 수치 `public/assets/kiosk-video/README.md`, 만드는 방법 `.claude/skills/kiosk-video-flow`. 흐름만 보는 미리보기(카메라 · AI 없이) `/kiosk/video/<color|draw|makeup>`.
 
 ## 키오스크 API 하루 상한 (2026-11-11)
 

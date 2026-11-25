@@ -13,3 +13,6 @@
   .dt .dt-tab { padding: 9px 13px; font-size: 14px; }
   .dt .dt-tab span { display: none; }
 }
+
+/* 영상판 준비 중 카드(src/lib/demo-video-soon.ts) — 화면 왼쪽 위 뱃지. 키오스크 · 포토부스 랜딩 공통 */
+.demo-soon { position: absolute; top: 8px; left: 8px; z-index: 4; padding: 3px 10px; border-radius: 999px; background: #ffd84d; color: #241c00; font-size: 12px; font-weight: 800; line-height: 1.4; letter-spacing: -0.01em; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); pointer-events: none; }
